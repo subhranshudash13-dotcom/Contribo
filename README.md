@@ -12,10 +12,14 @@
 
 Contribo generalizes open-source opportunity tracking, bringing multiple programs under one standard schema:
 *   **Google Summer of Code (GSoC)**
-*   **Outreachy**
 *   **LFX Mentorship (Linux Foundation)**
-*   **MLH Fellowship (Major League Hacking)**
-*   *Designed for expansion:* Extendable to Hacktoberfest, Google Season of Docs, C4GT, Season of KDE, CNCF Mentoring, and others.
+*   **European Summer of Code (ESoC)**
+*   **Outreachy**
+*   **Summer of Bitcoin (SOB)**
+*   **MLH Fellowship**
+*   **Hacktoberfest**
+*   **GirlScript Summer of Code (GSSoC)**
+*   **Nexus Spring of Code (NSoC)**
 
 ---
 
