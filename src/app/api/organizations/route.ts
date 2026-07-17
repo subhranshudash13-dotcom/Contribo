@@ -11,6 +11,19 @@ export async function GET(req: Request) {
       programSlug: searchParams.get('programSlug') || searchParams.get('program'),
       search: sanitizeSearchQuery(searchParams.get('q') || searchParams.get('search')),
       tag: searchParams.get('tag') || searchParams.get('technology'),
+      years: searchParams.get('years')
+        ? searchParams
+            .get('years')!
+            .split(',')
+            .map(Number)
+            .filter((n) => Number.isFinite(n))
+        : null,
+      yearMode:
+        searchParams.get('yearMode') === 'and'
+          ? 'and'
+          : searchParams.get('yearMode') === 'or'
+            ? 'or'
+            : null,
       limit,
       skip,
     });

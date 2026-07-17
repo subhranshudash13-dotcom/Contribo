@@ -1,0 +1,913 @@
+{
+  "info": {
+    "name": "Contribo API",
+    "description": "API Collection for Contribo — Open Source Program Matcher & Hub.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "description": "The base URL for the local development server."
+    },
+    {
+      "key": "sessionToken",
+      "value": "YOUR_AUTHJS_SESSION_TOKEN_HERE",
+      "description": "Session token from NextAuth cookie authjs.session-token (or __Secure-authjs.session-token)."
+    },
+    {
+      "key": "programSlug",
+      "value": "gsoc",
+      "description": "Slug for dynamic program endpoints"
+    },
+    {
+      "key": "projectId",
+      "value": "65b53e8d246c4f001f35832a",
+      "description": "ID of a project to query details for"
+    },
+    {
+      "key": "orgSlug",
+      "value": "apache",
+      "description": "Slug of an organization to query details for"
+    }
+  ],
+  "item": [
+    {
+      "name": "Stats",
+      "id": "eb64dbfa-6c3d-48da-9573-055e80ad5f6f",
+      "item": [
+        {
+          "name": "Get Stats",
+          "id": "5c346da1-3575-4a16-8646-7b07d8653525",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get System Health",
+          "id": "e2c69b1e-328e-da81-627a-3f171bf54929",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Programs",
+      "id": "fa064dca-6096-465a-9f9f-b65c22a92e8e",
+      "item": [
+        {
+          "name": "List Programs",
+          "id": "cce39985-ee07-447d-8fb8-ad0c82dd125c",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/programs?tier=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "programs"
+              ],
+              "query": [
+                {
+                  "key": "tier",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Program - GSoC",
+          "id": "c8a8ac76-e660-4ab4-8f19-8a025244c221",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/programs/gsoc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "programs",
+                "gsoc"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Program - GSSoC",
+          "id": "82f60a75-fd0a-4c5f-bc26-70fda2a0e46e",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/programs/gssoc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "programs",
+                "gssoc"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Program - NSoC",
+          "id": "616edca6-94e8-4d7b-ae15-ac29e80061a2",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/programs/nsoc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "programs",
+                "nsoc"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Program - ESoC",
+          "id": "85ba9f89-abbf-7980-7b59-bd2c746e755f",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/programs/esoc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "programs",
+                "esoc"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Program by Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/programs/{{programSlug}}?includeGuide=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "programs",
+                "{{programSlug}}"
+              ],
+              "query": [
+                {
+                  "key": "includeGuide",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Program Guidelines",
+          "id": "366a8f38-6af2-71d1-a06c-7e11d52bc950",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/guidelines?program=gsoc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "guidelines"
+              ],
+              "query": [
+                {
+                  "key": "program",
+                  "value": "gsoc"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Organizations & Projects",
+      "id": "fa5d588b-84b5-49d9-a071-f28d87fa806b",
+      "item": [
+        {
+          "name": "List Projects with Limit",
+          "id": "c265e14c-8e19-4877-8acd-f9435cd9c04e",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/projects?limit=3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "projects"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "3"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "stars",
+                  "disabled": true
+                },
+                {
+                  "key": "program",
+                  "value": "gsoc",
+                  "disabled": true
+                },
+                {
+                  "key": "org",
+                  "value": "apache",
+                  "disabled": true
+                },
+                {
+                  "key": "difficulty",
+                  "value": "easy",
+                  "disabled": true
+                },
+                {
+                  "key": "tech",
+                  "value": "react",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "2026",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "search query",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Project by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/projects/{{projectId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "projects",
+                "{{projectId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Organizations with Limit",
+          "id": "25b0410e-764c-4108-a006-843694bb898b",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations?limit=3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "3"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "program",
+                  "value": "gsoc",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "search query",
+                  "disabled": true
+                },
+                {
+                  "key": "technology",
+                  "value": "react",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Organization by Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgSlug}}?program=gsoc&includeCount=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgSlug}}"
+              ],
+              "query": [
+                {
+                  "key": "program",
+                  "value": "gsoc",
+                  "disabled": true
+                },
+                {
+                  "key": "includeCount",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Projects",
+          "id": "2e483363-bd84-4fe6-9481-a583e9cb62c9",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search?q=python",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "python"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Filter Facets",
+          "id": "0ec0d785-5778-d7b0-36c9-f0ef12e02468",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/meta/filters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "meta",
+                "filters"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Trending Projects",
+          "id": "0c05d4e0-bad5-397d-a4ea-06c5a93a6016",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trending?domain=web&limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "trending"
+              ],
+              "query": [
+                {
+                  "key": "domain",
+                  "value": "web"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Matcher",
+      "id": "9b7f7ffc-4a92-4de5-b80b-8f4e0d850f99",
+      "item": [
+        {
+          "name": "Match Contributors (Valid Body)",
+          "id": "b8555858-75bd-4b66-ac4e-a9efcecc8dec",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skills\": [\"react\", \"typescript\", \"nodejs\"],\n  \"experience\": \"intermediate\",\n  \"location\": \"Remote\",\n  \"availability\": 15\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/match",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "match"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Match Contributors (Invalid Body)",
+          "id": "9c66d27f-f4ac-4fb5-849a-a2bd190d7f41",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skills\": [],\n  \"experience\": \"intermediate\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/match",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "match"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Profile & Dashboard",
+      "id": "f0f77f20-fbec-43c1-a3e3-d958fb3c8dd4",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "id": "c56b4519-8151-4463-af16-ff1e4ba57732",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "authjs.session-token={{sessionToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "authjs.session-token={{sessionToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Subhranshu Dash\",\n  \"skills\": [\"react\", \"typescript\", \"nodejs\"],\n  \"interests\": [\"web-development\", \"ai\"],\n  \"experience\": \"intermediate\",\n  \"availabilityHours\": 20,\n  \"location\": \"Remote\",\n  \"githubUsername\": \"subhranshu-dash13\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete User Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "authjs.session-token={{sessionToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "authjs.session-token={{sessionToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "dashboard"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Saved Items",
+          "id": "7733043f-4887-47e1-b0a0-06a591879a0b",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "authjs.session-token={{sessionToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/saved?type=project",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "saved"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "project",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Save Item (Bookmark)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "authjs.session-token={{sessionToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"project\",\n  \"targetId\": \"000000000000000000000001\",\n  \"title\": \"Sample Project Title\",\n  \"subtitle\": \"Sample Subtitle\",\n  \"slug\": \"sample-project-slug\",\n  \"programSlug\": \"gsoc\",\n  \"techStack\": [\"React\", \"TypeScript\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/saved",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "saved"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Unsave Item",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "authjs.session-token={{sessionToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/saved?id=saved_item_id_here",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "saved"
+              ],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "saved_item_id_here"
+                },
+                {
+                  "key": "type",
+                  "value": "project",
+                  "disabled": true
+                },
+                {
+                  "key": "targetId",
+                  "value": "000000000000000000000001",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Applications",
+          "id": "261614bd-9c3e-41e5-9427-5c4538a165fd",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "authjs.session-token={{sessionToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "applications"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Track Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "authjs.session-token={{sessionToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": \"000000000000000000000001\",\n  \"projectTitle\": \"Sample Project Title\",\n  \"orgName\": \"Sample Org\",\n  \"orgSlug\": \"sample-org\",\n  \"programId\": \"000000000000000000000002\",\n  \"programSlug\": \"gsoc\",\n  \"programName\": \"Google Summer of Code\",\n  \"status\": \"draft\",\n  \"notes\": \"Writing proposal draft...\",\n  \"deadline\": \"2026-08-31T23:59:59.000Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "applications"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Application",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "authjs.session-token={{sessionToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"application_id_here\",\n  \"status\": \"submitted\",\n  \"notes\": \"Proposal submitted successfully!\",\n  \"deadline\": \"2026-08-31T23:59:59.000Z\",\n  \"projectTitle\": \"Updated Project Title\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "applications"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Application",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "authjs.session-token={{sessionToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/applications?id=application_id_here",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "applications"
+              ],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "application_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Batch Status Check",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "authjs.session-token={{sessionToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectIds\": [\n    \"000000000000000000000001\"\n  ],\n  \"organizationIds\": [\n    \"000000000000000000000002\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "status"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { Program } from '../../../../types';
+import { Program, Organization } from '../../../../types';
 import { EligibilityTag } from '@/components/ui/EligibilityTag';
 import { StipendChip } from '@/components/ui/StipendChip';
 import {
@@ -18,10 +18,18 @@ import {
   Lightbulb,
   CheckCircle2,
   Compass,
+  Construction,
+  Bell,
 } from 'lucide-react';
 import { ProgramLogo } from '@/components/ui/ProgramLogos';
 import { getProgramBySlug } from '@/lib/repositories/programs';
 import { getProgramGuide } from '@/lib/program-guides';
+import { ProgramOrgExplorer } from '@/components/ui/ProgramOrgExplorer';
+import { listOrganizations } from '@/lib/repositories/organizations';
+import { getOrgYearsForProgram } from '@/lib/repositories/filters';
+
+/** Programs that get the full org explorer treatment */
+const EXPLORER_ENABLED_SLUGS = new Set(['gsoc', 'lfx', 'esoc', 'outreachy', 'sob']);
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -54,6 +62,28 @@ export default async function ProgramDetailPage({ params }: Props) {
 
   const guide = getProgramGuide(program.slug);
   const accent = program.accentColor || '#4285F4';
+  const explorerEnabled = EXPLORER_ENABLED_SLUGS.has(program.slug);
+
+  // Fetch explorer data for supported programs
+  let explorerOrgs: Organization[] = [];
+  let explorerTotal = 0;
+  let explorerYears: number[] = [];
+
+  if (explorerEnabled && program._id) {
+    const programIdStr = String(program._id);
+    const [orgResult, years] = await Promise.all([
+      listOrganizations({
+        programId: programIdStr,
+        limit: 48,
+        skip: 0,
+        lean: true,
+      }),
+      getOrgYearsForProgram({ programId: programIdStr }),
+    ]);
+    explorerOrgs = orgResult.organizations as unknown as Organization[];
+    explorerTotal = orgResult.total;
+    explorerYears = years;
+  }
 
   return (
     <main
@@ -489,6 +519,48 @@ export default async function ProgramDetailPage({ params }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Organization Explorer or Coming Soon */}
+      {explorerEnabled ? (
+        <ProgramOrgExplorer
+          programId={String(program._id)}
+          programSlug={program.slug}
+          programName={program.name}
+          accentColor={accent}
+          initialOrgs={explorerOrgs}
+          initialTotal={explorerTotal}
+          availableYears={explorerYears}
+        />
+      ) : (
+        <section className="mt-12 lg:mt-16">
+          <div className="rounded-[28px] border border-hairline bg-surface p-8 sm:p-10 text-center relative overflow-hidden">
+            <div
+              className="absolute top-0 left-0 w-full h-[3px]"
+              style={{ backgroundColor: accent }}
+            />
+            <Construction size={36} className="mx-auto mb-4 text-muted" />
+            <h2 className="text-xl sm:text-2xl font-bold text-primary mb-2">
+              Organization Explorer — Coming Soon
+            </h2>
+            <p className="text-secondary text-sm max-w-lg mx-auto mb-5 leading-relaxed">
+              We&apos;re building a filterable directory of {program.name} organizations
+              with year-wise browsing, search, and AI-powered project matching.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link
+                href={`/organizations?programId=${program._id?.toString()}`}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-hairline bg-surface-raised hover:bg-hairline/40 text-primary font-bold text-sm transition-colors"
+              >
+                Browse all {program.name} orgs
+              </Link>
+              <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-brass/20 text-brass text-xs font-bold">
+                <Bell size={14} />
+                Notify me when ready
+              </span>
+            </div>
+          </div>
+        </section>
+      )}
     </main>
   );
 }

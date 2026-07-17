@@ -79,3 +79,28 @@ export async function getFilterFacets(options?: {
     orgCategories: cleanStringList(categories as unknown[], 40),
   };
 }
+
+/**
+ * Distinct years from organizations belonging to a specific program.
+ * Used to dynamically populate year filter pills on program pages.
+ */
+export async function getOrgYearsForProgram(options: {
+  programId?: string | null;
+  programSlug?: string | null;
+}): Promise<number[]> {
+  const program = await resolveProgramFilter({
+    programId: options.programId,
+    programSlug: options.programSlug,
+  });
+
+  if (program.notFound) return [];
+
+  const orgFilter: Record<string, unknown> = {};
+  if (program.programId !== undefined) {
+    orgFilter.programId = program.programId;
+  }
+
+  const organizations = await getCollection(COLLECTIONS.organizations);
+  const years = await organizations.distinct('years', orgFilter);
+  return cleanYears(years as unknown[]);
+}

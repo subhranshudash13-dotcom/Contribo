@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="public/icon.svg" alt="Contribo Logo" width="120" height="120" />
+</p>
+
 # 🌐 Contribo — Universal Open Source Programs Hub
 
 > **Contribo** is an enterprise-grade, data-first platform designed to aggregate, explore, and track applications across all major open-source mentorship programs. It serves as a unified command center where contributors can find projects, understand eligibility/stipends, prepare proposals, and track their application progress.
