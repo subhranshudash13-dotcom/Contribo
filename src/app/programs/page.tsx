@@ -90,55 +90,114 @@ export default async function ProgramsDirectory() {
           <div className="hidden lg:block lg:col-span-5 relative">
             <div className="absolute inset-0 bg-accent/5 rounded-full blur-[100px] pointer-events-none" />
             <svg 
-              viewBox="0 0 400 320" 
-              className="w-full h-auto text-accent drop-shadow-xl select-none relative z-10" 
+              viewBox="0 0 500 400" 
+              className="w-full h-auto text-accent select-none relative z-10" 
               fill="none" 
               xmlns="http://www.w3.org/2000/svg"
             >
-              {/* Spinning orbits */}
-              <circle cx="200" cy="160" r="100" stroke="currentColor" strokeWidth="0.8" strokeDasharray="6 6" className="opacity-40 animate-[spin_45s_linear_infinite]" />
-              <circle cx="200" cy="160" r="140" stroke="currentColor" strokeWidth="0.6" strokeDasharray="10 10" className="opacity-25 animate-[spin_70s_linear_infinite_reverse]" />
-              
-              {/* Connection lines */}
-              <g className="opacity-70">
-                <line x1="200" y1="160" x2="110" y2="80" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" />
-                <line x1="200" y1="160" x2="290" y2="90" stroke="currentColor" strokeWidth="1.5" />
-                <line x1="200" y1="160" x2="120" y2="240" stroke="currentColor" strokeWidth="1.5" />
-                <line x1="200" y1="160" x2="280" y2="230" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3" />
-              </g>
-
-              {/* Central Hub */}
-              <g className="translate-x-[200px] translate-y-[160px]">
-                <circle cx="0" cy="0" r="32" fill="url(#heroHubGrad)" stroke="currentColor" strokeWidth="2.5" className="shadow-[0_0_30px_rgba(66,133,244,0.4)]" />
-                <path d="M-8 -6 L8 -6 M-8 0 L8 0 M-8 6 L4 6" stroke="white" strokeWidth="3" strokeLinecap="round" />
-              </g>
-
-              {/* Interactive Nodes */}
-              <g className="animate-[pulse_5s_ease-in-out_infinite]">
-                {/* Node 1: GSoC-like Sun */}
-                <circle cx="110" cy="80" r="20" fill="var(--color-bg, #0f172a)" stroke="currentColor" strokeWidth="2" />
-                <circle cx="110" cy="80" r="7" fill="currentColor" className="animate-ping opacity-75" />
-                <circle cx="110" cy="80" r="7" fill="currentColor" />
-                
-                {/* Node 2: Bitcoin-like coin */}
-                <circle cx="290" cy="90" r="22" fill="var(--color-bg, #0f172a)" stroke="#F7931A" strokeWidth="2" />
-                <path d="M286 84h8v12h-8z" fill="#F7931A" />
-                
-                {/* Node 3: LFX bracket */}
-                <circle cx="120" cy="240" r="22" fill="var(--color-bg, #0f172a)" stroke="#00C0F3" strokeWidth="2" />
-                <path d="M116 234h4v12h-4z" fill="#00C0F3" />
-                
-                {/* Node 4: Outreachy petal */}
-                <circle cx="280" cy="230" r="18" fill="var(--color-bg, #0f172a)" stroke="#E37154" strokeWidth="2" />
-                <circle cx="280" cy="230" r="6" fill="#E37154" />
-              </g>
-              
               <defs>
-                <radialGradient id="heroHubGrad" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(0 0) rotate(90) scale(32)">
-                  <stop stopColor="#4285F4" />
-                  <stop offset="1" stopColor="#3182ce" />
+                <linearGradient id="gridGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#4285F4" stopOpacity="0.25" />
+                  <stop offset="50%" stopColor="#8B5CF6" stopOpacity="0.05" />
+                  <stop offset="100%" stopColor="#F7931A" stopOpacity="0.25" />
+                </linearGradient>
+                <radialGradient id="glowHub" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="#4285F4" stopOpacity="0.45" />
+                  <stop offset="50%" stopColor="#8B5CF6" stopOpacity="0.12" />
+                  <stop offset="100%" stopColor="transparent" stopOpacity="0" />
                 </radialGradient>
+                <linearGradient id="branch1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#4285F4" />
+                  <stop offset="100%" stopColor="#8B5CF6" />
+                </linearGradient>
+                <linearGradient id="branch2" x1="100%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#F7931A" />
+                  <stop offset="100%" stopColor="#E37154" />
+                </linearGradient>
+                <linearGradient id="branch3" x1="0%" y1="100%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#00C0F3" />
+                  <stop offset="100%" stopColor="#34A853" />
+                </linearGradient>
               </defs>
+
+              {/* Ambient background glow */}
+              <circle cx="250" cy="200" r="180" fill="url(#glowHub)" className="animate-[pulse_6s_ease-in-out_infinite]" />
+
+              {/* Orbiting rings representing timeline sprints */}
+              <ellipse cx="250" cy="200" rx="190" ry="80" stroke="currentColor" strokeWidth="0.8" strokeDasharray="5 15" className="opacity-30 animate-[spin_50s_linear_infinite]" />
+              <ellipse cx="250" cy="200" rx="140" ry="140" stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 9" className="opacity-20 animate-[spin_40s_linear_infinite_reverse]" />
+
+              {/* Grid Mesh Backplate */}
+              <path d="M 120 120 L 380 120 L 380 280 L 120 280 Z" stroke="url(#gridGrad)" strokeWidth="0.8" className="opacity-30" />
+              <line x1="185" y1="120" x2="185" y2="280" stroke="url(#gridGrad)" strokeWidth="0.5" className="opacity-30" />
+              <line x1="250" y1="120" x2="250" y2="280" stroke="url(#gridGrad)" strokeWidth="0.5" className="opacity-30" />
+              <line x1="315" y1="120" x2="315" y2="280" stroke="url(#gridGrad)" strokeWidth="0.5" className="opacity-30" />
+              <line x1="120" y1="160" x2="380" y2="160" stroke="url(#gridGrad)" strokeWidth="0.5" className="opacity-30" />
+              <line x1="120" y1="200" x2="380" y2="200" stroke="url(#gridGrad)" strokeWidth="0.5" className="opacity-30" />
+              <line x1="120" y1="240" x2="380" y2="240" stroke="url(#gridGrad)" strokeWidth="0.5" className="opacity-30" />
+
+              {/* Git Branch Curving Paths */}
+              <path d="M 50 100 Q 150 100 210 180" stroke="url(#branch1)" strokeWidth="3" strokeLinecap="round" className="opacity-80" />
+              <path d="M 450 110 Q 350 120 290 180" stroke="url(#branch2)" strokeWidth="3" strokeLinecap="round" className="opacity-80" />
+              <path d="M 100 350 Q 200 300 240 230" stroke="url(#branch3)" strokeWidth="3" strokeLinecap="round" className="opacity-80" />
+
+              {/* Flowing animated light particles */}
+              <path d="M 50 100 Q 150 100 210 180" stroke="#FFF" strokeWidth="2.5" strokeDasharray="10 100" strokeLinecap="round" className="animate-[dash_4s_linear_infinite]" />
+              <path d="M 450 110 Q 350 120 290 180" stroke="#FFF" strokeWidth="2.5" strokeDasharray="8 80" strokeLinecap="round" className="animate-[dash_3.5s_linear_infinite]" />
+
+              {/* Central Hub: The Core Application Portal */}
+              <g className="translate-x-[250px] translate-y-[200px] group cursor-pointer">
+                <circle cx="0" cy="0" r="38" fill="url(#branch1)" className="opacity-35 animate-ping" />
+                <circle cx="0" cy="0" r="28" fill="#1E293B" stroke="url(#branch1)" strokeWidth="3" className="drop-shadow-[0_0_20px_rgba(139,92,246,0.5)] transition-transform duration-300 group-hover:scale-110" />
+                <path d="M-8 -6 L-14 0 L-8 6 M8 -6 L14 0 L8 6" stroke="#FFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                <line x1="-3" y1="8" x2="3" y2="-8" stroke="#F7931A" strokeWidth="2.5" strokeLinecap="round" />
+              </g>
+
+              {/* Program Nodes with custom accents & icons */}
+              {/* Node 1: Google (Top Left) */}
+              <g className="translate-x-[80px] translate-y-[100px] animate-[bounce_4s_ease-in-out_infinite_200ms]">
+                <circle cx="0" cy="0" r="22" fill="#0F172A" stroke="#4285F4" strokeWidth="2" className="shadow-[0_0_15px_rgba(66,133,244,0.3)]" />
+                <circle cx="0" cy="0" r="6" fill="#F9AB00" />
+                <path d="M-10 0 L-5 0 M10 0 L5 0 M0 -10 L0 -5" stroke="#34A853" strokeWidth="2" />
+              </g>
+
+              {/* Node 2: LFX / Linux (Top Right) */}
+              <g className="translate-x-[400px] translate-y-[100px] animate-[bounce_4.5s_ease-in-out_infinite_600ms]">
+                <circle cx="0" cy="0" r="22" fill="#0F172A" stroke="#00C0F3" strokeWidth="2" className="shadow-[0_0_15px_rgba(0,192,243,0.3)]" />
+                <path d="M-7 -7 H-2 V-2 M7 7 H2 V2" stroke="#00C0F3" strokeWidth="2" strokeLinecap="round" />
+                <circle cx="0" cy="0" r="4" fill="#00C0F3" />
+              </g>
+
+              {/* Node 3: Bitcoin (Bottom Left) */}
+              <g className="translate-x-[120px] translate-y-[310px] animate-[bounce_3.8s_ease-in-out_infinite_100ms]">
+                <circle cx="0" cy="0" r="20" fill="#0F172A" stroke="#F7931A" strokeWidth="2" className="shadow-[0_0_15px_rgba(247,147,26,0.3)]" />
+                <circle cx="0" cy="0" r="5" fill="#F7931A" />
+                <path d="M-8 0 H8" stroke="#F7931A" strokeWidth="1.5" />
+              </g>
+
+              {/* Node 4: Outreachy (Bottom Right) */}
+              <g className="translate-x-[340px] translate-y-[280px] animate-[bounce_4.2s_ease-in-out_infinite_400ms]">
+                <circle cx="0" cy="0" r="22" fill="#0F172A" stroke="#E37154" strokeWidth="2" className="shadow-[0_0_15px_rgba(227,113,84,0.3)]" />
+                <circle cx="0" cy="0" r="6" fill="#E37154" />
+                <path d="M-6 -6 L6 6 M-6 6 L6 -6" stroke="#E37154" strokeWidth="1.5" />
+              </g>
+
+              {/* Floating code symbols */}
+              <g className="opacity-40 font-mono text-[9px] fill-current animate-[pulse_3s_ease-in-out_infinite]">
+                <text x="310" y="70">&lt;div&gt;</text>
+                <text x="50" y="220">git push</text>
+                <text x="360" y="220">npm run</text>
+                <text x="180" y="80">PR #492</text>
+              </g>
+
+              {/* Dash stroke animation keyframe */}
+              <style>{`
+                @keyframes dash {
+                  to {
+                    stroke-dashoffset: -200;
+                  }
+                }
+              `}</style>
             </svg>
           </div>
         </div>
