@@ -87,103 +87,161 @@ export default async function ProgramsDirectory() {
             </div>
           </div>
 
-          {/* Right side: High-fidelity Live Campaign Status Dashboard */}
+          {/* Right side: Extraordinary 3D Glassmorphic IDE Workspace & Live Campaign Pipeline Visualizer */}
           <div className="hidden lg:block lg:col-span-5 relative select-none">
-            {/* Ambient colorful backdrop glows */}
+            {/* Soft backdrop glows */}
             <div className="absolute inset-0 bg-accent/5 rounded-[32px] blur-[80px] pointer-events-none" />
             
-            {/* Dashboard Container */}
-            <div className="relative z-10 w-full rounded-3xl border border-hairline bg-surface/50 backdrop-blur-md shadow-2xl p-6 flex flex-col gap-6">
-              
-              {/* Dashboard Header */}
-              <div className="flex items-center justify-between border-b border-hairline pb-4">
-                <div>
-                  <h3 className="text-xs font-mono uppercase tracking-widest text-muted font-bold">Campaign Status Board</h3>
-                  <p className="text-[10px] text-muted font-mono mt-0.5 uppercase tracking-wider">Mentorship Cycles & Stipends</p>
-                </div>
-                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 font-mono text-[9px] font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                  Live Syncing
-                </span>
-              </div>
-
-              {/* Campaign Rows */}
-              <div className="space-y-4">
+            <svg 
+              viewBox="0 0 500 400" 
+              className="w-full h-auto text-accent drop-shadow-[0_15px_50px_rgba(0,0,0,0.2)] relative z-10" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <defs>
+                {/* Visualizer gradients */}
+                <linearGradient id="laserGsoc" x1="0%" y1="100%" x2="0%" y2="0%">
+                  <stop offset="0%" stopColor="#4285F4" stopOpacity="0.1" />
+                  <stop offset="100%" stopColor="#4285F4" />
+                </linearGradient>
+                <linearGradient id="laserLfx" x1="0%" y1="100%" x2="0%" y2="0%">
+                  <stop offset="0%" stopColor="#00C0F3" stopOpacity="0.1" />
+                  <stop offset="100%" stopColor="#00C0F3" />
+                </linearGradient>
+                <linearGradient id="laserOutreachy" x1="0%" y1="100%" x2="0%" y2="0%">
+                  <stop offset="0%" stopColor="#E37154" stopOpacity="0.1" />
+                  <stop offset="100%" stopColor="#E37154" />
+                </linearGradient>
                 
-                {/* Row 1: GSoC */}
-                <div className="flex items-center justify-between gap-4 p-3.5 rounded-2xl bg-base/20 border border-hairline/60 hover:border-accent/30 transition-all duration-200">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-base border border-hairline flex items-center justify-center p-1.5 shadow-sm shrink-0">
-                      <ProgramLogo slug="gsoc" color={true} className="w-full h-full object-contain" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-primary">Google Summer of Code</h4>
-                      <p className="text-[10px] text-muted font-mono mt-0.5">Jan 2026 – Aug 2026</p>
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-muted/15 text-muted border border-hairline font-mono text-[9px] font-bold">
-                      Closed
-                    </span>
-                    <p className="text-[10px] text-primary font-bold mt-1 font-mono">Next: Jan 2027</p>
-                  </div>
-                </div>
+                {/* Glow Filter */}
+                <filter id="laserGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="4" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+              </defs>
 
-                {/* Row 2: LFX Mentorship */}
-                <div className="flex items-center justify-between gap-4 p-3.5 rounded-2xl bg-base/20 border border-hairline/60 hover:border-accent/30 transition-all duration-200">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-base border border-hairline flex items-center justify-center p-1.5 shadow-sm shrink-0">
-                      <ProgramLogo slug="lfx" color={true} className="w-full h-full object-contain" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-primary">LFX Mentorship</h4>
-                      <p className="text-[10px] text-muted font-mono mt-0.5">Spring Batch 2026</p>
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-accent/15 text-accent border border-accent/20 font-mono text-[9px] font-bold animate-pulse">
-                      Live
-                    </span>
-                    <p className="text-[10px] text-accent font-bold mt-1 font-mono">Q3 Opens July 1</p>
-                  </div>
-                </div>
+              {/* Perspectival background grid grid */}
+              <ellipse cx="250" cy="330" rx="220" ry="60" stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 9" className="opacity-15 animate-[spin_55s_linear_infinite]" />
+              <ellipse cx="250" cy="330" rx="150" ry="40" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2 6" className="opacity-10 animate-[spin_40s_linear_infinite_reverse]" />
 
-                {/* Row 3: Outreachy */}
-                <div className="flex items-center justify-between gap-4 p-3.5 rounded-2xl bg-base/20 border border-hairline/60 hover:border-accent/30 transition-all duration-200">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-base border border-hairline flex items-center justify-center p-1.5 shadow-sm shrink-0">
-                      <ProgramLogo slug="outreachy" color={true} className="w-full h-full object-contain" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-primary">Outreachy Fellowship</h4>
-                      <p className="text-[10px] text-muted font-mono mt-0.5">May – Aug 2026</p>
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-green-500/15 text-green-500 border border-green-500/20 font-mono text-[9px] font-bold">
-                      Active
-                    </span>
-                    <p className="text-[10px] text-primary font-bold mt-1 font-mono">Internships Live</p>
-                  </div>
-                </div>
+              {/* GLOWING LASER PIPELINE CHANNELS */}
+              <g className="opacity-80">
+                {/* Path to GSoC (Top-Left) */}
+                <path d="M 200 200 C 130 200, 80 160, 80 120" stroke="url(#laserGsoc)" strokeWidth="2.5" strokeLinecap="round" filter="url(#laserGlow)" />
+                <path d="M 200 200 C 130 200, 80 160, 80 120" stroke="#FFF" strokeWidth="2" strokeDasharray="8 80" strokeLinecap="round" className="animate-[laserFlow_4s_linear_infinite]" />
+                
+                {/* Path to LFX (Top-Right) */}
+                <path d="M 300 200 C 370 200, 420 160, 420 120" stroke="url(#laserLfx)" strokeWidth="2.5" strokeLinecap="round" filter="url(#laserGlow)" />
+                <path d="M 300 200 C 370 200, 420 160, 420 120" stroke="#FFF" strokeWidth="2" strokeDasharray="6 60" strokeLinecap="round" className="animate-[laserFlow_3.2s_linear_infinite]" />
 
-              </div>
+                {/* Path to Outreachy (Bottom-Right) */}
+                <path d="M 320 250 C 390 250, 410 270, 410 290" stroke="url(#laserOutreachy)" strokeWidth="2.5" strokeLinecap="round" filter="url(#laserGlow)" />
+                <path d="M 320 250 C 390 250, 410 270, 410 290" stroke="#FFF" strokeWidth="2" strokeDasharray="8 70" strokeLinecap="round" className="animate-[laserFlow_3.7s_linear_infinite]" />
+              </g>
 
-              {/* Dashboard Insights / Bottom Stats Grid */}
-              <div className="grid grid-cols-2 gap-4 border-t border-hairline pt-4 font-mono text-[10px] text-muted">
-                <div>
-                  <div className="uppercase tracking-wider font-bold">Vetted Stipends</div>
-                  <div className="text-base font-bold text-primary mt-1 font-sans">€1,500 – €7,000</div>
-                  <div className="text-[9px] mt-0.5">Paid directly to devs</div>
-                </div>
-                <div>
-                  <div className="uppercase tracking-wider font-bold">Direct Support</div>
-                  <div className="text-base font-bold text-accent mt-1 font-sans">1-on-1 Mentors</div>
-                  <div className="text-[9px] mt-0.5">Vetted core maintainers</div>
-                </div>
-              </div>
+              {/* CORE GLASSMORPHIC IDE WINDOW PANEL (FLOATING AT CENTER) */}
+              <g className="translate-y-[20px]">
+                {/* Outer Shadow */}
+                <rect x="130" y="130" width="240" height="170" rx="16" fill="rgba(0,0,0,0.4)" />
+                {/* Main Glassmorphic Face */}
+                <rect x="130" y="130" width="240" height="170" rx="16" fill="#0F172A" fillOpacity="0.8" stroke="rgba(255,255,255,0.08)" strokeWidth="1.5" className="backdrop-blur-md" />
+                
+                {/* Tab Header bar */}
+                <path d="M 130 146 H 370" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+                {/* Window control dots */}
+                <circle cx="148" cy="138" r="3" fill="#FF5F56" />
+                <circle cx="156" cy="138" r="3" fill="#FFBD2E" />
+                <circle cx="164" cy="138" r="3" fill="#27C93F" />
+                {/* Active tab */}
+                <path d="M 185 146 V 134 H 250 V 146" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" strokeWidth="0.8" />
+                <text x="195" y="142" fill="rgba(255,255,255,0.4)" fontFamily="monospace" fontSize="7" fontWeight="bold">config.json</text>
 
-            </div>
+                {/* Left Panel: Code editor mock */}
+                {/* JSON syntax lines */}
+                <line x1="145" y1="162" x2="160" y2="162" stroke="#F87171" strokeWidth="2" strokeLinecap="round" />
+                <line x1="155" y1="172" x2="220" y2="172" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" />
+                <line x1="155" y1="182" x2="200" y2="182" stroke="#C084FC" strokeWidth="2" strokeLinecap="round" />
+                <line x1="155" y1="192" x2="235" y2="192" stroke="#34D399" strokeWidth="2" strokeLinecap="round" />
+                <line x1="145" y1="202" x2="155" y2="202" stroke="#F87171" strokeWidth="2" strokeLinecap="round" />
+
+                {/* Blinking Shell prompt */}
+                <line x1="145" y1="225" x2="245" y2="225" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+                <text x="145" y="240" fill="#4285F4" fontFamily="monospace" fontSize="8" fontWeight="bold">$ git push</text>
+                <text x="145" y="252" fill="#10B981" fontFamily="monospace" fontSize="7" fontWeight="semibold">✔ PR #524 MERGED</text>
+                
+                {/* Right Panel: Contributions calendar grid */}
+                <line x1="260" y1="146" x2="260" y2="300" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+                <text x="270" y="162" fill="rgba(255,255,255,0.3)" fontFamily="monospace" fontSize="6" fontWeight="bold" letterSpacing="0.5">CONTRIBUTIONS</text>
+                
+                {/* Activity Squares */}
+                <g className="translate-x-[270px] translate-y-[172px]">
+                  {Array.from({ length: 15 }).map((_, idx) => {
+                    const bgColors = ['rgba(255,255,255,0.05)', '#10B981', '#10B981', '#00C0F3', '#4285F4'];
+                    const factor = Math.abs(Math.sin(idx * 0.9 + 2));
+                    const color = bgColors[Math.floor(factor * 4.9)] || bgColors[0];
+                    const x = (idx % 3) * 11;
+                    const y = Math.floor(idx / 3) * 11;
+                    return (
+                      <rect key={idx} x={x} y={y} width="8" height="8" rx="1.5" fill={color} stroke="rgba(0,0,0,0.15)" strokeWidth="0.5" />
+                    );
+                  })}
+                </g>
+
+                {/* Contribo Rank Stats */}
+                <text x="270" y="242" fill="rgba(255,255,255,0.3)" fontFamily="monospace" fontSize="6" fontWeight="bold" letterSpacing="0.5">METRICS</text>
+                <text x="270" y="254" fill="#FFF" fontFamily="monospace" fontSize="8" fontWeight="bold">RANK: TOP 3%</text>
+                <text x="270" y="264" fill="#FBBF24" fontFamily="monospace" fontSize="7" fontWeight="bold">STIPENDS: VETTED</text>
+              </g>
+
+              {/* FLOATING 3D OPPORTUNITY PROGRAM BADGES */}
+
+              {/* Badge 1: GSoC (Top Left, Floating) */}
+              <g className="translate-x-[50px] translate-y-[60px] animate-[bounce_4.5s_ease-in-out_infinite_200ms]">
+                {/* Outer Glow */}
+                <circle cx="30" cy="30" r="28" fill="rgba(66,133,244,0.06)" />
+                {/* Glass Badge */}
+                <circle cx="30" cy="30" r="22" fill="#0F172A" fillOpacity="0.8" stroke="#4285F4" strokeWidth="1.5" className="backdrop-blur-md drop-shadow-[0_0_8px_rgba(66,133,244,0.35)]" />
+                {/* Sun logo */}
+                <circle cx="30" cy="30" r="8" fill="#F9AB00" />
+                <circle cx="30" cy="30" r="5" fill="#EA4335" />
+                {/* Floating label */}
+                <rect x="-10" y="58" width="80" height="15" rx="4" fill="#1E293B" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
+                <text x="30" y="68" textAnchor="middle" fill="#FFF" fontFamily="monospace" fontSize="6" fontWeight="bold">GSOC // OPEN</text>
+              </g>
+
+              {/* Badge 2: LFX Mentorship (Top Right, Floating) */}
+              <g className="translate-x-[390px] translate-y-[60px] animate-[bounce_4s_ease-in-out_infinite_600ms]">
+                <circle cx="30" cy="30" r="28" fill="rgba(0,192,243,0.06)" />
+                <circle cx="30" cy="30" r="22" fill="#0F172A" fillOpacity="0.8" stroke="#00C0F3" strokeWidth="1.5" className="backdrop-blur-md drop-shadow-[0_0_8px_rgba(0,192,243,0.35)]" />
+                {/* Terminal brackets logo */}
+                <path d="M 23 26 L 20 30 L 23 34 M 37 26 L 40 30 L 37 34" stroke="#00C0F3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="30" cy="30" r="3" fill="#00C0F3" />
+                {/* Floating label */}
+                <rect x="-10" y="58" width="80" height="15" rx="4" fill="#1E293B" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
+                <text x="30" y="68" textAnchor="middle" fill="#FFF" fontFamily="monospace" fontSize="6" fontWeight="bold">LFX // ACTIVE</text>
+              </g>
+
+              {/* Badge 3: Outreachy Fellowship (Bottom Right, Floating) */}
+              <g className="translate-x-[380px] translate-y-[260px] animate-[bounce_4.8s_ease-in-out_infinite_400ms]">
+                <circle cx="30" cy="30" r="28" fill="rgba(227,113,84,0.06)" />
+                <circle cx="30" cy="30" r="22" fill="#0F172A" fillOpacity="0.8" stroke="#E37154" strokeWidth="1.5" className="backdrop-blur-md drop-shadow-[0_0_8px_rgba(227,113,84,0.35)]" />
+                {/* Flower petal logo */}
+                <circle cx="30" cy="30" r="5" fill="#E37154" />
+                <path d="M 25 30 H 35 M 30 25 V 35" stroke="#E37154" strokeWidth="1.2" />
+                {/* Floating label */}
+                <rect x="-15" y="58" width="90" height="15" rx="4" fill="#1E293B" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
+                <text x="30" y="68" textAnchor="middle" fill="#FFF" fontFamily="monospace" fontSize="6" fontWeight="bold">OUTREACHY // LIVE</text>
+              </g>
+
+              {/* CSS Animation dashes keyframe */}
+              <style>{`
+                @keyframes laserFlow {
+                  to {
+                    stroke-dashoffset: -260;
+                  }
+                }
+              `}</style>
+            </svg>
           </div>
         </div>
 
