@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { Program, Organization } from '../../../../types';
+import { Program } from '../../../../types';
 import { EligibilityTag } from '@/components/ui/EligibilityTag';
 import { StipendChip } from '@/components/ui/StipendChip';
 import {
@@ -20,13 +20,12 @@ import {
   Compass,
   Construction,
   Bell,
+  Building2,
+  ArrowRight,
 } from 'lucide-react';
 import { ProgramLogo } from '@/components/ui/ProgramLogos';
 import { getProgramBySlug } from '@/lib/repositories/programs';
 import { getProgramGuide } from '@/lib/program-guides';
-import { ProgramOrgExplorer } from '@/components/ui/ProgramOrgExplorer';
-import { listOrganizations } from '@/lib/repositories/organizations';
-import { getOrgYearsForProgram } from '@/lib/repositories/filters';
 
 /** Programs that get the full org explorer treatment */
 const EXPLORER_ENABLED_SLUGS = new Set(['gsoc', 'lfx', 'esoc', 'outreachy', 'sob']);
@@ -63,27 +62,6 @@ export default async function ProgramDetailPage({ params }: Props) {
   const guide = getProgramGuide(program.slug);
   const accent = program.accentColor || '#4285F4';
   const explorerEnabled = EXPLORER_ENABLED_SLUGS.has(program.slug);
-
-  // Fetch explorer data for supported programs
-  let explorerOrgs: Organization[] = [];
-  let explorerTotal = 0;
-  let explorerYears: number[] = [];
-
-  if (explorerEnabled && program._id) {
-    const programIdStr = String(program._id);
-    const [orgResult, years] = await Promise.all([
-      listOrganizations({
-        programId: programIdStr,
-        limit: 48,
-        skip: 0,
-        lean: true,
-      }),
-      getOrgYearsForProgram({ programId: programIdStr }),
-    ]);
-    explorerOrgs = orgResult.organizations as unknown as Organization[];
-    explorerTotal = orgResult.total;
-    explorerYears = years;
-  }
 
   return (
     <main
@@ -520,17 +498,57 @@ export default async function ProgramDetailPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Organization Explorer or Coming Soon */}
+      {/* Organization Explorer CTA or Coming Soon */}
       {explorerEnabled ? (
-        <ProgramOrgExplorer
-          programId={String(program._id)}
-          programSlug={program.slug}
-          programName={program.name}
-          accentColor={accent}
-          initialOrgs={explorerOrgs}
-          initialTotal={explorerTotal}
-          availableYears={explorerYears}
-        />
+        <section className="mt-12 lg:mt-16">
+          <div className="rounded-[28px] border border-hairline bg-surface p-8 sm:p-10 text-left relative overflow-hidden transition-all duration-200 hover:border-accent/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+            <div
+              className="absolute top-0 left-0 w-full h-[3px]"
+              style={{ backgroundColor: accent }}
+            />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-3 max-w-2xl">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style={{
+                      backgroundColor: `color-mix(in srgb, ${accent} 12%, transparent)`,
+                      color: accent,
+                    }}
+                  >
+                    <Building2 size={18} />
+                  </div>
+                  <span className="text-xs font-mono uppercase tracking-widest text-muted font-bold">
+                    Organization Directory
+                  </span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-primary tracking-tight">
+                  Explore {program.name} Organizations
+                </h2>
+                <p className="text-secondary text-sm sm:text-base leading-relaxed">
+                  Browse and filter organizations participating in {program.name}. Select years to find active orgs, or use the search to find specific ones.
+                </p>
+              </div>
+              <div className="shrink-0 flex flex-col sm:flex-row gap-3">
+                <Link
+                  href={`/programs/${program.slug}/organizations`}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm text-white shadow-md transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                  style={{ backgroundColor: accent }}
+                >
+                  Explore Organizations
+                  <ArrowRight size={16} />
+                </Link>
+                <Link
+                  href="/matcher"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border border-brass/35 text-brass hover:bg-brass/5 font-bold text-sm transition-colors"
+                >
+                  <Sparkles size={16} />
+                  AI Project Matcher
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
       ) : (
         <section className="mt-12 lg:mt-16">
           <div className="rounded-[28px] border border-hairline bg-surface p-8 sm:p-10 text-center relative overflow-hidden">
