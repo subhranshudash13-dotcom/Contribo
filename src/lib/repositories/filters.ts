@@ -104,3 +104,29 @@ export async function getOrgYearsForProgram(options: {
   const years = await organizations.distinct('years', orgFilter);
   return cleanYears(years as unknown[]);
 }
+
+/**
+ * Distinct technologies from organizations belonging to a specific program.
+ * Used to dynamically populate technology filter dropdown on program pages.
+ */
+export async function getOrgTechnologiesForProgram(options: {
+  programId?: string | null;
+  programSlug?: string | null;
+}): Promise<string[]> {
+  const program = await resolveProgramFilter({
+    programId: options.programId,
+    programSlug: options.programSlug,
+  });
+
+  if (program.notFound) return [];
+
+  const orgFilter: Record<string, unknown> = {};
+  if (program.programId !== undefined) {
+    orgFilter.programId = program.programId;
+  }
+
+  const organizations = await getCollection(COLLECTIONS.organizations);
+  const tech = await organizations.distinct('technologies', orgFilter);
+  return cleanStringList(tech as unknown[], 120);
+}
+

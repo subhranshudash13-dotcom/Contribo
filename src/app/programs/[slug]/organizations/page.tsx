@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Program, Organization } from '../../../../../types';
 import { getProgramBySlug } from '@/lib/repositories/programs';
 import { listOrganizations } from '@/lib/repositories/organizations';
-import { getOrgYearsForProgram } from '@/lib/repositories/filters';
+import { getOrgYearsForProgram, getOrgTechnologiesForProgram } from '@/lib/repositories/filters';
 import { ProgramOrgExplorer } from '@/components/ui/ProgramOrgExplorer';
 import { ProgramLogo } from '@/components/ui/ProgramLogos';
 
@@ -41,7 +41,7 @@ export default async function ProgramOrgsPage({ params }: Props) {
   const programIdStr = String(program._id);
 
   // Fetch explorer data
-  const [orgResult, years] = await Promise.all([
+  const [orgResult, years, technologies] = await Promise.all([
     listOrganizations({
       programId: programIdStr,
       limit: 48,
@@ -49,6 +49,7 @@ export default async function ProgramOrgsPage({ params }: Props) {
       lean: true,
     }),
     getOrgYearsForProgram({ programId: programIdStr }),
+    getOrgTechnologiesForProgram({ programId: programIdStr }),
   ]);
 
   const explorerOrgs = orgResult.organizations as unknown as Organization[];
@@ -88,6 +89,7 @@ export default async function ProgramOrgsPage({ params }: Props) {
         initialOrgs={explorerOrgs}
         initialTotal={explorerTotal}
         availableYears={explorerYears}
+        availableTechnologies={technologies}
       />
     </main>
   );
