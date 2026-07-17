@@ -105,9 +105,6 @@ export default async function OrganizationsDirectory({ searchParams }: Props) {
             name="programId"
             defaultValue={programId || 'all'}
             className="bg-base border border-hairline rounded-xl px-3 py-2 text-sm text-primary"
-            onChange={(e) => {
-              // progressive enhancement: native form submit via button
-            }}
           >
             <option value="all">All programs</option>
             {programs.map((p) => (
