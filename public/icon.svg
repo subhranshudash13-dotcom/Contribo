@@ -1,0 +1,80 @@
+<svg viewBox="62.5 62 131 131" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Bronze Metallic Gradients for Hexagon Faces -->
+    <!-- Top Face (Lid): Bright highlights -->
+    <linearGradient id="topFaceGrad" x1="72" y1="96" x2="184" y2="96" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#D49A76" />
+      <stop offset="50%" stop-color="#CC865A" />
+      <stop offset="100%" stop-color="#C67848" />
+    </linearGradient>
+
+    <!-- Left Face: Deep shadows -->
+    <linearGradient id="leftFaceGrad" x1="72" y1="96" x2="128" y2="192" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#C67848" />
+      <stop offset="100%" stop-color="#794A2F" />
+    </linearGradient>
+
+    <!-- Right Face: Medium shade -->
+    <linearGradient id="rightFaceGrad" x1="128" y1="128" x2="184" y2="160" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#AF6A40" />
+      <stop offset="100%" stop-color="#905736" />
+    </linearGradient>
+
+    <style>
+      .logo-cube-top {
+        transform: translateY(-2px);
+        transform-origin: 128px 96px;
+      }
+      .logo-cube-left {
+        transform: translate(-1.73px, 1px);
+        transform-origin: 100px 144px;
+      }
+      .logo-cube-right {
+        transform: translate(1.73px, 1px);
+        transform-origin: 156px 144px;
+      }
+      .logo-container {
+        transform-origin: 128px 128px;
+      }
+    </style>
+  </defs>
+
+  <!-- Main Container -->
+  <g class="logo-container">
+    
+    <!-- 1. LEFT FACE -->
+    <g class="logo-cube-left">
+      <!-- Main Face Panel -->
+      <polygon points="72,96 128,128 128,192 72,160" fill="url(#leftFaceGrad)" />
+      <!-- Subtle inner border bevel shadow -->
+      <polygon points="72,96 128,128 128,192 72,160" stroke="#5A3724" stroke-width="1.5" opacity="0.25" />
+      <!-- Top-Left Specular highlight -->
+      <line x1="72" y1="96" x2="128" y2="128" stroke="#ffffff" stroke-width="1.2" opacity="0.35" stroke-linecap="round" />
+    </g>
+
+    <!-- 2. RIGHT FACE -->
+    <g class="logo-cube-right">
+      <!-- Main Face Panel -->
+      <polygon points="128,128 184,96 184,160 128,192" fill="url(#rightFaceGrad)" />
+      <!-- Subtle inner border bevel shadow -->
+      <polygon points="128,128 184,96 184,160 128,192" stroke="#5A3724" stroke-width="1.5" opacity="0.25" />
+      <!-- Top-Right Specular highlight -->
+      <line x1="128" y1="128" x2="184" y2="96" stroke="#ffffff" stroke-width="1" opacity="0.25" stroke-linecap="round" />
+    </g>
+
+    <!-- 3. TOP FACE / LID -->
+    <g class="logo-cube-top">
+      <!-- Main Face Panel -->
+      <polygon points="128,64 184,96 128,128 72,96" fill="url(#topFaceGrad)" />
+      <!-- Outer edge highlight line -->
+      <polygon points="128,64 184,96 128,128 72,96" stroke="#D1936D" stroke-width="1" opacity="0.3" />
+      <!-- Specular highlights on the top point ridges -->
+      <line x1="72" y1="96" x2="128" y2="64" stroke="#ffffff" stroke-width="1.6" opacity="0.7" stroke-linecap="round" />
+      <line x1="128" y1="64" x2="184" y2="96" stroke="#ffffff" stroke-width="1" opacity="0.4" stroke-linecap="round" />
+      
+      <!-- Center visual accent -->
+      <polygon points="120,96 128,91 136,96 128,101" fill="#ffffff" opacity="0.35" />
+    </g>
+
+  </g>
+</svg>

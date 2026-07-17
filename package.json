@@ -1,0 +1,45 @@
+{
+  "name": "contribo-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "db:indexes": "node scripts/setup-indexes.js",
+    "db:seed": "node scripts/seed-programs.js",
+    "db:setup": "node scripts/setup-indexes.js && node scripts/seed-programs.js",
+    "db:ingest": "node scripts/ingest-csv.js",
+    "db:seed-extra": "node scripts/seed-additional-projects.js",
+    "db:audit": "node scripts/audit-coverage.js",
+    "smoke": "node scripts/smoke-api.js"
+  },
+  "dependencies": {
+    "@auth/mongodb-adapter": "^3.11.2",
+    "dotenv": "^16.4.7",
+    "framer-motion": "^12.42.2",
+    "gray-matter": "^4.0.3",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^0.468.0",
+    "mongodb": "^6.14.0",
+    "next": "16.2.10",
+    "next-auth": "^5.0.0-beta.31",
+    "next-mdx-remote": "^5.0.0",
+    "next-themes": "^0.4.6",
+    "openai": "^6.45.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.10",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,60 @@
+.hero {
+    position: relative;
+    width: 100%;
+    min-height: 85vh;
+    padding-bottom: 120px;
+    overflow: hidden;
+    background: var(--base);
+    background-image: radial-gradient(circle at 85% 30%, rgba(198, 120, 72, 0.08), transparent 55%);
+}
+
+.dark .hero {
+    background: var(--base);
+    background-image: radial-gradient(circle at 85% 30%, rgba(229, 149, 105, 0.06), transparent 55%);
+}
+
+@media (max-width: 1023px) {
+    .hero {
+        padding-bottom: 60px;
+        min-height: auto;
+    }
+}
+
+/* Infinite Scrolling Logo Keyframes */
+@keyframes scrollLeft {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes scrollRight {
+    0% {
+        transform: translateX(-50%);
+    }
+    100% {
+        transform: translateX(0);
+    }
+}
+
+.animate-scroll-left-fast {
+    animation: scrollLeft 10s linear infinite;
+}
+
+.animate-scroll-left-slow {
+    animation: scrollLeft 36s linear infinite;
+    will-change: transform;
+}
+
+.animate-scroll-right-fast {
+    animation: scrollRight 12s linear infinite;
+}
+
+.animate-scroll-right-slow {
+    animation: scrollRight 36s linear infinite;
+    will-change: transform;
+}
+
+

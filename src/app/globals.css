@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+/* DM Sans: CSS class for a variable style
+// <weight>: 400 (normal body weight for excellent readability and visibility)
+// <uniquifier>: contribo (unique and descriptive class name)
+*/
+.dm-sans-contribo {
+  font-family: "DM Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+@theme {
+  --variant-dark: class;
+
+  /* Fonts */
+  --font-sans: "DM Sans", Inter, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-heading: "DM Sans", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+
+  /* Typography Scale (Strict 12, 14, 16, 18, 20, 24, 32, 48, 64) */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 32px;
+  --text-4xl: 48px;
+  --text-5xl: 64px;
+
+  /* Border Radius (Strict 2, 4, 6, 8, 14) */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 14px;
+  --radius: var(--radius-sm); /* Default */
+
+  /* Animation (Strict 100, 150, 200, 300) */
+  --default-transition-duration: 150ms;
+  --transition-duration-fast: 100ms;
+  --transition-duration-normal: 150ms;
+  --transition-duration-slow: 200ms;
+  --transition-duration-layout: 300ms;
+  
+  /* Container Widths */
+  --container-md: 1280px;
+  --container-lg: 1440px;
+  --container-xl: 1600px;
+  --container-2xl: 1920px;
+
+  /* Dynamic Program Accents */
+  --color-program-accent: var(--program-accent);
+  --color-program-accent-transparent: color-mix(in srgb, var(--program-accent) 15%, transparent);
+
+  /* The Semantic Palette */
+  --color-base: var(--base);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-hairline: var(--hairline);
+  
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  
+  --color-brass: var(--brass);
+  --color-brass-hover: var(--brass-hover);
+  
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  
+  --color-merge: var(--merge);
+  --color-merge-hover: var(--merge-hover);
+}
+
+@layer utilities {
+  .elevation-1 { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); z-index: 10; }
+  .elevation-2 { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); z-index: 20; transform: translateY(-2px); }
+  .elevation-3 { box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); z-index: 30; }
+  .elevation-4 { box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25); z-index: 40; }
+  
+  /* Add paper noise effect */
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+}
+
+@layer base {
+  html {
+    zoom: 0.905;
+  }
+  :root {
+    /* LIGHT MODE */
+    --base: #FAF8F5;
+    --surface: #FFFFFF;
+    --surface-raised: #F3EFEA;
+    --hairline: #E6DFD5;
+    
+    --primary: #2B1B15;
+    --secondary: #5A4D46;
+    --muted: #93857D;
+    
+    --accent: #C67848;
+    --accent-hover: #B06538;
+    
+    --brass: #C67848;
+    --brass-hover: #B06538;
+    
+    --success: #5E9E6D;
+    --warning: #C88D3A;
+    --error: #C96A6A;
+    --merge: #8B5CF6;
+    --merge-hover: #7C3AED;
+
+    --program-accent: #C67848; /* Default accent */
+  }
+
+  /* next-themes applies .dark class */
+  .dark {
+    /* DARK MODE */
+    --base: #160F0C;
+    --surface: #1E1612;
+    --surface-raised: #291E1A;
+    --hairline: #382A24;
+    
+    --primary: #FBF9F6;
+    --secondary: #A08C83;
+    --muted: #6C5C54;
+    
+    --accent: #E59569;
+    --accent-hover: #F0A780;
+    
+    --brass: #E59569;
+    --brass-hover: #F0A780;
+    
+    --success: #5E9E6D;
+    --warning: #C88D3A;
+    --error: #C96A6A;
+    --merge: #A78BFA;
+    --merge-hover: #C084FC;
+  }
+}
+
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}

@@ -1,0 +1,3 @@
+name,slug,logoUrl,backgroundColor,description,websiteUrl,category,ideasUrl,projectsUrl,technologies,topics,years,is2026
+"Apache Software Foundation",apache,https://cdn.simpleicons.org/apache,#D22128,"A decentralized community of developers producing open-source software.",https://apache.org,Cloud,"https://apache.org/ideas","https://apache.org/projects",Java;C++;Python;Cloud;Big Data,Cloud;Infrastructure;Database,2025;2026,true
+"Linux Foundation",linuxfoundation,https://cdn.simpleicons.org/linuxfoundation,#003057,"Dedicated to building sustainable ecosystems around open source projects.",https://linuxfoundation.org,Infrastructure,"https://lf.org/ideas","https://lf.org/projects",Go;C;Rust;Linux,Kernel;Cloud;System;Networking,2024;2025;2026,true
