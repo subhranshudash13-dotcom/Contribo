@@ -86,119 +86,117 @@ export default async function ProgramsDirectory() {
             </div>
           </div>
 
-          {/* Right side: High-fidelity animated SVG Illustration */}
-          <div className="hidden lg:block lg:col-span-5 relative">
-            <div className="absolute inset-0 bg-accent/5 rounded-full blur-[100px] pointer-events-none" />
-            <svg 
-              viewBox="0 0 500 400" 
-              className="w-full h-auto text-accent select-none relative z-10" 
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <defs>
-                <linearGradient id="gridGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#4285F4" stopOpacity="0.25" />
-                  <stop offset="50%" stopColor="#8B5CF6" stopOpacity="0.05" />
-                  <stop offset="100%" stopColor="#F7931A" stopOpacity="0.25" />
-                </linearGradient>
-                <radialGradient id="glowHub" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#4285F4" stopOpacity="0.45" />
-                  <stop offset="50%" stopColor="#8B5CF6" stopOpacity="0.12" />
-                  <stop offset="100%" stopColor="transparent" stopOpacity="0" />
-                </radialGradient>
-                <linearGradient id="branch1" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#4285F4" />
-                  <stop offset="100%" stopColor="#8B5CF6" />
-                </linearGradient>
-                <linearGradient id="branch2" x1="100%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#F7931A" />
-                  <stop offset="100%" stopColor="#E37154" />
-                </linearGradient>
-                <linearGradient id="branch3" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#00C0F3" />
-                  <stop offset="100%" stopColor="#34A853" />
-                </linearGradient>
-              </defs>
+          {/* Right side: High-fidelity animated Developer Workspace Dashboard Mockup */}
+          <div className="hidden lg:block lg:col-span-5 relative select-none">
+            {/* Soft backdrop glow matching program branding */}
+            <div className="absolute inset-0 bg-accent/5 rounded-[32px] blur-[80px] pointer-events-none" />
+            
+            {/* Terminal/Editor Glassmorphic Panel */}
+            <div className="relative z-10 w-full rounded-3xl border border-hairline bg-surface/50 backdrop-blur-md shadow-2xl overflow-hidden font-mono text-[11px] text-primary flex flex-col h-[330px]">
+              {/* Window Titlebar */}
+              <div className="flex items-center justify-between px-4 py-3 bg-base border-b border-hairline">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]" />
+                  <span className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]" />
+                  <span className="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]" />
+                </div>
+                <div className="text-[10px] text-muted font-bold tracking-wider uppercase font-mono">contribo ~ workspace</div>
+                <div className="w-12" /> {/* spacer */}
+              </div>
 
-              {/* Ambient background glow */}
-              <circle cx="250" cy="200" r="180" fill="url(#glowHub)" className="animate-[pulse_6s_ease-in-out_infinite]" />
+              {/* IDE Workspace Split */}
+              <div className="flex flex-1 divide-x divide-hairline min-h-0 overflow-hidden">
+                {/* Left Side: Code Editor (JSON config) */}
+                <div className="flex-1 p-4 overflow-hidden flex flex-col gap-2 bg-surface/20">
+                  <div className="text-[10px] text-muted font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" /> config.json
+                  </div>
+                  
+                  {/* JSON Syntax Styling */}
+                  <div className="space-y-1 text-[10px] leading-relaxed font-semibold">
+                    <div>
+                      <span className="text-[#F87171]">{'{'}</span>
+                    </div>
+                    <div className="pl-4">
+                      <span className="text-[#38BDF8]">"program"</span>: <span className="text-[#34D399]">"LFX_Mentorship"</span>,
+                    </div>
+                    <div className="pl-4">
+                      <span className="text-[#38BDF8]">"skills"</span>: <span className="text-[#C084FC]">["Golang", "Rust"]</span>,
+                    </div>
+                    <div className="pl-4">
+                      <span className="text-[#38BDF8]">"stipends"</span>: <span className="text-[#FBBF24]">"Verified"</span>,
+                    </div>
+                    <div className="pl-4">
+                      <span className="text-[#38BDF8]">"status"</span>: <span className="text-[#34D399]">"Active_Sprint"</span>
+                    </div>
+                    <div>
+                      <span className="text-[#F87171]">{'}'}</span>
+                    </div>
+                  </div>
 
-              {/* Orbiting rings representing timeline sprints */}
-              <ellipse cx="250" cy="200" rx="190" ry="80" stroke="currentColor" strokeWidth="0.8" strokeDasharray="5 15" className="opacity-30 animate-[spin_50s_linear_infinite]" />
-              <ellipse cx="250" cy="200" rx="140" ry="140" stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 9" className="opacity-20 animate-[spin_40s_linear_infinite_reverse]" />
+                  {/* Terminal Console Panel */}
+                  <div className="mt-auto border-t border-hairline/60 pt-3 flex flex-col gap-1 text-[10px] text-muted">
+                    <div className="flex items-center gap-1">
+                      <span className="text-accent font-bold">$</span> 
+                      <span>git push origin main</span>
+                    </div>
+                    <div className="text-[#10B981] font-bold flex items-center gap-1">
+                      <span>✔</span> 
+                      <span>Contribution merged successfully.</span>
+                    </div>
+                  </div>
+                </div>
 
-              {/* Grid Mesh Backplate */}
-              <path d="M 120 120 L 380 120 L 380 280 L 120 280 Z" stroke="url(#gridGrad)" strokeWidth="0.8" className="opacity-30" />
-              <line x1="185" y1="120" x2="185" y2="280" stroke="url(#gridGrad)" strokeWidth="0.5" className="opacity-30" />
-              <line x1="250" y1="120" x2="250" y2="280" stroke="url(#gridGrad)" strokeWidth="0.5" className="opacity-30" />
-              <line x1="315" y1="120" x2="315" y2="280" stroke="url(#gridGrad)" strokeWidth="0.5" className="opacity-30" />
-              <line x1="120" y1="160" x2="380" y2="160" stroke="url(#gridGrad)" strokeWidth="0.5" className="opacity-30" />
-              <line x1="120" y1="200" x2="380" y2="200" stroke="url(#gridGrad)" strokeWidth="0.5" className="opacity-30" />
-              <line x1="120" y1="240" x2="380" y2="240" stroke="url(#gridGrad)" strokeWidth="0.5" className="opacity-30" />
+                {/* Right Side: Contribution Grid Calendar */}
+                <div className="w-[190px] p-4 flex flex-col gap-3 shrink-0 bg-base/10">
+                  <div className="text-[10px] text-muted font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" /> contributor stats
+                  </div>
 
-              {/* Git Branch Curving Paths */}
-              <path d="M 50 100 Q 150 100 210 180" stroke="url(#branch1)" strokeWidth="3" strokeLinecap="round" className="opacity-80" />
-              <path d="M 450 110 Q 350 120 290 180" stroke="url(#branch2)" strokeWidth="3" strokeLinecap="round" className="opacity-80" />
-              <path d="M 100 350 Q 200 300 240 230" stroke="url(#branch3)" strokeWidth="3" strokeLinecap="round" className="opacity-80" />
+                  {/* Heatmap Blocks */}
+                  <div className="space-y-1.5">
+                    <div className="text-[9px] text-muted font-mono">Contributions Activity</div>
+                    <div className="grid grid-cols-6 gap-1 w-fit">
+                      {Array.from({ length: 24 }).map((_, idx) => {
+                        const bgClasses = [
+                          'bg-muted/10 border-hairline/25',
+                          'bg-[#10B981]/20 border-[#10B981]/30',
+                          'bg-[#10B981]/40 border-[#10B981]/50',
+                          'bg-[#10B981]/70 border-[#10B981]/80',
+                          'bg-[#10B981] border-[#10B981]'
+                        ];
+                        const factor = Math.abs(Math.sin(idx * 0.7 + 3));
+                        const selectedBg = bgClasses[Math.floor(factor * 4.9)] || bgClasses[0];
+                        const isSpecialNode = idx === 9 || idx === 16;
+                        
+                        return (
+                          <div 
+                            key={idx} 
+                            className={`w-[22px] h-[22px] rounded-md border transition-colors ${selectedBg} ${isSpecialNode ? 'animate-pulse bg-accent border-accent/60 shadow-[0_0_10px_rgba(66,133,244,0.45)]' : ''}`}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
 
-              {/* Flowing animated light particles */}
-              <path d="M 50 100 Q 150 100 210 180" stroke="#FFF" strokeWidth="2.5" strokeDasharray="10 100" strokeLinecap="round" className="animate-[dash_4s_linear_infinite]" />
-              <path d="M 450 110 Q 350 120 290 180" stroke="#FFF" strokeWidth="2.5" strokeDasharray="8 80" strokeLinecap="round" className="animate-[dash_3.5s_linear_infinite]" />
-
-              {/* Central Hub: The Core Application Portal */}
-              <g className="translate-x-[250px] translate-y-[200px] group cursor-pointer">
-                <circle cx="0" cy="0" r="38" fill="url(#branch1)" className="opacity-35 animate-ping" />
-                <circle cx="0" cy="0" r="28" fill="#1E293B" stroke="url(#branch1)" strokeWidth="3" className="drop-shadow-[0_0_20px_rgba(139,92,246,0.5)] transition-transform duration-300 group-hover:scale-110" />
-                <path d="M-8 -6 L-14 0 L-8 6 M8 -6 L14 0 L8 6" stroke="#FFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                <line x1="-3" y1="8" x2="3" y2="-8" stroke="#F7931A" strokeWidth="2.5" strokeLinecap="round" />
-              </g>
-
-              {/* Program Nodes with custom accents & icons */}
-              {/* Node 1: Google (Top Left) */}
-              <g className="translate-x-[80px] translate-y-[100px] animate-[bounce_4s_ease-in-out_infinite_200ms]">
-                <circle cx="0" cy="0" r="22" fill="#0F172A" stroke="#4285F4" strokeWidth="2" className="shadow-[0_0_15px_rgba(66,133,244,0.3)]" />
-                <circle cx="0" cy="0" r="6" fill="#F9AB00" />
-                <path d="M-10 0 L-5 0 M10 0 L5 0 M0 -10 L0 -5" stroke="#34A853" strokeWidth="2" />
-              </g>
-
-              {/* Node 2: LFX / Linux (Top Right) */}
-              <g className="translate-x-[400px] translate-y-[100px] animate-[bounce_4.5s_ease-in-out_infinite_600ms]">
-                <circle cx="0" cy="0" r="22" fill="#0F172A" stroke="#00C0F3" strokeWidth="2" className="shadow-[0_0_15px_rgba(0,192,243,0.3)]" />
-                <path d="M-7 -7 H-2 V-2 M7 7 H2 V2" stroke="#00C0F3" strokeWidth="2" strokeLinecap="round" />
-                <circle cx="0" cy="0" r="4" fill="#00C0F3" />
-              </g>
-
-              {/* Node 3: Bitcoin (Bottom Left) */}
-              <g className="translate-x-[120px] translate-y-[310px] animate-[bounce_3.8s_ease-in-out_infinite_100ms]">
-                <circle cx="0" cy="0" r="20" fill="#0F172A" stroke="#F7931A" strokeWidth="2" className="shadow-[0_0_15px_rgba(247,147,26,0.3)]" />
-                <circle cx="0" cy="0" r="5" fill="#F7931A" />
-                <path d="M-8 0 H8" stroke="#F7931A" strokeWidth="1.5" />
-              </g>
-
-              {/* Node 4: Outreachy (Bottom Right) */}
-              <g className="translate-x-[340px] translate-y-[280px] animate-[bounce_4.2s_ease-in-out_infinite_400ms]">
-                <circle cx="0" cy="0" r="22" fill="#0F172A" stroke="#E37154" strokeWidth="2" className="shadow-[0_0_15px_rgba(227,113,84,0.3)]" />
-                <circle cx="0" cy="0" r="6" fill="#E37154" />
-                <path d="M-6 -6 L6 6 M-6 6 L6 -6" stroke="#E37154" strokeWidth="1.5" />
-              </g>
-
-              {/* Floating code symbols */}
-              <g className="opacity-40 font-mono text-[9px] fill-current animate-[pulse_3s_ease-in-out_infinite]">
-                <text x="310" y="70">&lt;div&gt;</text>
-                <text x="50" y="220">git push</text>
-                <text x="360" y="220">npm run</text>
-                <text x="180" y="80">PR #492</text>
-              </g>
-
-              {/* Dash stroke animation keyframe */}
-              <style>{`
-                @keyframes dash {
-                  to {
-                    stroke-dashoffset: -200;
-                  }
-                }
-              `}</style>
-            </svg>
+                  {/* Dashboard Metrics */}
+                  <div className="mt-auto border-t border-hairline/60 pt-3 space-y-1 text-[9px] text-muted font-mono">
+                    <div className="flex justify-between">
+                      <span>Commits</span>
+                      <span className="font-bold text-primary">148</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>PRs Merged</span>
+                      <span className="font-bold text-green-500">14</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Rank</span>
+                      <span className="font-bold text-accent">Top 3%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
