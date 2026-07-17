@@ -17,7 +17,7 @@ export function ProgramOrgCard({
 }) {
   const orgId = org._id ? String(org._id) : '';
   const years = org.years || [];
-  const techs = org.technologies || [];
+  const techs = Array.from(new Set((org.technologies || []).map(t => t.trim()))).filter(Boolean);
 
   return (
     <div className="group border border-hairline rounded-2xl bg-surface flex flex-col h-full transition-all duration-200 hover:border-accent/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] relative overflow-hidden">
@@ -109,9 +109,9 @@ export function ProgramOrgCard({
           <div className="flex items-center gap-1.5 mb-4">
             <Code2 size={13} className="text-muted shrink-0" />
             <div className="flex flex-wrap gap-1 overflow-hidden h-[20px] font-mono text-[10px]">
-              {techs.slice(0, 3).map((tech) => (
+              {techs.slice(0, 3).map((tech, idx) => (
                 <span
-                  key={tech}
+                  key={`${tech}-${idx}`}
                   className="bg-base border border-hairline px-1.5 py-0.5 rounded-md text-primary shrink-0"
                 >
                   {tech}
