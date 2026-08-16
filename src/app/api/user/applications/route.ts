@@ -2,8 +2,9 @@ import {
   apiError,
   apiOk,
   requireUserId,
+  requireUserMutation,
   isNextResponse,
-  parseJsonBody,
+  parseMutationBody,
   privateNoStoreHeaders,
 } from '@/lib/api';
 import {
@@ -13,6 +14,7 @@ import {
   deleteApplication,
   isValidApplicationStatus,
 } from '@/lib/repositories/dashboard';
+import { safeLogError } from '@/lib/security';
 
 /** GET /api/user/applications */
 export async function GET() {
@@ -27,7 +29,7 @@ export async function GET() {
       privateNoStoreHeaders()
     );
   } catch (error) {
-    console.error('GET /api/user/applications failed:', error);
+    safeLogError('GET /api/user/applications failed:', error);
     return apiError('Failed to fetch applications', 500);
   }
 }
@@ -35,10 +37,10 @@ export async function GET() {
 /** POST /api/user/applications — track a project application (idempotent by projectId). */
 export async function POST(req: Request) {
   try {
-    const authResult = await requireUserId();
+    const authResult = await requireUserMutation(req);
     if (isNextResponse(authResult)) return authResult;
 
-    const body = await parseJsonBody(req);
+    const body = await parseMutationBody(req);
     if (isNextResponse(body)) return body;
 
     if (typeof body.projectTitle !== 'string' || !body.projectTitle.trim()) {
@@ -52,16 +54,30 @@ export async function POST(req: Request) {
       return apiError('Invalid status', 400);
     }
 
+    // Bound free-text fields early so oversized payloads never hit the DB layer.
+    const projectTitle = body.projectTitle.trim().slice(0, 300);
+    const orgName = body.orgName.trim().slice(0, 200);
+    const notes =
+      typeof body.notes === 'string' ? body.notes.trim().slice(0, 5000) : undefined;
+
     const { application, created } = await createApplication(authResult.userId, {
-      projectId: typeof body.projectId === 'string' ? body.projectId : undefined,
-      projectTitle: body.projectTitle,
-      orgName: body.orgName,
-      orgSlug: typeof body.orgSlug === 'string' ? body.orgSlug : undefined,
-      programId: typeof body.programId === 'string' ? body.programId : undefined,
-      programSlug: typeof body.programSlug === 'string' ? body.programSlug : undefined,
-      programName: typeof body.programName === 'string' ? body.programName : undefined,
+      projectId: typeof body.projectId === 'string' ? body.projectId.slice(0, 64) : undefined,
+      projectTitle,
+      orgName,
+      orgSlug:
+        typeof body.orgSlug === 'string' ? body.orgSlug.trim().slice(0, 120) : undefined,
+      programId:
+        typeof body.programId === 'string' ? body.programId.slice(0, 64) : undefined,
+      programSlug:
+        typeof body.programSlug === 'string'
+          ? body.programSlug.trim().slice(0, 80)
+          : undefined,
+      programName:
+        typeof body.programName === 'string'
+          ? body.programName.trim().slice(0, 200)
+          : undefined,
       status: isValidApplicationStatus(body.status) ? body.status : undefined,
-      notes: typeof body.notes === 'string' ? body.notes : undefined,
+      notes,
       deadline:
         typeof body.deadline === 'string' || body.deadline === null
           ? (body.deadline as string | null)
@@ -74,7 +90,7 @@ export async function POST(req: Request) {
       privateNoStoreHeaders()
     );
   } catch (error) {
-    console.error('POST /api/user/applications failed:', error);
+    safeLogError('POST /api/user/applications failed:', error);
     return apiError('Failed to create application', 500);
   }
 }
@@ -82,10 +98,10 @@ export async function POST(req: Request) {
 /** PATCH /api/user/applications — body must include id */
 export async function PATCH(req: Request) {
   try {
-    const authResult = await requireUserId();
+    const authResult = await requireUserMutation(req);
     if (isNextResponse(authResult)) return authResult;
 
-    const body = await parseJsonBody(req);
+    const body = await parseMutationBody(req);
     if (isNextResponse(body)) return body;
 
     if (typeof body.id !== 'string' || !body.id) {
@@ -119,7 +135,7 @@ export async function PATCH(req: Request) {
       throw e;
     }
   } catch (error) {
-    console.error('PATCH /api/user/applications failed:', error);
+    safeLogError('PATCH /api/user/applications failed:', error);
     return apiError('Failed to update application', 500);
   }
 }
@@ -127,7 +143,7 @@ export async function PATCH(req: Request) {
 /** DELETE /api/user/applications?id=... */
 export async function DELETE(req: Request) {
   try {
-    const authResult = await requireUserId();
+    const authResult = await requireUserMutation(req);
     if (isNextResponse(authResult)) return authResult;
 
     const { searchParams } = new URL(req.url);
@@ -143,7 +159,7 @@ export async function DELETE(req: Request) {
 
     return apiOk({ success: true }, 200, privateNoStoreHeaders());
   } catch (error) {
-    console.error('DELETE /api/user/applications failed:', error);
+    safeLogError('DELETE /api/user/applications failed:', error);
     return apiError('Failed to delete application', 500);
   }
 }

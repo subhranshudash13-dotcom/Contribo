@@ -1,22 +1,21 @@
 import { apiError, apiOk } from '@/lib/api';
-import { getClient, resolveDatabaseName } from '@/lib/db';
+import { getDb } from '@/lib/db';
 
 /**
  * GET /api/health
  * Liveness + MongoDB readiness probe for deploy checks and monitoring.
+ * Does not expose database names or connection details.
  */
 export async function GET() {
   const started = Date.now();
   try {
-    const client = await getClient();
-    const admin = client.db().admin();
-    await admin.ping();
+    const db = await getDb();
+    await db.command({ ping: 1 });
 
     return apiOk(
       {
         status: 'ok',
         service: 'contribo',
-        database: resolveDatabaseName(),
         mongodb: 'up',
         latencyMs: Date.now() - started,
         timestamp: new Date().toISOString(),
@@ -26,8 +25,9 @@ export async function GET() {
         'Cache-Control': 'no-store',
       }
     );
-  } catch (error) {
-    console.error('GET /api/health failed:', error);
+  } catch {
+    // Do not log raw connection errors (may include URI fragments).
+    console.error('GET /api/health failed: database unreachable');
     return apiError('Service unhealthy', 503, {
       status: 'error',
       mongodb: 'down',

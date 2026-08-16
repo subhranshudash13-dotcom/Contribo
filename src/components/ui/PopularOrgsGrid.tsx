@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Building2, X, Sparkles, Code2, ShieldAlert, GitCommit } from 'lucide-react';
+import { X, Sparkles, ShieldAlert, GitCommit } from 'lucide-react';
 
 interface OrgDetail {
   name: string;

@@ -1,8 +1,9 @@
 import React from 'react';
-import { Building2, Code2 } from 'lucide-react';
+import { Code2 } from 'lucide-react';
 import { Organization } from '../../../types';
 import { Button } from './Button';
 import { SaveButton } from './SaveTrackActions';
+import { OrgLogo } from './OrgLogo';
 
 export function OrgCard({
   org,
@@ -23,19 +24,7 @@ export function OrgCard({
       />
 
       <div className="flex items-start gap-4 mb-4 mt-2">
-        {org.logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={org.logoUrl}
-            alt={`${org.name} logo`}
-            className="w-10 h-10 rounded-sm object-contain bg-white border border-hairline shrink-0"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-10 h-10 rounded-sm bg-base flex items-center justify-center border border-hairline shrink-0">
-            <Building2 size={20} className="text-muted" />
-          </div>
-        )}
+        <OrgLogo logoUrl={org.logoUrl} name={org.name} className="w-10 h-10 rounded-lg" />
         <div className="flex-1 min-w-0">
           <h2 className="text-lg font-bold line-clamp-1 text-primary group-hover:text-program-accent transition-colors duration-100">
             {org.name}

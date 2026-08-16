@@ -115,6 +115,13 @@ export function ProjectCard({
               }}
               initialTracked={initialTracked}
             />
+
+            <Link
+              href={`/proposal-studio?project=${encodeURIComponent(project.title)}&org=${encodeURIComponent(project.org)}`}
+              className="inline-flex items-center gap-1 h-8 px-3 rounded-md border border-hairline bg-surface-raised hover:bg-surface text-primary text-xs font-mono font-bold uppercase transition-all"
+            >
+              <span>Proposal</span>
+            </Link>
           </div>
         )}
       </div>

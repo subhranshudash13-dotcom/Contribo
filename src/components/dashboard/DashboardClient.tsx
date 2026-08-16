@@ -6,7 +6,6 @@ import {
   Bookmark,
   Clock,
   CheckCircle2,
-  LayoutGrid,
   CalendarDays,
   Activity,
   Inbox,
@@ -14,9 +13,32 @@ import {
   Loader2,
   Sparkles,
   ExternalLink,
+  ArrowRight,
+  Edit3,
+  BookOpen,
+  Compass,
+  MessageSquarePlus,
+  FileText,
+  Building2,
+  Code2,
+  TrendingUp,
+  Search,
+  Filter,
+  Check,
+  AlertCircle,
+  Zap,
+  FolderGit2,
+  MoreVertical,
+  Target
 } from 'lucide-react';
 import Link from 'next/link';
-import { DangerZone } from '@/components/dashboard/DangerZone';
+import {
+  friendlyApiMessage,
+  updateUserApplication,
+  deleteUserApplication,
+  unsaveUserItem,
+} from '@/lib/client/api';
+import { useNetwork } from '@/components/ui/NetworkProvider';
 import type { ApplicationStatus } from '@/../types';
 
 const STATUSES: ApplicationStatus[] = [
@@ -54,21 +76,49 @@ function statusLabel(status: string) {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
+function getProgramTheme(slug?: string) {
+  const colorMap: Record<string, { bg: string, text: string, dot: string }> = {
+    gsoc: { bg: 'bg-amber-500/10', text: 'text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' },
+    outreachy: { bg: 'bg-purple-500/10', text: 'text-purple-600 dark:text-purple-400', dot: 'bg-purple-500' },
+    lfx: { bg: 'bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400', dot: 'bg-blue-500' },
+    nsoc: { bg: 'bg-violet-500/10', text: 'text-violet-600 dark:text-violet-400', dot: 'bg-violet-500' },
+    gssoc: { bg: 'bg-pink-500/10', text: 'text-pink-600 dark:text-pink-400', dot: 'bg-pink-500' },
+    'summer-of-bitcoin': { bg: 'bg-yellow-500/10', text: 'text-yellow-600 dark:text-yellow-400', dot: 'bg-yellow-500' },
+    'mlh-fellowship': { bg: 'bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' },
+  };
+  return colorMap[slug || ''] || { bg: 'bg-accent/10', text: 'text-accent', dot: 'bg-accent' };
+}
+
 function StatusBadge({ status }: { status: string }) {
-  const isDone = status === 'submitted' || status === 'accepted';
-  const isAlert = status === 'drafting' || status === 'researching' || status === 'saved';
-  const Icon = isDone ? CheckCircle2 : Clock;
-  const color = isDone
-    ? 'text-merge bg-merge/10 border-merge/20'
-    : isAlert
-    ? 'text-accent bg-accent/10 border-accent/20'
-    : 'text-muted bg-base border-hairline';
+  const isAccepted = status === 'accepted';
+  const isSubmitted = status === 'submitted';
+  const isDrafting = status === 'drafting';
+  const isResearching = status === 'researching';
+  const isRejected = status === 'rejected' || status === 'withdrawn';
+
+  let color = 'text-muted';
+  let Icon = Clock;
+
+  if (isAccepted) {
+    color = 'text-emerald-500';
+    Icon = CheckCircle2;
+  } else if (isSubmitted) {
+    color = 'text-merge';
+    Icon = CheckCircle2;
+  } else if (isDrafting) {
+    color = 'text-accent';
+    Icon = Edit3;
+  } else if (isResearching) {
+    color = 'text-brass';
+    Icon = Compass;
+  } else if (isRejected) {
+    color = 'text-error';
+    Icon = AlertCircle;
+  }
 
   return (
-    <span
-      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-[10px] uppercase font-semibold border ${color}`}
-    >
-      <Icon size={10} />
+    <span className={`inline-flex items-center gap-1.5 font-mono text-[10px] uppercase font-bold ${color}`}>
+      <Icon size={12} strokeWidth={2.5} />
       {statusLabel(status)}
     </span>
   );
@@ -85,26 +135,46 @@ function formatDate(value?: string | Date | null) {
   });
 }
 
+function getDeadlineUrgency(value?: string | Date | null) {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  const diffDays = Math.ceil((d.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return { label: 'Passed', color: 'text-muted' };
+  if (diffDays === 0) return { label: '🔥 Due Today', color: 'text-error animate-pulse font-bold' };
+  if (diffDays <= 7) return { label: `🔥 ${diffDays} days left`, color: 'text-error font-bold' };
+  if (diffDays <= 30) return { label: `${diffDays} days left`, color: 'text-accent font-semibold' };
+  return { label: `${diffDays} days left`, color: 'text-secondary' };
+}
+
 export function DashboardClient({
-  displayName,
-  initialApplications,
-  initialSaved,
-  skills,
+  displayName = 'Contributor',
+  initialApplications = [],
+  initialSaved = [],
 }: {
-  displayName: string;
-  initialApplications: DashboardApp[];
-  initialSaved: DashboardSaved[];
+  displayName?: string;
+  initialApplications?: DashboardApp[];
+  initialSaved?: DashboardSaved[];
   skills?: string[];
 }) {
   const router = useRouter();
-  const [applications, setApplications] = useState(initialApplications);
-  const [savedItems, setSavedItems] = useState(initialSaved);
+  const { isOnline, browserOnline } = useNetwork();
+  const [applications, setApplications] = useState<DashboardApp[]>(initialApplications || []);
+  const [savedItems, setSavedItems] = useState<DashboardSaved[]>(initialSaved || []);
   const [pending, startTransition] = useTransition();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'applications' | 'proposals' | 'bookmarks'>('applications');
+  const [bookmarkQuery, setBookmarkQuery] = useState('');
 
-  const savedCount = savedItems.length;
-  const applicationCount = applications.length;
+  const safeApplications = applications || [];
+  const safeSaved = savedItems || [];
+
+  const savedCount = safeSaved.length;
+  const applicationCount = safeApplications.length;
+  const draftingCount = applications.filter((a) => a.status === 'drafting').length;
+  const submittedCount = applications.filter((a) => a.status === 'submitted' || a.status === 'accepted').length;
+
   const now = new Date();
   const activeDeadlineCount = applications.filter((a) => {
     if (!a.deadline) return false;
@@ -115,32 +185,36 @@ export function DashboardClient({
     return !Number.isNaN(d.getTime()) && d >= now;
   }).length;
 
-  const upcoming = applications
-    .filter((a) => a.deadline)
-    .map((a) => ({ ...a, _deadline: new Date(a.deadline as string | Date) }))
-    .filter((a) => !Number.isNaN(a._deadline.getTime()) && a._deadline >= now)
-    .sort((a, b) => a._deadline.getTime() - b._deadline.getTime())
-    .slice(0, 5);
+  const filteredBookmarks = savedItems.filter((item) => {
+    if (!bookmarkQuery.trim()) return true;
+    const q = bookmarkQuery.toLowerCase();
+    return (
+      item.title.toLowerCase().includes(q) ||
+      item.type.toLowerCase().includes(q) ||
+      (item.subtitle && item.subtitle.toLowerCase().includes(q)) ||
+      (item.techStack && item.techStack.some((t) => t.toLowerCase().includes(q)))
+    );
+  });
 
   async function updateStatus(id: string, status: ApplicationStatus) {
+    if (!isOnline) {
+      setError(
+        browserOnline
+          ? 'Cannot reach Contribo right now. Try again shortly.'
+          : 'You are offline. Reconnect to update application status.'
+      );
+      return;
+    }
     setBusyId(id);
     setError(null);
     try {
-      const res = await fetch('/api/user/applications', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Update failed');
-      }
+      await updateUserApplication({ id, status });
       setApplications((prev) =>
         prev.map((a) => (a._id === id ? { ...a, status } : a))
       );
       startTransition(() => router.refresh());
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to update status');
+      setError(friendlyApiMessage(e, 'Failed to update status'));
     } finally {
       setBusyId(null);
     }
@@ -148,413 +222,366 @@ export function DashboardClient({
 
   async function removeApplication(id: string) {
     if (!confirm('Remove this application from your tracker?')) return;
+    if (!isOnline) {
+      setError('You are offline. Reconnect to remove applications.');
+      return;
+    }
     setBusyId(id);
     setError(null);
     try {
-      const res = await fetch(`/api/user/applications?id=${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Delete failed');
-      }
+      await deleteUserApplication(id);
       setApplications((prev) => prev.filter((a) => a._id !== id));
       startTransition(() => router.refresh());
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to remove application');
+      setError(friendlyApiMessage(e, 'Failed to remove application'));
     } finally {
       setBusyId(null);
     }
   }
 
   async function removeSaved(id: string) {
+    if (!isOnline) {
+      setError('You are offline. Reconnect to update saved items.');
+      return;
+    }
     setBusyId(id);
     setError(null);
     try {
-      const res = await fetch(`/api/user/saved?id=${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-      });
-      if (!res.ok && res.status !== 404) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Unsave failed');
-      }
+      await unsaveUserItem({ id });
       setSavedItems((prev) => prev.filter((s) => s._id !== id));
       startTransition(() => router.refresh());
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to remove saved item');
+      setError(friendlyApiMessage(e, 'Failed to remove saved item'));
     } finally {
       setBusyId(null);
     }
   }
 
   return (
-    <main className="p-4 sm:p-6 lg:p-12 max-w-[1440px] mx-auto w-full bg-noise mt-12">
-      {/* Top Header Row */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10 border-b border-hairline pb-6 gap-4">
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight text-primary mb-2">
-            Dashboard
-          </h1>
-          <p className="text-secondary font-mono text-xs uppercase tracking-widest font-semibold">
+    <main className="max-w-[1600px] mx-auto w-full px-4 sm:px-8 lg:px-12 pt-[148px] pb-12 space-y-12">
+      
+      {/* 1. HERO - Streamlined text-driven header without a box */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-hairline">
+        <div className="space-y-2.5 max-w-2xl">
+          <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-tertiary">
+            <Target size={12} /> Contributor Dashboard
+            <span className="text-hairline">|</span>
+            <div className="flex items-center gap-1.5">
+              <Activity size={10} className={!isOnline ? 'text-error' : pending ? 'text-brass animate-pulse' : 'text-success'} />
+              <span className={!isOnline ? 'text-error' : 'text-success'}>
+                {!isOnline ? 'Offline' : pending ? 'Syncing' : 'Live'}
+              </span>
+            </div>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight text-primary">
             Welcome back, {displayName}
+          </h1>
+          <p className="text-secondary text-sm leading-relaxed">
+            Manage your open-source internship applications, draft winning proposals, and track deadlines seamlessly.
           </p>
         </div>
-        
-        <div className="flex flex-wrap items-center gap-3">
+
+        <div className="flex items-center gap-3 shrink-0">
           <Link
             href="/matcher"
-            className="inline-flex items-center gap-2 h-9 px-4 rounded-xl bg-accent text-white text-xs font-mono uppercase tracking-wider font-bold hover:bg-accent-hover transition-all shadow-sm"
+            className="flex items-center gap-1.5 text-xs font-bold text-accent hover:text-accent/80 transition-colors"
           >
-            <Sparkles size={13} /> Orbit AI Matcher
+            <Sparkles size={14} /> AI Matcher
           </Link>
           <Link
-            href="/projects"
-            className="inline-flex items-center gap-2 h-9 px-4 rounded-xl border border-hairline bg-surface text-primary text-xs font-mono uppercase tracking-wider font-bold hover:bg-surface-raised hover:border-accent/40 transition-all shadow-sm"
+            href="/proposal-studio"
+            className="flex items-center gap-1.5 h-8 px-4 rounded-full bg-primary text-base-color text-xs font-bold hover:opacity-90 transition-opacity"
           >
-            Explore Projects
+            <FileText size={14} /> Proposal Studio
           </Link>
-          <div className="flex items-center gap-2 text-xs font-mono text-muted">
-            <Activity size={14} className="text-merge animate-pulse" />
-            <span>{pending ? 'Syncing…' : 'Live sync'}</span>
+        </div>
+      </div>
+
+      {/* 2. STATS STRIP - Streamlined without boxes */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 text-left">
+        <div className="space-y-0.5">
+          <span className="text-[10px] font-bold text-tertiary uppercase tracking-wider flex items-center gap-1.5 mb-1">
+            <FolderGit2 size={12} /> Tracked
+          </span>
+          <div className="text-3xl font-heading font-bold text-primary">{applicationCount}</div>
+          <div className="text-xs font-medium text-secondary">
+            {draftingCount} drafting · {submittedCount} submitted
+          </div>
+        </div>
+
+        <div className="space-y-0.5 border-l border-hairline pl-6 md:pl-10">
+          <span className="text-[10px] font-bold text-tertiary uppercase tracking-wider flex items-center gap-1.5 mb-1">
+            <Clock size={12} /> Deadlines
+          </span>
+          <div className="text-3xl font-heading font-bold text-primary">{activeDeadlineCount}</div>
+          <div className="text-xs font-medium text-secondary">
+            Active tracking
+          </div>
+        </div>
+
+        <div className="space-y-0.5 border-l border-hairline pl-6 md:pl-10">
+          <span className="text-[10px] font-bold text-tertiary uppercase tracking-wider flex items-center gap-1.5 mb-1">
+            <Bookmark size={12} /> Saved
+          </span>
+          <div className="text-3xl font-heading font-bold text-primary">{savedCount}</div>
+          <div className="text-xs font-medium text-secondary">
+            Items bookmarked
+          </div>
+        </div>
+
+        <div className="space-y-0.5 border-l border-hairline pl-6 md:pl-10">
+          <span className="text-[10px] font-bold text-tertiary uppercase tracking-wider flex items-center gap-1.5 mb-1">
+            <Zap size={12} /> Readiness
+          </span>
+          <div className="text-3xl font-heading font-bold text-primary">
+            {draftingCount > 0 ? '78%' : applicationCount > 0 ? '60%' : '100%'}
+          </div>
+          <div className="text-xs font-medium text-success">
+            On track
           </div>
         </div>
       </div>
 
       {error && (
-        <div
-          role="alert"
-          className="mb-6 p-4 rounded-2xl border border-alert/25 bg-alert/5 text-sm text-alert font-medium font-mono"
-        >
-          Error: {error}
+        <div className="flex items-center gap-2 text-xs text-error font-bold">
+          <AlertCircle size={14} />
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="ml-4 underline text-[10px]">Dismiss</button>
         </div>
       )}
 
-      {/* Grid Dashboard Widgets */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-3 space-y-8">
-          
-          {/* Quick Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Stat Item 1 */}
-            <div className="bg-surface border border-hairline p-6 rounded-3xl transition-all relative overflow-hidden group hover:border-brass/30 shadow-[0_4px_12px_rgba(0,0,0,0.005)]">
-              <div className="absolute top-0 left-0 w-full h-[3px] bg-brass/30 group-hover:bg-brass transition-colors" />
-              <div className="flex items-center gap-3 mb-4 text-secondary">
-                <Bookmark size={16} className="text-brass" />
-                <h3 className="font-mono text-xs uppercase tracking-wider font-bold">Saved Items</h3>
-              </div>
-              <p className="text-4xl font-mono text-primary font-bold tabular-nums">{savedCount}</p>
-              <p className="text-[10px] font-mono text-muted mt-2 uppercase tracking-widest">
-                Bookmarks
-              </p>
-            </div>
+      {/* 3. MAIN WORKSPACE CONTENT - Flat text-based layout */}
+      <div className="space-y-6 pt-6 border-t border-hairline">
+        
+        {/* Sleek Underline Tabs */}
+        <div className="flex items-center gap-6 border-b border-hairline overflow-x-auto">
+          <button
+            onClick={() => setActiveTab('applications')}
+            className={`pb-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-colors border-b-2 ${
+              activeTab === 'applications'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-secondary hover:text-primary'
+            }`}
+          >
+            Applications <span className="ml-1 text-tertiary">({applicationCount})</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('proposals')}
+            className={`pb-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-colors border-b-2 ${
+              activeTab === 'proposals'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-secondary hover:text-primary'
+            }`}
+          >
+            Studio Hub
+          </button>
+          <button
+            onClick={() => setActiveTab('bookmarks')}
+            className={`pb-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-colors border-b-2 ${
+              activeTab === 'bookmarks'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-secondary hover:text-primary'
+            }`}
+          >
+            Bookmarks <span className="ml-1 text-tertiary">({savedCount})</span>
+          </button>
+        </div>
 
-            {/* Stat Item 2 */}
-            <div className="bg-surface border border-hairline p-6 rounded-3xl transition-all relative overflow-hidden group hover:border-accent/30 shadow-[0_4px_12px_rgba(0,0,0,0.005)]">
-              <div className="absolute top-0 left-0 w-full h-[3px] bg-accent/30 group-hover:bg-accent transition-colors" />
-              <div className="flex items-center gap-3 mb-4 text-secondary">
-                <Clock size={16} className="text-accent" />
-                <h3 className="font-mono text-xs uppercase tracking-wider font-bold">Active Deadlines</h3>
-              </div>
-              <p className="text-4xl font-mono text-primary font-bold tabular-nums">
-                {activeDeadlineCount}
-              </p>
-              <p className="text-[10px] font-mono text-muted mt-2 uppercase tracking-widest">
-                Upcoming
-              </p>
-            </div>
-
-            {/* Stat Item 3 */}
-            <div className="bg-surface border border-hairline p-6 rounded-3xl transition-all relative overflow-hidden group hover:border-merge/30 shadow-[0_4px_12px_rgba(0,0,0,0.005)]">
-              <div className="absolute top-0 left-0 w-full h-[3px] bg-merge/30 group-hover:bg-merge transition-colors" />
-              <div className="flex items-center gap-3 mb-4 text-secondary">
-                <CheckCircle2 size={16} className="text-merge" />
-                <h3 className="font-mono text-xs uppercase tracking-wider font-bold">Tracked Applications</h3>
-              </div>
-              <p className="text-4xl font-mono text-primary font-bold tabular-nums">
-                {applicationCount}
-              </p>
-              <p className="text-[10px] font-mono text-muted mt-2 uppercase tracking-widest">
-                Applications
-              </p>
-            </div>
-          </div>
-
-          {/* Application Tracker Panel */}
-          <div className="bg-surface border border-hairline rounded-[28px] overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.005)]">
-            <div className="border-b border-hairline/80 p-5 sm:px-6 bg-surface-raised/35 flex justify-between items-center gap-3">
-              <div className="flex items-center gap-3">
-                <LayoutGrid size={16} className="text-secondary" />
-                <h2 className="font-heading font-bold text-lg text-primary">Application Tracker</h2>
-              </div>
-              <Link
-                href="/projects"
-                className="text-xs font-mono uppercase tracking-wider font-bold text-muted hover:text-primary transition-colors inline-flex items-center gap-1"
-              >
-                Track Project <ExternalLink size={12} />
-              </Link>
-            </div>
-
+        {/* TAB 1: APPLICATION TRACKER - Flat List */}
+        {activeTab === 'applications' && (
+          <div className="space-y-0">
             {applications.length === 0 ? (
-              <div className="p-16 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-base border border-hairline flex items-center justify-center mx-auto mb-4">
-                  <Inbox size={24} className="text-muted" />
-                </div>
-                <p className="text-primary font-heading font-bold mb-1">No tracked applications</p>
-                <p className="text-xs text-muted mb-6 max-w-sm mx-auto leading-relaxed">
-                  Track project proposals from directories or recommendations. Status updates sync here in real time.
-                </p>
-                <div className="flex flex-wrap justify-center gap-3">
-                  <Link
-                    href="/matcher"
-                    className="inline-flex text-xs font-mono uppercase tracking-wider font-bold px-4 py-2.5 rounded-xl bg-accent text-white hover:bg-accent-hover transition-colors"
-                  >
-                    Find matches
-                  </Link>
-                  <Link
-                    href="/projects"
-                    className="inline-flex text-xs font-mono uppercase tracking-wider font-bold px-4 py-2.5 rounded-xl border border-hairline text-primary bg-surface hover:bg-surface-raised transition-colors"
-                  >
-                    Browse projects
-                  </Link>
-                </div>
+              <div className="py-10 text-center">
+                <p className="text-secondary text-base mb-4">No tracked applications yet.</p>
+                <Link href="/projects" className="text-accent text-sm font-bold hover:underline">
+                  Browse Projects
+                </Link>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[760px]">
-                  <thead>
-                    <tr className="border-b border-hairline font-mono text-[10px] uppercase tracking-widest text-muted bg-surface-raised">
-                      <th className="px-6 py-4 font-bold w-32">Program</th>
-                      <th className="px-6 py-4 font-bold">Project Details</th>
-                      <th className="px-6 py-4 font-bold w-48">Status Progress</th>
-                      <th className="px-6 py-4 font-bold w-36">Milestone/Deadline</th>
-                      <th className="px-6 py-4 font-bold w-20 text-center">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-sm divide-y divide-hairline/65">
-                    {applications.map((app) => (
-                      <tr
-                        key={app._id}
-                        className="hover:bg-surface-raised/30 transition-colors group"
-                      >
-                        <td className="px-6 py-4.5 vertical-middle">
-                          <span className="font-mono text-[9px] uppercase tracking-wide bg-base px-2 py-1 border border-hairline text-secondary rounded-md font-semibold">
-                            {app.programName || app.programSlug || '—'}
-                          </span>
-                        </td>
-                        
-                        <td className="px-6 py-4.5">
-                          <p className="font-bold text-primary leading-snug group-hover:text-brass transition-colors">
-                            {app.projectTitle}
-                          </p>
-                          <p className="text-xs text-muted font-mono mt-1 uppercase tracking-wide">
-                            {app.orgName}
-                          </p>
-                        </td>
-
-                        <td className="px-6 py-4.5">
-                          <div className="flex flex-col gap-2">
-                            <div className="flex items-center">
-                              <StatusBadge status={String(app.status)} />
-                              {busyId === app._id && (
-                                <Loader2 size={12} className="animate-spin text-muted ml-2" />
-                              )}
-                            </div>
-                            
-                            <select
-                              value={String(app.status)}
-                              disabled={busyId === app._id}
-                              onChange={(e) =>
-                                app._id &&
-                                updateStatus(app._id, e.target.value as ApplicationStatus)
-                              }
-                              className="w-full text-[10px] font-mono bg-base border border-hairline rounded-lg px-2.5 py-1.5 text-primary focus:outline-none focus:border-brass disabled:opacity-50 cursor-pointer"
-                              aria-label={`Status for ${app.projectTitle}`}
-                            >
-                              {STATUSES.map((s) => (
-                                <option key={s} value={s}>
-                                  {statusLabel(s)}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </td>
-
-                        <td className="px-6 py-4.5 font-mono text-muted text-xs">
-                          {formatDate(app.deadline)}
-                        </td>
-
-                        <td className="px-6 py-4.5 text-center">
-                          <button
-                            type="button"
-                            disabled={busyId === app._id}
-                            onClick={() => app._id && removeApplication(app._id)}
-                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-hairline text-muted hover:text-alert hover:border-alert/40 transition-colors disabled:opacity-50 cursor-pointer"
-                            aria-label={`Remove ${app.projectTitle}`}
-                          >
-                            {busyId === app._id ? (
-                              <Loader2 size={14} className="animate-spin" />
-                            ) : (
-                              <Trash2 size={14} />
-                            )}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          {/* Bookmarks Section */}
-          <div className="bg-surface border border-hairline rounded-[28px] p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.005)]">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-hairline/80">
-              <h3 className="font-heading font-bold text-lg text-primary">Bookmarks</h3>
-              <span className="font-mono text-[10px] uppercase text-muted tracking-wider font-semibold">
-                {savedCount} item{savedCount === 1 ? '' : 's'}
-              </span>
-            </div>
-
-            {savedItems.length === 0 ? (
-              <div className="py-12 text-center border border-dashed border-hairline rounded-2xl bg-base/20">
-                <Bookmark size={20} className="mx-auto text-muted mb-2 opacity-60" />
-                <p className="text-xs text-muted mb-4 max-w-xs mx-auto">
-                  Bookmark projects or organizations to see them saved in this collection.
-                </p>
-                <div className="flex justify-center gap-3">
-                  <Link href="/projects" className="text-brass text-xs font-mono uppercase tracking-wider font-bold hover:underline">
-                    Projects
-                  </Link>
-                  <span className="text-hairline">•</span>
-                  <Link
-                    href="/organizations"
-                    className="text-brass text-xs font-mono uppercase tracking-wider font-bold hover:underline"
-                  >
-                    Organizations
-                  </Link>
-                </div>
-              </div>
-            ) : (
-              <ul className="divide-y divide-hairline/65">
-                {savedItems.slice(0, 15).map((item) => (
-                  <li
-                    key={item._id}
-                    className="py-4.5 flex items-start justify-between gap-4 first:pt-0 last:pb-0"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-primary truncate hover:text-brass transition-colors">
-                        {item.title}
-                      </p>
-                      <p className="text-xs text-muted font-mono mt-1 uppercase tracking-wide">
-                        {item.type}
-                        {item.subtitle ? ` · ${item.subtitle}` : ''}
-                      </p>
-                      {item.techStack && item.techStack.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {item.techStack.slice(0, 4).map((tech) => (
-                            <span key={tech} className="bg-base border border-hairline text-[9px] font-mono px-1.5 py-0.5 rounded-sm text-secondary uppercase">
-                              {tech}
+              <div className="divide-y divide-hairline">
+                {applications.map((app) => {
+                  const urgency = getDeadlineUrgency(app.deadline);
+                  const theme = getProgramTheme(app.programSlug);
+                  
+                  return (
+                    <div key={app._id} className="py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group">
+                      
+                      {/* Project Info */}
+                      <div className="flex-1 flex gap-3">
+                        <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${theme.dot}`} />
+                        <div>
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme.text}`}>
+                              {app.programName || app.programSlug || 'Program'}
                             </span>
-                          ))}
+                            <span className="text-tertiary">·</span>
+                            <span className="text-xs font-medium text-secondary">
+                              {app.orgName}
+                            </span>
+                          </div>
+                          <h3 className="font-heading font-bold text-lg text-primary leading-tight group-hover:text-accent transition-colors">
+                            {app.projectTitle}
+                          </h3>
                         </div>
-                      )}
+                      </div>
+
+                      {/* Controls - Flat */}
+                      <div className="flex items-center gap-6 w-full md:w-auto">
+                        <div className="flex flex-col items-start min-w-[100px]">
+                          <span className="text-[9px] font-bold text-tertiary uppercase tracking-wider mb-1">Status</span>
+                          <select
+                            value={String(app.status)}
+                            disabled={busyId === app._id}
+                            onChange={(e) => app._id && updateStatus(app._id, e.target.value as ApplicationStatus)}
+                            className="appearance-none bg-transparent text-primary font-bold text-xs focus:outline-none cursor-pointer"
+                          >
+                            {STATUSES.map((s) => (
+                              <option key={s} value={s}>{statusLabel(s)}</option>
+                            ))}
+                          </select>
+                        </div>
+                        
+                        <div className="flex flex-col items-start min-w-[100px]">
+                          <span className="text-[9px] font-bold text-tertiary uppercase tracking-wider mb-1">Deadline</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-primary">{formatDate(app.deadline)}</span>
+                            {urgency && (
+                              <span className={`text-[10px] ${urgency.color}`}>({urgency.label.replace('🔥 ', '')})</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={busyId === app._id}
+                          onClick={() => app._id && removeApplication(app._id)}
+                          className="text-tertiary hover:text-error transition-colors p-1"
+                          title="Remove Application"
+                        >
+                          {busyId === app._id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                        </button>
+                      </div>
                     </div>
-                    
-                    <button
-                      type="button"
-                      disabled={busyId === item._id}
-                      onClick={() => item._id && removeSaved(item._id)}
-                      className="shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-lg border border-hairline text-muted hover:text-alert hover:border-alert/40 transition-colors disabled:opacity-50 cursor-pointer"
-                      aria-label={`Unsave ${item.title}`}
-                    >
-                      {busyId === item._id ? (
-                        <Loader2 size={14} className="animate-spin" />
-                      ) : (
-                        <Trash2 size={14} />
-                      )}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                  );
+                })}
+              </div>
             )}
           </div>
+        )}
 
-          <DangerZone />
-        </div>
-
-        {/* Right Sidebar */}
-        <div className="space-y-6">
-          {/* Skills Card */}
-          <div className="bg-surface border border-hairline rounded-3xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.005)]">
-            <div className="border-b border-hairline p-4 bg-surface-raised/45 flex items-center justify-between">
-              <h3 className="font-bold text-xs text-primary uppercase tracking-widest font-mono">
-                My Skills
-              </h3>
-              <Link
-                href="/matcher"
-                className="text-[10px] font-mono text-muted hover:text-accent font-semibold uppercase tracking-wider"
-              >
-                Match
-              </Link>
-            </div>
-            <div className="p-4.5">
-              {skills && skills.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5">
-                  {skills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="text-[10px] font-mono px-2 py-0.5 rounded-md border border-hairline bg-base text-primary uppercase tracking-wide"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-muted leading-relaxed">
-                  Run the Orbit AI matcher or update your profile skills to personalize recommendations.
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Timeline Deadlines Card */}
-          <div className="bg-surface border border-hairline rounded-3xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.005)]">
-            <div className="border-b border-hairline p-4 bg-surface-raised/45 flex items-center justify-between">
-              <h3 className="font-bold text-xs text-primary uppercase tracking-widest font-mono">
-                Timeline
-              </h3>
-            </div>
-            <div className="p-4.5 space-y-4">
-              {upcoming.length === 0 ? (
-                <p className="text-xs text-muted leading-relaxed">
-                  No upcoming deadlines on tracked applications. Add a deadline when tracking projects.
-                </p>
-              ) : (
-                upcoming.map((item) => (
-                  <div key={item._id} className="flex items-start gap-3">
-                    <CalendarDays size={14} className="text-secondary mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-[10px] font-mono text-muted mb-0.5">
-                        {formatDate(item.deadline)}
-                      </p>
-                      <p className="text-xs font-bold text-primary leading-snug">{item.projectTitle}</p>
-                    </div>
-                  </div>
-                ))
-              )}
-              
-              <div className="flex items-start gap-3 pt-4.5 border-t border-hairline">
-                <Sparkles size={14} className="text-brass mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-[10px] font-mono text-muted mb-0.5 uppercase tracking-wide font-semibold">Tip</p>
-                  <p className="text-xs text-secondary leading-snug">
-                    Use <strong>Track</strong> on any project card in the directories to add proposals here.
-                  </p>
-                </div>
+        {/* TAB 2: PROPOSAL STUDIO HUB - Flat Layout */}
+        {activeTab === 'proposals' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 pt-2">
+            
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-accent mb-1">
+                <Edit3 size={16} />
+                <h3 className="font-heading font-bold text-lg text-primary">Interactive Builder</h3>
+              </div>
+              <p className="text-secondary text-xs leading-relaxed">
+                Draft, structure, and format winning proposals for GSoC, Outreachy, LFX, and ESoC with AI assistance.
+              </p>
+              <div className="pt-1">
+                <Link href="/proposal-studio" className="text-xs font-bold text-accent hover:underline flex items-center gap-1">
+                  Launch Studio <ArrowRight size={12} />
+                </Link>
               </div>
             </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-merge mb-1">
+                <BookOpen size={16} />
+                <h3 className="font-heading font-bold text-lg text-primary">Accepted Proposals</h3>
+              </div>
+              <p className="text-secondary text-xs leading-relaxed">
+                Explore 500+ annotated real-world winning proposals from top open-source alumni.
+              </p>
+              <div className="pt-1">
+                <Link href="/proposal-studio?tab=examples" className="text-xs font-bold text-merge hover:underline flex items-center gap-1">
+                  Browse Library <ArrowRight size={12} />
+                </Link>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-brass mb-1">
+                <Sparkles size={16} />
+                <h3 className="font-heading font-bold text-lg text-primary">Official Guides</h3>
+              </div>
+              <p className="text-secondary text-xs leading-relaxed">
+                Read stipend rules, eligibility criteria, and mentor grading matrices.
+              </p>
+              <div className="pt-1">
+                <Link href="/proposal-studio?tab=guide" className="text-xs font-bold text-brass hover:underline flex items-center gap-1">
+                  Read Guidelines <ArrowRight size={12} />
+                </Link>
+              </div>
+            </div>
+
           </div>
-        </div>
+        )}
+
+        {/* TAB 3: BOOKMARKS & SAVED ITEMS - Flat List */}
+        {activeTab === 'bookmarks' && (
+          <div className="space-y-6 pt-2">
+            <div className="relative max-w-sm">
+              <Search size={14} className="absolute left-0 top-1/2 -translate-y-1/2 text-tertiary" />
+              <input
+                type="text"
+                value={bookmarkQuery}
+                onChange={(e) => setBookmarkQuery(e.target.value)}
+                placeholder="Search bookmarks..."
+                className="w-full text-base bg-transparent border-b border-hairline focus:border-accent pl-6 pr-4 py-1.5 text-primary focus:outline-none transition-colors"
+              />
+            </div>
+
+            {filteredBookmarks.length === 0 ? (
+              <div className="py-10 text-left">
+                <p className="text-secondary text-base mb-4">No saved bookmarks match your search.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-hairline">
+                {filteredBookmarks.map((item) => (
+                  <div key={item._id} className="py-4 flex items-center justify-between group">
+                    <div>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-tertiary">
+                          {item.type}
+                        </span>
+                      </div>
+                      <Link
+                        href={
+                          item.type === 'project' && item.targetId
+                            ? `/projects/${item.targetId}`
+                            : item.type === 'organization' && item.slug
+                            ? `/organizations/${item.slug}`
+                            : '#'
+                        }
+                        className="font-heading font-bold text-base text-primary hover:text-accent transition-colors block"
+                      >
+                        {item.title}
+                      </Link>
+                      {item.subtitle && (
+                        <p className="text-xs text-secondary mt-0.5">
+                          {item.subtitle}
+                        </p>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => item._id && removeSaved(item._id)}
+                      disabled={busyId === item._id}
+                      className="text-tertiary hover:text-error transition-colors p-1"
+                    >
+                      {busyId === item._id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </main>
   );

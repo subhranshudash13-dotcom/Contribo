@@ -1,12 +1,13 @@
 import Link from 'next/link';
+import Script from 'next/script';
 import { Project } from '../../../types';
 import { ProjectCard } from '@/components/ui/ProjectCard';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { FilterX, Search, ChevronRight, SlidersHorizontal, ChevronLeft, Star, Tag, Code, Sparkles, ArrowRight } from 'lucide-react';
+import { FilterX, Search, ChevronRight, SlidersHorizontal, ChevronLeft, Star, Tag, Code, Sparkles, ArrowRight, BookOpen, CheckCircle2, FileText } from 'lucide-react';
 import { listProjects } from '@/lib/repositories/projects';
 import { auth } from '@/auth';
 import { getUserItemStatus } from '@/lib/repositories/dashboard';
-import { getCachedPrograms, getCachedFilterFacets } from '@/lib/data-cache';
+import { getCachedPrograms, getCachedFilterFacets, getCachedDefaultProjects } from '@/lib/data-cache';
 
 export const metadata = {
   title: 'Projects | Contribo',
@@ -41,19 +42,32 @@ async function getProjectsData(options: {
   const programId =
     options.programId && options.programId !== 'all' ? options.programId : undefined;
 
+  const isDefault =
+    !programId &&
+    !options.orgSlug &&
+    !options.difficulty &&
+    (!options.tech || options.tech === 'all') &&
+    !options.q &&
+    !options.sortBy &&
+    options.page === 1;
+
+  const projectsPromise = isDefault
+    ? getCachedDefaultProjects()
+    : listProjects({
+        programId,
+        orgSlug: options.orgSlug,
+        difficulty: options.difficulty,
+        tech: options.tech,
+        search: options.q,
+        sortBy: options.sortBy,
+        limit: options.limit,
+        skip: (options.page - 1) * options.limit,
+        lean: true,
+      });
+
   // Parallel: lean project page + cached programs + cached filter facets (from /api/meta/filters data path)
   const [{ projects, total }, programs, facets] = await Promise.all([
-    listProjects({
-      programId,
-      orgSlug: options.orgSlug,
-      difficulty: options.difficulty,
-      tech: options.tech,
-      search: options.q,
-      sortBy: options.sortBy,
-      limit: options.limit,
-      skip: (options.page - 1) * options.limit,
-      lean: true,
-    }),
+    projectsPromise,
     getCachedPrograms(),
     getCachedFilterFacets(),
   ]);
@@ -175,7 +189,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
             <Sparkles size={12} className="text-accent animate-pulse" /> Orbit AI Recommendation
           </span>
           <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-primary font-heading leading-tight">
-            Confused which project to choose or don't know which one you are most suitable to work on?
+            Confused which project to choose or don&apos;t know which one you are most suitable to work on?
           </h2>
           <p className="text-secondary text-xs sm:text-sm font-normal">
             Use our Orbit AI Matcher to find out! Get instant matching scores based on your developer skills, preferred frameworks, and contribution experience.
@@ -406,8 +420,77 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
         </div>
       </form>
       
+      {/* Ready to Apply? Proposal Studio Section */}
+      <div className="mt-16 pt-12 border-t border-hairline">
+        <div className="border border-hairline bg-surface rounded-3xl p-6 sm:p-10 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-accent" />
+          
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+            <div>
+              <span className="font-mono text-[10px] uppercase font-bold text-accent px-3 py-1 bg-accent/10 rounded-full border border-accent/20 inline-block mb-2">
+                Proposal Studio Integration
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-heading font-extrabold text-primary tracking-tight">
+                Ready to Apply?
+              </h2>
+              <p className="text-secondary text-xs sm:text-sm mt-1 max-w-xl">
+                Convert your selected open-source project into a winning GSoC, LFX, or Outreachy application using Proposal Studio.
+              </p>
+            </div>
+
+            <Link
+              href="/proposal-studio"
+              className="inline-flex items-center gap-2 px-6 py-3.5 bg-accent hover:bg-accent-hover text-white font-mono text-xs uppercase font-bold rounded-2xl transition-all shadow-md hover:shadow-lg shrink-0 cursor-pointer"
+            >
+              <span>Start Proposal</span>
+              <ArrowRight size={15} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono text-xs">
+            <div className="bg-base p-4.5 rounded-2xl border border-hairline space-y-1">
+              <span className="text-muted text-[10px] uppercase tracking-wider font-bold">Proposal Status</span>
+              <div className="flex justify-between items-center font-bold text-primary text-sm pt-1">
+                <span>0% Progress</span>
+                <span className="text-accent text-xs">Not Started</span>
+              </div>
+            </div>
+
+            <div className="bg-base p-4.5 rounded-2xl border border-hairline space-y-1">
+              <span className="text-muted text-[10px] uppercase tracking-wider font-bold">Accepted Proposals</span>
+              <div className="flex justify-between items-center font-bold text-primary text-sm pt-1">
+                <span>3 Similar</span>
+                <Link href="/proposal-studio?tab=examples" className="text-accent hover:underline text-xs">
+                  View →
+                </Link>
+              </div>
+            </div>
+
+            <div className="bg-base p-4.5 rounded-2xl border border-hairline space-y-1">
+              <span className="text-muted text-[10px] uppercase tracking-wider font-bold">Proposal Guide</span>
+              <div className="flex justify-between items-center font-bold text-primary text-sm pt-1">
+                <span>Tailored Docs</span>
+                <Link href="/proposal-studio?tab=guide" className="text-accent hover:underline text-xs">
+                  Open →
+                </Link>
+              </div>
+            </div>
+
+            <div className="bg-base p-4.5 rounded-2xl border border-hairline space-y-1">
+              <span className="text-muted text-[10px] uppercase tracking-wider font-bold">Checklist & Review</span>
+              <div className="flex justify-between items-center font-bold text-primary text-sm pt-1">
+                <span>Readiness Audit</span>
+                <Link href="/proposal-studio?tab=review" className="text-accent hover:underline text-xs">
+                  Check →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Client-side script to handle reactive tag clicks preserving input state */}
-      <script dangerouslySetInnerHTML={{ __html: `
+      <Script id="tech-tag-listener" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: `
         if (!window.techTagListenerAdded) {
           window.techTagListenerAdded = true;
           document.addEventListener('click', function(e) {

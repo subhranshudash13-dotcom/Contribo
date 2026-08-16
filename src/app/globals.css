@@ -1,23 +1,26 @@
 @import "tailwindcss";
 
-/* DM Sans: CSS class for a variable style
-// <weight>: 400 (normal body weight for excellent readability and visibility)
-// <uniquifier>: contribo (unique and descriptive class name)
-*/
+/* next/font injects --font-dm-sans; fall back gracefully offline */
 .dm-sans-contribo {
-  font-family: "DM Sans", sans-serif;
+  font-family: var(--font-dm-sans), "DM Sans", sans-serif;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
 }
 
+/* Skip layout/paint work for off-screen sections until near viewport */
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 480px;
+}
+
 @theme {
   --variant-dark: class;
 
-  /* Fonts */
-  --font-sans: "DM Sans", Inter, system-ui, -apple-system, sans-serif;
+  /* Fonts — prefer next/font variable when available */
+  --font-sans: var(--font-dm-sans), "DM Sans", Inter, system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-  --font-heading: "DM Sans", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-heading: var(--font-dm-sans), "DM Sans", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
 
   /* Typography Scale (Strict 12, 14, 16, 18, 20, 24, 32, 48, 64) */
   --text-xs: 12px;
@@ -74,6 +77,8 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-error: var(--error);
+  /* Alias used by offline / alert surfaces (maps to error) */
+  --color-alert: var(--alert);
   
   --color-merge: var(--merge);
   --color-merge-hover: var(--merge-hover);
@@ -115,6 +120,7 @@
     --success: #5E9E6D;
     --warning: #C88D3A;
     --error: #C96A6A;
+    --alert: #C96A6A;
     --merge: #8B5CF6;
     --merge-hover: #7C3AED;
 
@@ -142,6 +148,7 @@
     --success: #5E9E6D;
     --warning: #C88D3A;
     --error: #C96A6A;
+    --alert: #C96A6A;
     --merge: #A78BFA;
     --merge-hover: #C084FC;
   }

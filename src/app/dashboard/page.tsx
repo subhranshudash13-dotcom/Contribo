@@ -1,14 +1,27 @@
 import React from 'react';
+import nextDynamic from 'next/dynamic';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { getDashboardSummary } from '@/lib/repositories/dashboard';
 import { getUserProfile } from '@/lib/repositories/users';
-import {
-  DashboardClient,
-  type DashboardApp,
-  type DashboardSaved,
-} from '@/components/dashboard/DashboardClient';
+import type { DashboardApp, DashboardSaved } from '@/components/dashboard/DashboardClient';
 import type { ApplicationStatus } from '@/../types';
+import { SectionSkeleton } from '@/components/ui/SectionSkeleton';
+
+const DashboardClient = nextDynamic(
+  () =>
+    import('@/components/dashboard/DashboardClient').then((m) => ({
+      default: m.DashboardClient,
+    })),
+  {
+    loading: () => (
+      <main className="min-h-screen w-full max-w-[1440px] mx-auto px-4 sm:px-8 py-12 space-y-8">
+        <div className="h-24 rounded-2xl border border-hairline bg-surface animate-pulse" />
+        <SectionSkeleton variant="list" count={4} />
+      </main>
+    ),
+  }
+);
 
 export const metadata = {
   title: 'Dashboard | Contribo',

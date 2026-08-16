@@ -1,3 +1,4 @@
+/* eslint-disable */
 const http = require('http');
 
 function makeRequest(url, method = 'GET', postData = null) {

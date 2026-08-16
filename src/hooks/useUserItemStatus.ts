@@ -18,11 +18,12 @@ export function useUserItemStatus(options: {
   const organizationIds = options.organizationIds || [];
   const enabled = options.enabled !== false;
 
+  const projectKey = projectIds.slice(0, 50).join(',');
+  const orgKey = organizationIds.slice(0, 50).join(',');
+
   const key = useMemo(
-    () =>
-      `${projectIds.slice(0, 50).join(',')}|${organizationIds.slice(0, 50).join(',')}`,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [projectIds.join(','), organizationIds.join(',')]
+    () => `${projectKey}|${orgKey}`,
+    [projectKey, orgKey]
   );
 
   const [savedProjects, setSavedProjects] = useState<Set<string>>(new Set());

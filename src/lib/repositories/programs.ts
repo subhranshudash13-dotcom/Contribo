@@ -37,21 +37,28 @@ export async function resolveProgramFilter(params: {
 }): Promise<{ programId?: unknown; notFound?: boolean }> {
   const { programIdFilter, toObjectId } = await import('@/lib/serialize');
 
-  if (params.programSlug) {
+  const slug = params.programSlug?.trim();
+  // Treat empty / "all" as no program filter (UI select value).
+  if (slug && slug.toLowerCase() !== 'all') {
     const collection = await getCollection<Program>(COLLECTIONS.programs);
-    const program = await collection.findOne({ slug: params.programSlug });
+    const program = await collection.findOne({ slug });
     if (!program?._id) {
       return { notFound: true };
     }
     return { programId: programIdFilter(program._id as never) };
   }
 
-  if (params.programId) {
-    const oid = toObjectId(params.programId);
+  const rawId = params.programId?.trim();
+  if (rawId && rawId.toLowerCase() !== 'all') {
+    const oid = toObjectId(rawId);
     if (oid) {
       return { programId: programIdFilter(oid) };
     }
-    return { programId: params.programId };
+    // Non-ObjectId string ids (legacy) — only pass through safe-looking slugs/ids
+    if (/^[a-zA-Z0-9_-]{1,64}$/.test(rawId)) {
+      return { programId: rawId };
+    }
+    return { notFound: true };
   }
 
   return {};

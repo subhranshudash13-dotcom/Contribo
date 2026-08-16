@@ -1,7 +1,11 @@
 const { MongoClient } = require('mongodb');
 
 async function main() {
-  const uri = "mongodb+srv://gsoc-admin:m2VQLteMPgwur09U@cluster0.zpntett.mongodb.net/gsoc-hub";
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    console.error("MONGODB_URI is not set in environment.");
+    return;
+  }
   const client = new MongoClient(uri);
   try {
     await client.connect();

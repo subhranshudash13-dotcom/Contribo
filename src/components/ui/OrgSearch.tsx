@@ -1,19 +1,21 @@
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, X } from 'lucide-react';
 
 export function OrgSearch() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [query, setQuery] = useState(searchParams.get('q') || '');
+  const paramQuery = searchParams.get('q') || '';
+  const [query, setQuery] = useState(paramQuery);
+  const [prevParam, setPrevParam] = useState(paramQuery);
   const [isPending, startTransition] = useTransition();
 
-  // Update query state if search parameter changes elsewhere
-  useEffect(() => {
-    setQuery(searchParams.get('q') || '');
-  }, [searchParams]);
+  if (paramQuery !== prevParam) {
+    setPrevParam(paramQuery);
+    setQuery(paramQuery);
+  }
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

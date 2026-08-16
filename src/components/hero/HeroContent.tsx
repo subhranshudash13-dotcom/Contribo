@@ -11,7 +11,7 @@ export function HeroContent() {
                 <Sparkles size={14} className="mr-2 text-accent" />
                 <span className="w-1.5 h-1.5 rounded-full bg-accent mr-2 animate-pulse" /> GLOBAL MENTORSHIP HUB • 2026 EDITION
             </span>
-            <h1 className="text-[44px] sm:text-[64px] lg:text-[76px] leading-[1.05] font-bold tracking-tight text-primary mb-6 whitespace-normal sm:whitespace-nowrap font-heading">
+            <h1 className="text-[44px] sm:text-[64px] lg:text-[76px] leading-[1.05] font-semibold tracking-tight text-primary mb-6 whitespace-normal sm:whitespace-nowrap font-heading">
                 Accelerate Your<br/>
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-accent to-brass">Open Source</span> Career.
             </h1>

@@ -2,8 +2,9 @@ import {
   apiError,
   apiOk,
   requireUserId,
+  requireUserMutation,
   isNextResponse,
-  parseJsonBody,
+  parseMutationBody,
   privateNoStoreHeaders,
   normalizeStringArray,
 } from '@/lib/api';
@@ -14,6 +15,7 @@ import {
   unsaveByTarget,
 } from '@/lib/repositories/dashboard';
 import type { SavedItemType } from '@/../types';
+import { safeLogError } from '@/lib/security';
 
 function isSavedType(value: unknown): value is SavedItemType {
   return value === 'project' || value === 'organization';
@@ -32,7 +34,7 @@ export async function GET(req: Request) {
     const items = await listSavedItems(authResult.userId, type);
     return apiOk({ items, total: items.length }, 200, privateNoStoreHeaders());
   } catch (error) {
-    console.error('GET /api/user/saved failed:', error);
+    safeLogError('GET /api/user/saved failed:', error);
     return apiError('Failed to fetch saved items', 500);
   }
 }
@@ -40,10 +42,10 @@ export async function GET(req: Request) {
 /** POST /api/user/saved — bookmark a project or organization (idempotent). */
 export async function POST(req: Request) {
   try {
-    const authResult = await requireUserId();
+    const authResult = await requireUserMutation(req);
     if (isNextResponse(authResult)) return authResult;
 
-    const body = await parseJsonBody(req);
+    const body = await parseMutationBody(req);
     if (isNextResponse(body)) return body;
 
     if (!isSavedType(body.type)) {
@@ -59,12 +61,20 @@ export async function POST(req: Request) {
     try {
       const item = await saveItem(authResult.userId, {
         type: body.type,
-        targetId: body.targetId,
-        title: body.title,
-        subtitle: typeof body.subtitle === 'string' ? body.subtitle : undefined,
-        slug: typeof body.slug === 'string' ? body.slug : undefined,
-        programSlug: typeof body.programSlug === 'string' ? body.programSlug : undefined,
-        techStack: normalizeStringArray(body.techStack, { maxItems: 20, maxItemLen: 48 }) || undefined,
+        targetId: String(body.targetId).slice(0, 64),
+        title: body.title.trim().slice(0, 200),
+        subtitle:
+          typeof body.subtitle === 'string'
+            ? body.subtitle.trim().slice(0, 200)
+            : undefined,
+        slug: typeof body.slug === 'string' ? body.slug.trim().slice(0, 120) : undefined,
+        programSlug:
+          typeof body.programSlug === 'string'
+            ? body.programSlug.trim().slice(0, 80)
+            : undefined,
+        techStack:
+          normalizeStringArray(body.techStack, { maxItems: 20, maxItemLen: 48 }) ||
+          undefined,
       });
 
       return apiOk({ item }, 201, privateNoStoreHeaders());
@@ -75,7 +85,7 @@ export async function POST(req: Request) {
       throw e;
     }
   } catch (error) {
-    console.error('POST /api/user/saved failed:', error);
+    safeLogError('POST /api/user/saved failed:', error);
     return apiError('Failed to save item', 500);
   }
 }
@@ -83,7 +93,7 @@ export async function POST(req: Request) {
 /** DELETE /api/user/saved?id=...  OR  ?type=...&targetId=... */
 export async function DELETE(req: Request) {
   try {
-    const authResult = await requireUserId();
+    const authResult = await requireUserMutation(req);
     if (isNextResponse(authResult)) return authResult;
 
     const { searchParams } = new URL(req.url);
@@ -106,7 +116,7 @@ export async function DELETE(req: Request) {
 
     return apiOk({ success: true }, 200, privateNoStoreHeaders());
   } catch (error) {
-    console.error('DELETE /api/user/saved failed:', error);
+    safeLogError('DELETE /api/user/saved failed:', error);
     return apiError('Failed to remove saved item', 500);
   }
 }

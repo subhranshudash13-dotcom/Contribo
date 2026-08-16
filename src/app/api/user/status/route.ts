@@ -23,10 +23,11 @@ export async function POST(req: Request) {
     const body = await parseJsonBody(req);
     if (isNextResponse(body)) return body;
 
+    // ObjectId hex is 24 chars; allow a bit of headroom for string ids.
     const projectIds =
-      normalizeStringArray(body.projectIds, { maxItems: 100, maxItemLen: 32 }) || [];
+      normalizeStringArray(body.projectIds, { maxItems: 100, maxItemLen: 64 }) || [];
     const organizationIds =
-      normalizeStringArray(body.organizationIds, { maxItems: 100, maxItemLen: 32 }) || [];
+      normalizeStringArray(body.organizationIds, { maxItems: 100, maxItemLen: 64 }) || [];
 
     if (projectIds.length === 0 && organizationIds.length === 0) {
       return apiError('Provide projectIds and/or organizationIds arrays', 400);

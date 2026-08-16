@@ -1,5 +1,12 @@
 require('dotenv').config();
 const { MongoClient } = require('mongodb');
+const dns = require('dns');
+
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+} catch {
+  // ignore
+}
 
 function resolveDatabaseName(uri) {
   if (process.env.MONGODB_DB && process.env.MONGODB_DB.trim()) {

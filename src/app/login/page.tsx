@@ -51,14 +51,8 @@ export default function LoginPage() {
       });
 
       if (res?.error) {
-        // Extract and clarify NextAuth credential errors
-        if (res.error.includes('No user found')) {
-          setError('No account found with this email. Switch to Sign Up to create one.');
-        } else if (res.error.includes('Invalid password')) {
-          setError('Incorrect password. Please try again.');
-        } else {
-          setError('Authentication failed. Please check your credentials.');
-        }
+        // Generic message only — avoid user enumeration (email exists vs wrong password).
+        setError('Authentication failed. Please check your email and password.');
       } else {
         // Successful login, redirect to dashboard using hard navigation to guarantee cookies are set
         window.location.href = '/dashboard';
@@ -228,7 +222,9 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 required
+                minLength={mode === 'signup' ? 8 : 1}
                 maxLength={72}
+                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

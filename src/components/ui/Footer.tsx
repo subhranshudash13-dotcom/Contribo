@@ -65,8 +65,8 @@ export function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/roadmaps" className="hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md transition-colors">
-                Contribution Roadmaps
+              <Link href="/proposal-studio" className="hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md transition-colors">
+                Proposal Studio
               </Link>
             </li>
           </ul>

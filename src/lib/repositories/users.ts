@@ -2,9 +2,32 @@ import type { UserProfile } from '@/../types';
 import { COLLECTIONS, getCollection } from '@/lib/db';
 import { serializeDoc, toObjectId } from '@/lib/serialize';
 
+/** Never return credentials or session secrets to API clients. */
 const PUBLIC_USER_PROJECTION = {
   password: 0,
+  refreshToken: 0,
+  accessToken: 0,
+  emailVerificationToken: 0,
+  resetPasswordToken: 0,
+  resetPasswordExpires: 0,
 } as const;
+
+const SENSITIVE_KEYS = [
+  'password',
+  'refreshToken',
+  'accessToken',
+  'emailVerificationToken',
+  'resetPasswordToken',
+  'resetPasswordExpires',
+] as const;
+
+function stripSensitive(user: Record<string, unknown>): UserProfile {
+  const safe = { ...user };
+  for (const key of SENSITIVE_KEYS) {
+    delete safe[key];
+  }
+  return safe as UserProfile;
+}
 
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
   const oid = toObjectId(userId);
@@ -20,9 +43,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   const serialized = serializeDoc(user as Record<string, unknown>);
   if (!serialized) return null;
 
-  // Explicitly strip password if present despite projection
-  const { password: _pw, ...safe } = serialized as UserProfile & { password?: string };
-  return safe as UserProfile;
+  return stripSensitive(serialized as Record<string, unknown>);
 }
 
 export interface UserProfileUpdate {
@@ -71,7 +92,13 @@ export async function updateUserProfile(
     allowed.location = updates.location.trim().slice(0, 120);
   }
   if (typeof updates.githubUsername === 'string') {
-    allowed.githubUsername = updates.githubUsername.trim().replace(/^@/, '').slice(0, 39);
+    // GitHub usernames: alphanumeric and hyphens, max 39
+    const cleaned = updates.githubUsername
+      .trim()
+      .replace(/^@/, '')
+      .replace(/[^a-zA-Z0-9-]/g, '')
+      .slice(0, 39);
+    allowed.githubUsername = cleaned;
   }
 
   const collection = await getCollection(COLLECTIONS.users);
@@ -92,16 +119,38 @@ export async function deleteUserAccount(userId: string): Promise<{ deleted: bool
   const sessions = await getCollection(COLLECTIONS.sessions);
   const savedItems = await getCollection(COLLECTIONS.savedItems);
   const applications = await getCollection(COLLECTIONS.applications);
+  const proposals = await getCollection(COLLECTIONS.proposals);
+  const feedback = await getCollection(COLLECTIONS.userFeedback);
+
+  // Clear secrets first in case partial failure leaves the user row
+  await users.updateOne(
+    { _id: oid } as never,
+    {
+      $unset: {
+        password: '',
+        refreshToken: '',
+        accessToken: '',
+        emailVerificationToken: '',
+        resetPasswordToken: '',
+        resetPasswordExpires: '',
+      },
+    }
+  );
 
   const userDeleteResult = await users.deleteOne({ _id: oid } as never);
 
   // NextAuth may store userId as ObjectId or string depending on adapter version
+  const userIdMatch = { $or: [{ userId: oid }, { userId: userId }] } as never;
   await Promise.all([
-    accounts.deleteMany({ $or: [{ userId: oid }, { userId: userId }] } as never),
-    sessions.deleteMany({ $or: [{ userId: oid }, { userId: userId }] } as never),
-    savedItems.deleteMany({ $or: [{ userId: oid }, { userId: userId }] } as never),
-    applications.deleteMany({ $or: [{ userId: oid }, { userId: userId }] } as never),
+    accounts.deleteMany(userIdMatch),
+    sessions.deleteMany(userIdMatch),
+    savedItems.deleteMany(userIdMatch),
+    applications.deleteMany(userIdMatch),
+    proposals.deleteMany(userIdMatch),
+    feedback.deleteMany(userIdMatch),
   ]);
 
-  return { deleted: userDeleteResult.deletedCount > 0 };
+  // Related data cleaned even if user row was already gone
+  const relatedPurged = userDeleteResult.deletedCount > 0;
+  return { deleted: relatedPurged };
 }

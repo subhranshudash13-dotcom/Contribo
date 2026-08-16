@@ -1,25 +1,20 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useTransition, useRef } from 'react';
+import React, { useState, useCallback, useTransition, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Search,
   X,
   Building2,
-  Sparkles,
-  Filter,
   ChevronDown,
-  ArrowRight,
-  Zap,
   Shield,
-  Code2,
 } from 'lucide-react';
 import { Organization } from '../../../types';
 import { ProgramOrgCard, ProgramOrgCardSkeleton } from './ProgramOrgCard';
 
 interface ProgramOrgExplorerProps {
   programId: string;
-  programSlug: string;
+  programSlug?: string;
   programName: string;
   accentColor: string;
   /** SSR-hydrated initial organizations */
@@ -33,7 +28,6 @@ interface ProgramOrgExplorerProps {
 
 export function ProgramOrgExplorer({
   programId,
-  programSlug,
   programName,
   accentColor,
   initialOrgs,
@@ -43,7 +37,7 @@ export function ProgramOrgExplorer({
 }: ProgramOrgExplorerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Filter state
@@ -78,27 +72,19 @@ export function ProgramOrgExplorer({
     async (years: number[], strict: boolean, search: string, tech: string) => {
       setLoading(true);
       try {
-        const params = new URLSearchParams();
-        params.set('programId', programId);
-        params.set('limit', '48');
-        if (years.length > 0) {
-          params.set('years', years.join(','));
-          params.set('yearMode', strict ? 'and' : 'or');
-        }
-        if (search.trim()) {
-          params.set('q', search.trim());
-        }
-        if (tech.trim()) {
-          params.set('technology', tech.trim());
-        }
-
-        const res = await fetch(`/api/organizations?${params}`);
-        if (!res.ok) throw new Error('Failed to fetch');
-        const data = await res.json();
-        setOrganizations(data.organizations || []);
+        const { fetchOrganizations } = await import('@/lib/client/api');
+        const data = await fetchOrganizations({
+          programId,
+          limit: 48,
+          years: years.length > 0 ? years.join(',') : undefined,
+          yearMode: years.length > 0 ? (strict ? 'and' : 'or') : undefined,
+          q: search.trim() || undefined,
+          technology: tech.trim() || undefined,
+        });
+        setOrganizations((data.organizations as Organization[]) || []);
         setTotal(data.total || 0);
-      } catch (err) {
-        console.error('ProgramOrgExplorer fetch error:', err);
+      } catch {
+        // Keep previous results on failure; avoid logging response bodies.
       } finally {
         setLoading(false);
       }

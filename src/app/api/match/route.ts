@@ -1,18 +1,33 @@
 import OpenAI from 'openai';
-import { apiError, apiOk, parseJsonBody, isNextResponse, normalizeStringArray } from '@/lib/api';
+import {
+  apiError,
+  apiOk,
+  parseMutationBody,
+  isNextResponse,
+  normalizeStringArray,
+} from '@/lib/api';
 import { findProjectsBySkills } from '@/lib/repositories/projects';
 import { getCollection, COLLECTIONS } from '@/lib/db';
+import { MAX_AI_BODY_BYTES, safeLogError } from '@/lib/security';
 import type { Program, Project } from '@/../types';
 
 const MAX_SKILLS = 40;
 const MAX_SKILL_LEN = 48;
-const MAX_CANDIDATES = 36;
-const TOP_RESULTS = 8;
+const MAX_CANDIDATES = 50;
+const TOP_RESULTS = 12;
+
+/** Skip OpenAI for a cool-down after auth/quota failures so heuristic stays fast. */
+let openAiDisabledUntil = 0;
 
 function getOpenAIClient() {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) return null;
+  if (Date.now() < openAiDisabledUntil) return null;
+  const key = process.env.OPENAI_API_KEY?.trim();
+  if (!key || key.length < 20) return null;
   return new OpenAI({ apiKey: key });
+}
+
+function disableOpenAITemporarily(ms = 15 * 60_000) {
+  openAiDisabledUntil = Date.now() + ms;
 }
 
 type MatchResult = {
@@ -151,11 +166,11 @@ function heuristicRank(
     const availScore = availNum >= 20 ? 0.7 : availNum >= 15 ? 0.55 : 0.4;
 
     const raw =
-      ratio * 0.42 + countScore * 0.28 + diffScore * 0.18 + yearScore * 0.08 + availScore * 0.04;
+      ratio * 0.45 + countScore * 0.25 + diffScore * 0.15 + yearScore * 0.10 + availScore * 0.05;
 
-    // Honest band: ~35–96 based on real overlap (no floor of 72 for weak matches)
+    // Honest band: ~35–98 based on real overlap
     const matchPercentage = Math.round(
-      Math.min(96, Math.max(28, 28 + raw * 68 + Math.min(matched.length, 4) * 2))
+      Math.min(98, Math.max(30, 35 + raw * 61 + Math.min(matched.length, 4) * 3))
     );
 
     let reasoning = '';
@@ -210,7 +225,7 @@ function clampMatchPercentage(n: unknown, fallback: number): number {
 
 export async function POST(req: Request) {
   try {
-    const body = await parseJsonBody(req);
+    const body = await parseMutationBody(req, { maxBytes: MAX_AI_BODY_BYTES });
     if (isNextResponse(body)) return body;
 
     const skills = normalizeSkills(body.skills);
@@ -234,12 +249,22 @@ export async function POST(req: Request) {
     const difficulty =
       typeof body.difficulty === 'string' ? body.difficulty.trim().slice(0, 40) : null;
 
+    const rawProgramSlugs = normalizeStringArray(body.programSlugs || body.programs, {
+      maxItems: 12,
+      maxItemLen: 48,
+    });
+    const programSlugs =
+      rawProgramSlugs && rawProgramSlugs.length > 0
+        ? rawProgramSlugs.filter((s) => s.toLowerCase() !== 'all')
+        : null;
+
     const rawCandidates = await findProjectsBySkills(skills, MAX_CANDIDATES, {
       preferRecentYears: true,
       difficulty,
+      programSlugs: programSlugs && programSlugs.length > 0 ? programSlugs : undefined,
     });
     if (rawCandidates.length === 0) {
-      return apiOk({ matches: [], meta: { candidateCount: 0, mode: 'none' } });
+      return apiOk({ matches: [], meta: { candidateCount: 0, mode: 'none', requestedProgramSlugs: programSlugs || [] } });
     }
 
     const candidates = await enrichWithPrograms(rawCandidates);
@@ -353,7 +378,19 @@ Rules:
           mode = 'openai';
         }
       } catch (apiErr) {
-        console.warn('OpenAI matcher failed, using heuristic:', apiErr);
+        // Auth / billing failures: stop retrying every request for a while.
+        const status =
+          apiErr && typeof apiErr === 'object' && 'status' in apiErr
+            ? Number((apiErr as { status?: number }).status)
+            : 0;
+        if (status === 401 || status === 403 || status === 429) {
+          disableOpenAITemporarily(status === 429 ? 5 * 60_000 : 30 * 60_000);
+          console.warn(
+            `OpenAI matcher disabled temporarily (HTTP ${status}); using heuristic ranking.`
+          );
+        } else {
+          console.warn('OpenAI matcher failed, using heuristic:', apiErr);
+        }
         finalMatches = heuristic;
         mode = 'heuristic';
       }
@@ -373,7 +410,7 @@ Rules:
       },
     });
   } catch (error) {
-    console.error('Matcher Error:', error);
+    safeLogError('Matcher Error:', error);
     return apiError('Failed to run AI Matcher', 500);
   }
 }

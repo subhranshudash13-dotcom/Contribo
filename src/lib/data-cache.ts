@@ -3,6 +3,8 @@ import { getPlatformStats } from '@/lib/repositories/stats';
 import { listPrograms } from '@/lib/repositories/programs';
 import { getFilterFacets } from '@/lib/repositories/filters';
 import { getTrendingProjects } from '@/lib/repositories/trending';
+import { listOrganizations } from '@/lib/repositories/organizations';
+import { listProjects } from '@/lib/repositories/projects';
 
 /** Platform stats — short TTL, high traffic. */
 export const getCachedPlatformStats = unstable_cache(
@@ -67,3 +69,28 @@ export const getCachedHomeBundle = unstable_cache(
   ['home-bundle-v3'],
   { revalidate: 180 }
 );
+
+/** Default organizations catalog page (first 48 orgs, no filters). */
+export const getCachedDefaultOrganizations = unstable_cache(
+  async () =>
+    listOrganizations({
+      limit: 48,
+      skip: 0,
+      lean: true,
+    }),
+  ['default-organizations-v4'],
+  { revalidate: 180 }
+);
+
+/** Default projects catalog page (first 18 projects, no filters). */
+export const getCachedDefaultProjects = unstable_cache(
+  async () =>
+    listProjects({
+      limit: 18,
+      skip: 0,
+      lean: true,
+    }),
+  ['default-projects-v4'],
+  { revalidate: 180 }
+);
+

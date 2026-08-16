@@ -432,11 +432,11 @@ export function TrendingProjects({
                         </ul>
                       </div>
                       <Link
-                        href="/roadmaps"
+                        href="/proposal-studio"
                         className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-brass hover:underline"
                       >
                         <Compass size={16} />
-                        New to open source? Follow a roadmap
+                        Ready to apply? Build a winning proposal in Proposal Studio
                       </Link>
                     </div>
                   )}

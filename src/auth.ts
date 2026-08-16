@@ -5,9 +5,30 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import clientPromise, { getDb, resolveDatabaseName } from "@/lib/db";
 import { verifyPassword } from "@/lib/hash";
-import jwt from "jsonwebtoken";
+
+/**
+ * Resolve the JWT signing secret. Never fall back to a hardcoded default
+ * (that would let anyone forge session tokens).
+ */
+function resolveAuthSecret(): string | undefined {
+  const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+  if (!secret || secret === "default_secret") {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "AUTH_SECRET (or NEXTAUTH_SECRET) must be set to a strong value in production. See .env.example."
+      );
+    }
+    // Dev-only: NextAuth will warn; still refuse the known-bad default string.
+    return undefined;
+  }
+  if (secret.length < 16 && process.env.NODE_ENV === "production") {
+    throw new Error("AUTH_SECRET must be at least 16 characters in production.");
+  }
+  return secret;
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  secret: resolveAuthSecret(),
   adapter: MongoDBAdapter(clientPromise, {
     databaseName: resolveDatabaseName(),
   }),
@@ -31,49 +52,35 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        // Return null for any failure — do not throw user-enumerating messages.
         if (!credentials?.email || !credentials?.password) return null;
 
-        const db = await getDb();
-        const email = (credentials.email as string).toLowerCase().trim();
-        const password = credentials.password as string;
+        const email = String(credentials.email).toLowerCase().trim();
+        const password = String(credentials.password);
 
-        // Find user in MongoDB
-        const user = await db.collection("users").findOne({ email });
+        if (!email || !password || password.length > 72) return null;
 
-        if (!user || !user.password) {
-          throw new Error("No user found with this email");
+        try {
+          const db = await getDb();
+          const user = await db.collection("users").findOne({ email });
+
+          // Same path for missing user / OAuth-only / bad password (no enumeration).
+          if (!user?.password || typeof user.password !== "string") {
+            return null;
+          }
+
+          const isValid = verifyPassword(password, user.password);
+          if (!isValid) return null;
+
+          return {
+            id: user._id.toString(),
+            email: (user.email as string) || email,
+            name: (user.name as string) || email.split("@")[0],
+            image: (user.image as string | undefined) || undefined,
+          };
+        } catch {
+          return null;
         }
-
-        // Verify password
-        const isValid = verifyPassword(password, user.password as string);
-        if (!isValid) {
-          throw new Error("Invalid password");
-        }
-
-        // Generate Access and Refresh Tokens
-        const accessToken = jwt.sign(
-          { id: user._id.toString(), email: user.email },
-          process.env.AUTH_SECRET || "default_secret",
-          { expiresIn: "15m" }
-        );
-        const refreshToken = jwt.sign(
-          { id: user._id.toString() },
-          process.env.AUTH_SECRET || "default_secret",
-          { expiresIn: "7d" }
-        );
-        
-        await db.collection("users").updateOne(
-          { _id: user._id },
-          { $set: { refreshToken } }
-        );
-
-        return {
-          id: user._id.toString(),
-          email: user.email as string,
-          name: user.name as string,
-          accessToken,
-          refreshToken,
-        };
       },
     }),
   ],
@@ -87,23 +94,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return true;
     },
-    async jwt({ token, user, account }) {
-      if (user) {
+    async jwt({ token, user }) {
+      // Only persist the stable user id on the JWT — never OAuth access/refresh tokens.
+      if (user?.id) {
         token.id = user.id;
-        if ((user as any).accessToken) token.accessToken = (user as any).accessToken;
-        if ((user as any).refreshToken) token.refreshToken = (user as any).refreshToken;
-      }
-      if (account) {
-        if (account.access_token) token.accessToken = account.access_token;
-        if (account.refresh_token) token.refreshToken = account.refresh_token;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user && token.id) {
         session.user.id = token.id as string;
-        (session as any).accessToken = token.accessToken;
-        (session as any).refreshToken = token.refreshToken;
       }
       return session;
     },

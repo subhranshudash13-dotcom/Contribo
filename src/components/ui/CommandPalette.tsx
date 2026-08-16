@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Command, BookOpen, Building2, Code2, Loader2, ArrowUpRight } from 'lucide-react';
+import { Search, Command, BookOpen, Building2, Code2, Loader2, ArrowUpRight, WifiOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { friendlyApiMessage, isApiError } from '@/lib/client/api';
+import { useNetwork } from '@/components/ui/NetworkProvider';
 
 interface SearchResult {
   id: string;
@@ -24,6 +26,8 @@ export function CommandPalette({ hideTrigger = false }: { hideTrigger?: boolean 
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [searchOffline, setSearchOffline] = useState(false);
   const [results, setResults] = useState<{
     programs: SearchResult[];
     organizations: SearchResult[];
@@ -32,6 +36,7 @@ export function CommandPalette({ hideTrigger = false }: { hideTrigger?: boolean 
   const [flatResults, setFlatResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { isOnline, browserOnline } = useNetwork();
   
   const router = useRouter();
 
@@ -59,35 +64,59 @@ export function CommandPalette({ hideTrigger = false }: { hideTrigger?: boolean 
   // Fetch search results on query change
   useEffect(() => {
     if (!query.trim()) {
-      setResults({ programs: [], organizations: [], projects: [] });
-      setFlatResults([]);
       return;
     }
 
+    if (!isOnline) {
+      queueMicrotask(() => {
+        setLoading(false);
+        setSearchOffline(true);
+        setSearchError(
+          browserOnline
+            ? 'Cannot reach search right now.'
+            : 'You are offline. Reconnect to search.'
+        );
+        setResults({ programs: [], organizations: [], projects: [] });
+        setFlatResults([]);
+      });
+      return;
+    }
+
+    const controller = new AbortController();
     const delayDebounceFn = setTimeout(async () => {
       setLoading(true);
+      setSearchError(null);
+      setSearchOffline(false);
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-        const data = await res.json();
+        const { fetchSearch } = await import('@/lib/client/api');
+        const data = await fetchSearch(query, { signal: controller.signal });
         
-        const programs = data.programs || [];
-        const organizations = data.organizations || [];
-        const projects = data.projects || [];
+        const programs = (data.programs || []) as SearchResult[];
+        const organizations = (data.organizations || []) as SearchResult[];
+        const projects = (data.projects || []) as SearchResult[];
         
         setResults({ programs, organizations, projects });
         
         // Flatten results for easy keyboard index traversal
         setFlatResults([...programs, ...organizations, ...projects]);
         setSelectedIndex(0);
-      } catch (err) {
-        console.error(err);
+      } catch (e) {
+        if (e instanceof Error && e.name === 'AbortError') return;
+        if (isApiError(e) && e.code === 'aborted') return;
+        setSearchOffline(isApiError(e) && e.isOffline);
+        setSearchError(friendlyApiMessage(e, 'Search failed'));
+        setResults({ programs: [], organizations: [], projects: [] });
+        setFlatResults([]);
       } finally {
         setLoading(false);
       }
     }, 300);
 
-    return () => clearTimeout(delayDebounceFn);
-  }, [query]);
+    return () => {
+      clearTimeout(delayDebounceFn);
+      controller.abort();
+    };
+  }, [query, isOnline, browserOnline]);
 
   const handleSelect = (item: SearchResult) => {
     setIsOpen(false);
@@ -152,7 +181,16 @@ export function CommandPalette({ hideTrigger = false }: { hideTrigger?: boolean 
             autoFocus
             ref={inputRef}
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setQuery(val);
+              if (!val.trim()) {
+                setResults({ programs: [], organizations: [], projects: [] });
+                setFlatResults([]);
+                setSearchError(null);
+                setSearchOffline(false);
+              }
+            }}
             onKeyDown={handleKeyDown}
             className="flex-1 bg-transparent border-none outline-none text-primary placeholder:text-muted text-base sm:text-lg h-8"
             placeholder="Search programs, organizations, projects..."
@@ -170,10 +208,26 @@ export function CommandPalette({ hideTrigger = false }: { hideTrigger?: boolean 
         </div>
         
         <div className="max-h-[60vh] overflow-y-auto p-2">
-          {flatResults.length === 0 ? (
+          {searchError ? (
+            <div className="p-6 text-center space-y-2" role="alert">
+              <WifiOff size={20} className="mx-auto text-alert mb-1" />
+              <p className="text-sm text-alert font-medium">{searchError}</p>
+              <p className="text-xs text-muted">
+                {searchOffline
+                  ? 'Restore your connection, then keep typing to search again.'
+                  : 'Try again in a moment.'}
+              </p>
+            </div>
+          ) : flatResults.length === 0 ? (
             <div className="p-4 text-center">
               {query.trim() ? (
-                <p className="text-muted text-sm">No results found for &ldquo;{query}&rdquo;</p>
+                loading ? (
+                  <p className="text-muted text-sm inline-flex items-center gap-2 justify-center">
+                    <Loader2 size={14} className="animate-spin text-brass" /> Searching…
+                  </p>
+                ) : (
+                  <p className="text-muted text-sm">No results found for &ldquo;{query}&rdquo;</p>
+                )
               ) : (
                 <div className="text-left space-y-4">
                   <h4 className="text-[10px] font-mono uppercase tracking-widest text-muted px-2">Suggestions</h4>

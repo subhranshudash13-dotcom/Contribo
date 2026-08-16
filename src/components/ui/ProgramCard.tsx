@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { ChevronRight, CalendarDays, DollarSign, ArrowRight } from 'lucide-react';
+import { CalendarDays, DollarSign, ArrowRight } from 'lucide-react';
 import { Program } from '../../../types';
 
 import { ProgramLogo } from './ProgramLogos';

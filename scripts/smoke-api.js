@@ -80,6 +80,39 @@ async function main() {
       validate: (b) => b?.guideline || (Array.isArray(b?.guidelines) && b.guidelines.length > 0),
     })
   );
+  results.push(
+    await check('GET /api/connectivity', '/api/connectivity', {
+      validate: (b) =>
+        b &&
+        (b.status === 'ok' || b.status === 'degraded') &&
+        (b.mongodb === 'up' || b.mongodb === 'down'),
+    })
+  );
+  results.push(
+    await check('GET /api/proposals/examples', '/api/proposals/examples', {
+      validate: (b) => Array.isArray(b?.examples),
+    })
+  );
+  results.push(
+    await check('GET /api/proposals/guide', '/api/proposals/guide', {
+      validate: (b) => b && typeof b.guide === 'object',
+    })
+  );
+  results.push(
+    await check('GET /api/projects?sortBy=stars&limit=2', '/api/projects?sortBy=stars&limit=2', {
+      validate: (b) => Array.isArray(b?.projects),
+    })
+  );
+  results.push(
+    await check('GET /api/search short query', '/api/search?q=a', {
+      expectStatus: 400,
+    })
+  );
+  results.push(
+    await check('GET /api/projects invalid id', '/api/projects/not-a-valid-id', {
+      expectStatus: 400,
+    })
+  );
 
   results.push(
     await check('POST /api/match (valid)', '/api/match', {
@@ -104,7 +137,33 @@ async function main() {
   );
 
   results.push(
+    await check('POST /api/feedback (valid)', '/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'Bug Report',
+        subject: 'Smoke test',
+        message: 'Automated smoke feedback submission',
+      }),
+      validate: (b) => b?.success === true,
+    })
+  );
+  results.push(
+    await check('POST /api/feedback (too short)', '/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'hi' }),
+      expectStatus: 400,
+    })
+  );
+
+  results.push(
     await check('GET /api/user (unauthorized)', '/api/user', {
+      expectStatus: 401,
+    })
+  );
+  results.push(
+    await check('GET /api/user/dashboard (unauthorized)', '/api/user/dashboard', {
       expectStatus: 401,
     })
   );
@@ -115,6 +174,11 @@ async function main() {
   );
   results.push(
     await check('GET /api/user/applications (unauthorized)', '/api/user/applications', {
+      expectStatus: 401,
+    })
+  );
+  results.push(
+    await check('GET /api/proposals (unauthorized)', '/api/proposals', {
       expectStatus: 401,
     })
   );

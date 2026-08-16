@@ -3,37 +3,19 @@
 import React, { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bookmark, BookmarkCheck, Loader2, ListPlus, Check } from 'lucide-react';
+import {
+  ApiError,
+  friendlyApiMessage,
+  saveUserItem,
+  unsaveUserItem,
+  createUserApplication,
+  type SaveItemPayload,
+  type TrackApplicationPayload,
+} from '@/lib/client/api';
+import { useNetwork } from '@/components/ui/NetworkProvider';
 
-type SavePayload = {
-  type: 'project' | 'organization';
-  targetId: string;
-  title: string;
-  subtitle?: string;
-  slug?: string;
-  programSlug?: string;
-  techStack?: string[];
-};
-
-type TrackPayload = {
-  projectId?: string;
-  projectTitle: string;
-  orgName: string;
-  orgSlug?: string;
-  programId?: string;
-  programSlug?: string;
-  programName?: string;
-  status?: string;
-  deadline?: string | null;
-};
-
-async function parseError(res: Response): Promise<string> {
-  try {
-    const data = await res.json();
-    return typeof data.error === 'string' ? data.error : res.statusText;
-  } catch {
-    return res.statusText || 'Request failed';
-  }
-}
+type SavePayload = SaveItemPayload;
+type TrackPayload = TrackApplicationPayload;
 
 export function SaveButton({
   payload,
@@ -47,56 +29,43 @@ export function SaveButton({
   className?: string;
 }) {
   const router = useRouter();
+  const { isOnline } = useNetwork();
   const [saved, setSaved] = useState(initialSaved);
+  const [prevInitialSaved, setPrevInitialSaved] = useState(initialSaved);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  React.useEffect(() => {
+  if (initialSaved !== prevInitialSaved) {
+    setPrevInitialSaved(initialSaved);
     setSaved(initialSaved);
-  }, [initialSaved]);
+  }
 
   const toggle = useCallback(async () => {
+    if (!isOnline) {
+      setError('You are offline. Reconnect to save items.');
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
       if (saved) {
-        const qs = new URLSearchParams({
-          type: payload.type,
-          targetId: payload.targetId,
-        });
-        const res = await fetch(`/api/user/saved?${qs.toString()}`, {
-          method: 'DELETE',
-        });
-        if (res.status === 401) {
-          router.push('/login?callbackUrl=' + encodeURIComponent(window.location.pathname));
-          return;
-        }
-        if (!res.ok && res.status !== 404) {
-          throw new Error(await parseError(res));
-        }
+        await unsaveUserItem({ type: payload.type, targetId: payload.targetId });
         setSaved(false);
       } else {
-        const res = await fetch('/api/user/saved', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        if (res.status === 401) {
-          router.push('/login?callbackUrl=' + encodeURIComponent(window.location.pathname));
-          return;
-        }
-        if (!res.ok) {
-          throw new Error(await parseError(res));
-        }
+        await saveUserItem(payload);
         setSaved(true);
       }
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not update saved item');
+      if (e instanceof ApiError && e.status === 401) {
+        router.push('/login?callbackUrl=' + encodeURIComponent(window.location.pathname));
+        return;
+      }
+      setError(friendlyApiMessage(e, 'Could not update saved item'));
     } finally {
       setLoading(false);
     }
-  }, [saved, payload, router]);
+  }, [saved, payload, router, isOnline]);
 
   const pad = size === 'sm' ? 'h-8 px-2.5 text-xs' : 'h-9 px-3 text-sm';
 
@@ -142,45 +111,45 @@ export function TrackApplicationButton({
   initialTracked?: boolean;
 }) {
   const router = useRouter();
+  const { isOnline } = useNetwork();
   const [tracked, setTracked] = useState(initialTracked);
+  const [prevInitialTracked, setPrevInitialTracked] = useState(initialTracked);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  React.useEffect(() => {
+  if (initialTracked !== prevInitialTracked) {
+    setPrevInitialTracked(initialTracked);
     setTracked(initialTracked);
-  }, [initialTracked]);
+  }
 
   const track = useCallback(async () => {
     if (tracked) {
       router.push('/dashboard');
       return;
     }
+    if (!isOnline) {
+      setError('You are offline. Reconnect to track applications.');
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/user/applications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...payload,
-          status: payload.status || 'researching',
-        }),
+      await createUserApplication({
+        ...payload,
+        status: payload.status || 'researching',
       });
-      if (res.status === 401) {
-        router.push('/login?callbackUrl=' + encodeURIComponent(window.location.pathname));
-        return;
-      }
-      if (!res.ok) {
-        throw new Error(await parseError(res));
-      }
       setTracked(true);
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not track application');
+      if (e instanceof ApiError && e.status === 401) {
+        router.push('/login?callbackUrl=' + encodeURIComponent(window.location.pathname));
+        return;
+      }
+      setError(friendlyApiMessage(e, 'Could not track application'));
     } finally {
       setLoading(false);
     }
-  }, [tracked, payload, router]);
+  }, [tracked, payload, router, isOnline]);
 
   return (
     <div className={`inline-flex flex-col items-start gap-1 ${className}`}>

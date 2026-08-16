@@ -1,18 +1,24 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { Menu, X, Bell } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { CommandPalette } from './CommandPalette';
 import { Logo } from './Logo';
+
+// Command palette is keyboard-driven and heavy — load after shell paints
+const CommandPalette = dynamic(
+  () => import('./CommandPalette').then((m) => ({ default: m.CommandPalette })),
+  { ssr: false }
+);
 
 const LINKS = [
   { href: '/programs', label: 'Programs' },
   { href: '/organizations', label: 'Organizations' },
   { href: '/projects', label: 'Projects' },
-  { href: '/roadmaps', label: 'Roadmaps' },
+  { href: '/proposal-studio', label: 'Proposal Studio' },
   { href: '/resources', label: 'Resources' },
   { href: '/matcher', label: 'Orbit AI' },
   { href: '/dashboard', label: 'Dashboard' },
@@ -23,10 +29,13 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   useEffect(() => {
-    setMounted(true);
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };

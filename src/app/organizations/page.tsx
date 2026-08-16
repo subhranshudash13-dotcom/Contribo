@@ -3,11 +3,12 @@ import { Organization } from '../../../types';
 import { OrgCard } from '@/components/ui/OrgCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { OrgSearch } from '@/components/ui/OrgSearch';
+import { OrgMarquee } from '@/components/ui/OrgMarquee';
 import { FilterX, Building2, ChevronRight, Compass, Cpu } from 'lucide-react';
 import { listOrganizations } from '@/lib/repositories/organizations';
 import { auth } from '@/auth';
 import { getUserItemStatus } from '@/lib/repositories/dashboard';
-import { getCachedFilterFacets, getCachedPrograms } from '@/lib/data-cache';
+import { getCachedFilterFacets, getCachedPrograms, getCachedDefaultOrganizations } from '@/lib/data-cache';
 
 export const metadata = {
   title: 'Organizations | Contribo',
@@ -18,14 +19,19 @@ type Props = {
 };
 
 async function getOrganizationsPage(programId?: string, search?: string) {
+  const orgPromise =
+    !programId && !search
+      ? getCachedDefaultOrganizations()
+      : listOrganizations({
+          programId,
+          search,
+          limit: 48,
+          skip: 0,
+          lean: true,
+        });
+
   const [{ organizations, total }, programs, facets] = await Promise.all([
-    listOrganizations({
-      programId,
-      search,
-      limit: 48,
-      skip: 0,
-      lean: true,
-    }),
+    orgPromise,
     getCachedPrograms(),
     getCachedFilterFacets(),
   ]);
@@ -64,18 +70,6 @@ export default async function OrganizationsDirectory({ searchParams }: Props) {
       console.error('Error fetching user status on organizations page:', err);
     }
   }
-
-  const marqueeLogos = [
-    { name: "Apache Software", logoUrl: "https://cdn.simpleicons.org/apache" },
-    { name: "Linux Foundation", logoUrl: "https://cdn.simpleicons.org/linuxfoundation" },
-    { name: "Python PSF", logoUrl: "https://cdn.simpleicons.org/python" },
-    { name: "Google Open Source", logoUrl: "https://cdn.simpleicons.org/google" },
-    { name: "CNCF Cloud", logoUrl: "https://cdn.simpleicons.org/cncf" },
-    { name: "Mozilla Devs", logoUrl: "https://cdn.simpleicons.org/mozilla" },
-    { name: "Red Hat Open", logoUrl: "https://cdn.simpleicons.org/redhat" },
-    { name: "Kubernetes Ops", logoUrl: "https://cdn.simpleicons.org/kubernetes" }
-  ];
-  const doubleLogos = [...marqueeLogos, ...marqueeLogos];
 
   return (
     <main className="py-12 px-4 sm:px-6 lg:px-8 max-w-[1320px] mx-auto w-full mt-20">
@@ -139,20 +133,7 @@ export default async function OrganizationsDirectory({ searchParams }: Props) {
       )}
 
       {/* Marquee */}
-      <div className="mb-10 overflow-hidden border border-hairline rounded-2xl bg-surface/50 py-4">
-        <div className="flex gap-10 animate-[marquee_40s_linear_infinite] whitespace-nowrap px-4">
-          {doubleLogos.map((logo, i) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={`${logo.name}-${i}`}
-              src={logo.logoUrl}
-              alt={logo.name}
-              className="h-7 w-auto opacity-60 grayscale"
-              loading="lazy"
-            />
-          ))}
-        </div>
-      </div>
+      <OrgMarquee />
 
       <div className="flex items-center justify-between mb-6">
         <p className="text-sm text-muted font-mono">

@@ -7,11 +7,9 @@ interface ProgramTimelineChartProps {
 }
 
 export function ProgramTimelineChart({ initialMonthIndex }: ProgramTimelineChartProps) {
-  const [currentMonthIndex, setCurrentMonthIndex] = useState(initialMonthIndex);
-
-  useEffect(() => {
-    setCurrentMonthIndex(new Date().getMonth());
-  }, []);
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(() => 
+    typeof initialMonthIndex === 'number' ? initialMonthIndex : new Date().getMonth()
+  );
 
   const monthNames = [
     "January", "February", "March", "April", "May", "June",

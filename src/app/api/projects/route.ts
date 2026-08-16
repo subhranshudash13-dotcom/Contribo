@@ -6,11 +6,11 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const { limit, page, skip } = parsePagination(searchParams, { limit: 100, maxLimit: 200 });
 
-    const sortBy = searchParams.get('sortBy') || searchParams.get('sort');
-    const allowedSort = new Set(['stars', 'title', 'newest', 'year', null, '']);
-    if (sortBy && !allowedSort.has(sortBy) && sortBy !== 'newest') {
-      // still allow; listProjects falls back to default for unknown
-    }
+    const rawSort = searchParams.get('sortBy') || searchParams.get('sort') || '';
+    const allowedSort = new Set(['stars', 'title', 'newest', 'year']);
+    // Pass through known sort keys; repository maps newest/year → year desc.
+    const sortBy =
+      rawSort && allowedSort.has(rawSort) ? rawSort : null;
 
     const { projects, total } = await listProjects({
       programId: searchParams.get('programId'),
@@ -20,7 +20,7 @@ export async function GET(req: Request) {
       tech: searchParams.get('tech') || searchParams.get('technology'),
       year: searchParams.get('year'),
       search: sanitizeSearchQuery(searchParams.get('q') || searchParams.get('search')),
-      sortBy: sortBy === 'newest' ? null : sortBy,
+      sortBy,
       limit,
       skip,
     });

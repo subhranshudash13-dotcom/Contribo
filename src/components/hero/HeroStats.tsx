@@ -2,7 +2,17 @@
 
 import React from 'react';
 
-export function HeroStats({ stats }: { stats: any }) {
+interface HeroStatsProps {
+  stats?: {
+    projects?: number;
+    organizations?: number;
+    orgs?: number;
+    programs?: number;
+    contributors?: number;
+  } | null;
+}
+
+export function HeroStats({ stats }: HeroStatsProps) {
     return (
         <div className="w-full max-w-[1240px] mx-auto bg-slate-950 text-white dark:bg-white dark:text-slate-950 rounded-[28px] py-8 px-6 md:px-12 shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-300">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-8 items-center text-center">

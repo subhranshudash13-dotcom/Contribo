@@ -1,4 +1,12 @@
 import { MongoClient, Db, Collection, Document } from 'mongodb';
+import dns from 'node:dns';
+
+// Ensure DNS SRV record queries for MongoDB Atlas resolve reliably across OS/DNS setups
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+} catch {
+  // Fallback if environment restricts custom DNS servers
+}
 
 /**
  * MongoDB connection module for Contribo.
@@ -29,6 +37,10 @@ export const COLLECTIONS = {
   savedItems: 'saved_items',
   /** Application tracker entries */
   applications: 'applications',
+  /** Proposal Studio drafts */
+  proposals: 'proposals',
+  /** Product feedback submissions */
+  userFeedback: 'user_feedback',
 } as const;
 
 export type CollectionName = (typeof COLLECTIONS)[keyof typeof COLLECTIONS];
@@ -43,18 +55,18 @@ const options = {
 
 declare global {
   // eslint-disable-next-line no-var
-  var _mongoClientPromise: Promise<MongoClient> | undefined;
+  var _mongoClientPromise_v2: Promise<MongoClient> | undefined;
 }
 
 let clientPromise: Promise<MongoClient>;
 
 if (process.env.NODE_ENV === 'development') {
   // Preserve the client across HMR reloads in development.
-  if (!global._mongoClientPromise) {
+  if (!global._mongoClientPromise_v2) {
     const client = new MongoClient(uri, options);
-    global._mongoClientPromise = client.connect();
+    global._mongoClientPromise_v2 = client.connect();
   }
-  clientPromise = global._mongoClientPromise;
+  clientPromise = global._mongoClientPromise_v2;
 } else {
   const client = new MongoClient(uri, options);
   clientPromise = client.connect();

@@ -2,12 +2,14 @@ import {
   apiError,
   apiOk,
   requireUserId,
+  requireUserMutation,
   isNextResponse,
-  parseJsonBody,
+  parseMutationBody,
   privateNoStoreHeaders,
   normalizeStringArray,
 } from '@/lib/api';
 import { deleteUserAccount, getUserProfile, updateUserProfile } from '@/lib/repositories/users';
+import { safeLogError } from '@/lib/security';
 
 /** GET /api/user — current user profile (no password hash). */
 export async function GET() {
@@ -17,7 +19,6 @@ export async function GET() {
 
     const profile = await getUserProfile(authResult.userId);
     if (!profile) {
-      // Session exists but user row missing — return session basics
       return apiOk(
         {
           user: {
@@ -33,7 +34,7 @@ export async function GET() {
 
     return apiOk({ user: profile }, 200, privateNoStoreHeaders());
   } catch (error) {
-    console.error('GET /api/user failed:', error);
+    safeLogError('GET /api/user failed:', error);
     return apiError('Failed to fetch user profile', 500);
   }
 }
@@ -41,10 +42,10 @@ export async function GET() {
 /** PATCH /api/user — update skills, interests, and profile fields. */
 export async function PATCH(req: Request) {
   try {
-    const authResult = await requireUserId();
+    const authResult = await requireUserMutation(req);
     if (isNextResponse(authResult)) return authResult;
 
-    const body = await parseJsonBody(req);
+    const body = await parseMutationBody(req);
     if (isNextResponse(body)) return body;
 
     const skills = body.skills !== undefined ? normalizeStringArray(body.skills) : undefined;
@@ -75,16 +76,29 @@ export async function PATCH(req: Request) {
 
     return apiOk({ user: updated }, 200, privateNoStoreHeaders());
   } catch (error) {
-    console.error('PATCH /api/user failed:', error);
+    safeLogError('PATCH /api/user failed:', error);
     return apiError('Failed to update user profile', 500);
   }
 }
 
-/** DELETE /api/user — purge account and personal data. */
-export async function DELETE() {
+/**
+ * DELETE /api/user — purge account and personal data.
+ * Requires JSON body `{ "confirm": "DELETE" }` (same-origin + auth).
+ */
+export async function DELETE(req: Request) {
   try {
-    const authResult = await requireUserId();
+    const authResult = await requireUserMutation(req);
     if (isNextResponse(authResult)) return authResult;
+
+    const body = await parseMutationBody(req);
+    if (isNextResponse(body)) return body;
+
+    if (body.confirm !== 'DELETE') {
+      return apiError(
+        'To delete your account, send { "confirm": "DELETE" } in the request body.',
+        400
+      );
+    }
 
     const { deleted } = await deleteUserAccount(authResult.userId);
     if (!deleted) {
@@ -97,7 +111,7 @@ export async function DELETE() {
       privateNoStoreHeaders()
     );
   } catch (error) {
-    console.error('Failed to delete user account:', error);
+    safeLogError('Failed to delete user account:', error);
     return apiError('Failed to process account deletion', 500);
   }
 }

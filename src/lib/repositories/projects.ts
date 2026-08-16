@@ -103,6 +103,8 @@ export async function listProjects(query: ProjectListQuery) {
       cursor.sort({ stars: -1, year: -1 });
     } else if (query.sortBy === 'title') {
       cursor.sort({ title: 1 });
+    } else if (query.sortBy === 'newest' || query.sortBy === 'year') {
+      cursor.sort({ year: -1, stars: -1 });
     } else {
       cursor.sort({ year: -1, stars: -1 });
     }
@@ -255,7 +257,11 @@ function expandSkillTokens(skills: string[]): string[] {
 export async function findProjectsBySkills(
   skills: string[],
   limit = 40,
-  options?: { preferRecentYears?: boolean; difficulty?: string | null }
+  options?: {
+    preferRecentYears?: boolean;
+    difficulty?: string | null;
+    programSlugs?: string[] | null;
+  }
 ) {
   const expanded = expandSkillTokens(skills);
   if (expanded.length === 0) return [];
@@ -270,6 +276,20 @@ export async function findProjectsBySkills(
   const filter: Record<string, unknown> = {
     techStack: { $in: techRegexes },
   };
+
+  if (options?.programSlugs && options.programSlugs.length > 0) {
+    const validSlugs = options.programSlugs.map((s) => s.toLowerCase().trim()).filter(Boolean);
+    if (validSlugs.length > 0) {
+      const programsCol = await getCollection(COLLECTIONS.programs);
+      const programs = await programsCol.find({ slug: { $in: validSlugs } } as never).toArray();
+      const programIds = programs.map((p) => p._id);
+      if (programIds.length > 0) {
+        filter.programId = { $in: programIds };
+      } else {
+        return [];
+      }
+    }
+  }
 
   // Prefer 2024–2026 when possible, but fall back to all years if too few hits
   const preferRecent = options?.preferRecentYears !== false;
@@ -291,7 +311,7 @@ export async function findProjectsBySkills(
       .toArray();
   }
 
-  if (candidates.length < Math.min(15, limit)) {
+  if (candidates.length < Math.min(25, limit)) {
     const more = await collection
       .find(filter)
       .sort({ year: -1, stars: -1 })
