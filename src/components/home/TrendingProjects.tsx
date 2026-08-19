@@ -216,7 +216,7 @@ export function TrendingProjects({
 
       {/* Domain filter — segmented control */}
       <div
-        className="mb-8 p-1.5 rounded-2xl border border-hairline bg-base/80 backdrop-blur-sm flex flex-wrap gap-1"
+        className="mb-8 p-1.5 rounded-2xl border border-hairline bg-page/80 backdrop-blur-sm flex flex-wrap gap-1"
         role="tablist"
         aria-label="Filter projects by domain"
       >
@@ -254,7 +254,7 @@ export function TrendingProjects({
 
       {projects.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-hairline bg-surface px-6 py-16 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-hairline bg-base">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-hairline bg-page">
             <Compass size={22} className="text-muted" />
           </div>
           <p className="text-primary font-semibold mb-1">No trending projects yet</p>
@@ -310,7 +310,7 @@ export function TrendingProjects({
                     {/* Meta row */}
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex flex-wrap items-center gap-2 min-w-0">
-                        <span className="inline-flex items-center gap-1.5 max-w-full rounded-lg border border-hairline bg-base px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-muted">
+                        <span className="inline-flex items-center gap-1.5 max-w-full rounded-lg border border-hairline bg-page px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-muted">
                           <Building2 size={11} className="shrink-0" />
                           <span className="truncate">{proj.org}</span>
                         </span>
@@ -363,7 +363,7 @@ export function TrendingProjects({
                       {(proj.techStack || []).slice(0, isFeatured ? 5 : 3).map((t) => (
                         <span
                           key={t}
-                          className="rounded-md border border-hairline bg-base px-2 py-0.5 font-mono text-[10px] font-medium text-muted"
+                          className="rounded-md border border-hairline bg-page px-2 py-0.5 font-mono text-[10px] font-medium text-muted"
                         >
                           {t}
                         </span>
@@ -411,7 +411,7 @@ export function TrendingProjects({
                   </div>
 
                   {isFeatured && (
-                    <div className="hidden md:flex md:flex-1 flex-col justify-between border-t md:border-t-0 md:border-l border-hairline bg-base/40 p-6">
+                    <div className="hidden md:flex md:flex-1 flex-col justify-between border-t md:border-t-0 md:border-l border-hairline bg-page/40 p-6">
                       <div>
                         <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted mb-3">
                           Why start here

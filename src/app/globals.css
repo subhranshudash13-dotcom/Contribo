@@ -8,11 +8,6 @@
   font-style: normal;
 }
 
-/* Skip layout/paint work for off-screen sections until near viewport */
-.content-visibility-auto {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 480px;
-}
 
 @theme {
   --variant-dark: class;
@@ -59,7 +54,7 @@
   --color-program-accent-transparent: color-mix(in srgb, var(--program-accent) 15%, transparent);
 
   /* The Semantic Palette */
-  --color-base: var(--base);
+  --color-page: var(--base);
   --color-surface: var(--surface);
   --color-surface-raised: var(--surface-raised);
   --color-hairline: var(--hairline);
@@ -93,6 +88,17 @@
   /* Add paper noise effect */
   .bg-noise {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+
+  /* Explicit overrides for dynamic text colors that might fail to generate in v4 */
+  .text-primary { color: var(--primary) !important; }
+  .text-secondary { color: var(--secondary) !important; }
+  .text-muted { color: var(--muted) !important; }
+  .text-accent { color: var(--accent) !important; }
+  
+  /* Reset button text inheritance for Safari/WebKit */
+  button, input, select, textarea {
+    color: inherit;
   }
 }
 

@@ -77,6 +77,17 @@ export type MatchResult = {
   difficulty?: string;
   year?: number;
   matchedSkills?: string[];
+  githubUrl?: string;
+  orgLogoUrl?: string;
+  orgWebsiteUrl?: string;
+  orgGithubUrl?: string;
+  orgCategory?: string;
+  orgDescription?: string;
+  orgIdeasUrl?: string;
+  orgTopics?: string[];
+  yearlyStats?: Array<{ year: number; count: number }>;
+  stars?: number;
+  mentors?: string[];
 };
 
 export type MatchResponse = {

@@ -142,7 +142,7 @@ export function ProgramsHeroVisualizer() {
                 className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all shrink-0 ${
                   isActive
                     ? 'bg-primary text-surface shadow-xs'
-                    : 'bg-base text-muted hover:text-primary hover:bg-surface-raised border border-hairline'
+                    : 'bg-page text-muted hover:text-primary hover:bg-surface-raised border border-hairline'
                 }`}
               >
                 {camp.badge}
@@ -152,7 +152,7 @@ export function ProgramsHeroVisualizer() {
         </div>
 
         {/* Selected Campaign Header Info */}
-        <div className="p-4 rounded-xl bg-base/60 border border-hairline/80 space-y-3">
+        <div className="p-4 rounded-xl bg-page/60 border border-hairline/80 space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div>
               <span className="text-[10px] font-mono uppercase tracking-widest text-muted font-bold">

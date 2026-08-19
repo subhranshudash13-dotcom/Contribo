@@ -80,7 +80,7 @@ export function SaveButton({
         className={`inline-flex items-center gap-1.5 rounded-lg border font-mono uppercase tracking-wide font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass disabled:opacity-50 ${pad} ${
           saved
             ? 'bg-brass/10 border-brass/40 text-brass'
-            : 'bg-base border-hairline text-muted hover:text-primary hover:border-brass/40'
+            : 'bg-page border-hairline text-muted hover:text-primary hover:border-brass/40'
         }`}
       >
         {loading ? (
@@ -161,7 +161,7 @@ export function TrackApplicationButton({
         className={`inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border text-xs font-mono uppercase tracking-wide font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass disabled:opacity-50 ${
           tracked
             ? 'bg-merge/10 border-merge/40 text-merge'
-            : 'bg-base border-hairline text-muted hover:text-primary hover:border-merge/40'
+            : 'bg-page border-hairline text-muted hover:text-primary hover:border-merge/40'
         }`}
       >
         {loading ? (

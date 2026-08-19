@@ -45,10 +45,10 @@ export function ExportPanel() {
           </p>
 
           <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="rounded-2xl border border-hairline bg-base p-4">
+            <div className="rounded-2xl border border-hairline bg-page p-4">
               <ProgressMeter value={progress} label="Section completion" />
             </div>
-            <div className="rounded-2xl border border-hairline bg-base p-4 flex items-center justify-between">
+            <div className="rounded-2xl border border-hairline bg-page p-4 flex items-center justify-between">
               <div>
                 <p className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted">
                   Readiness score
@@ -118,7 +118,7 @@ export function ExportPanel() {
               Markdown
             </span>
           </div>
-          <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-2xl border border-hairline bg-base p-4 font-mono text-xs text-primary leading-relaxed">
+          <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-2xl border border-hairline bg-page p-4 font-mono text-xs text-primary leading-relaxed">
             {`# Proposal: ${draft.projectTitle}\n**Org**: ${draft.orgName}\n**Program**: ${draft.programName}\n\n${preview}`}
           </pre>
         </section>

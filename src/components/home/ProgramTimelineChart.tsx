@@ -87,7 +87,7 @@ export function ProgramTimelineChart({ initialMonthIndex }: ProgramTimelineChart
       {/* Spiral Binding Holes */}
       <div className="absolute left-[3px] top-0 bottom-0 w-2 flex flex-col justify-around py-8 pointer-events-none z-20">
         {[...Array(8)].map((_, i) => (
-          <div key={i} className="w-2 h-2 rounded-full bg-base border border-hairline shadow-inner" />
+          <div key={i} className="w-2 h-2 rounded-full bg-page border border-hairline shadow-inner" />
         ))}
       </div>
       

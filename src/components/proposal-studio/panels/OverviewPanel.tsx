@@ -67,14 +67,14 @@ export function OverviewPanel() {
                 <button
                   type="button"
                   onClick={() => selectTab('review')}
-                  className="inline-flex h-12 items-center gap-2.5 rounded-2xl border border-hairline bg-base px-6 font-mono text-xs sm:text-sm font-bold uppercase tracking-wide text-primary hover:bg-surface-raised transition-all cursor-pointer"
+                  className="inline-flex h-12 items-center gap-2.5 rounded-2xl border border-hairline bg-page px-6 font-mono text-xs sm:text-sm font-bold uppercase tracking-wide text-primary hover:bg-surface-raised transition-all cursor-pointer"
                 >
                   Open review
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-6 rounded-2xl border border-hairline bg-base px-5 py-4">
+            <div className="flex items-center gap-6 rounded-2xl border border-hairline bg-page px-5 py-4">
               <ScoreRing score={score} size={108} stroke={7} />
               <div className="space-y-3 min-w-[140px]">
                 <ProgressMeter value={progress} label="Sections filled" />
@@ -157,7 +157,7 @@ export function OverviewPanel() {
                 return (
                   <li
                     key={section.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-hairline bg-base px-3 py-2.5"
+                    className="flex items-center justify-between gap-3 rounded-xl border border-hairline bg-page px-3 py-2.5"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-hairline bg-surface font-mono text-[11px] font-bold text-muted">
@@ -194,7 +194,7 @@ export function OverviewPanel() {
                 {draft.techStack.map((tech) => (
                   <span
                     key={tech}
-                    className="rounded-lg border border-hairline bg-base px-2 py-1 font-mono text-[11px] font-semibold text-secondary"
+                    className="rounded-lg border border-hairline bg-page px-2 py-1 font-mono text-[11px] font-semibold text-secondary"
                   >
                     {tech}
                   </span>
@@ -213,7 +213,7 @@ export function OverviewPanel() {
                     key={nav.id}
                     type="button"
                     onClick={() => selectTab(nav.id)}
-                    className="flex w-full items-center justify-between gap-2 rounded-xl border border-hairline bg-base px-3 py-2.5 text-left hover:border-accent/30 hover:bg-surface-raised transition-colors cursor-pointer"
+                    className="flex w-full items-center justify-between gap-2 rounded-xl border border-hairline bg-page px-3 py-2.5 text-left hover:border-accent/30 hover:bg-surface-raised transition-colors cursor-pointer"
                   >
                     <span className="flex items-center gap-2 min-w-0">
                       <Icon size={14} className="text-accent shrink-0" />

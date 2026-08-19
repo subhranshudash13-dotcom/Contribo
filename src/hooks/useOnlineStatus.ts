@@ -101,6 +101,13 @@ export function useOnlineStatus(options?: {
       setMongodb('unknown');
       setDegraded(false);
       setLastCheckedAt(new Date().toISOString());
+      
+      // Standard browser popup dialog with clickable "OK" button
+      if (typeof window !== 'undefined') {
+        window.alert(
+          '⚠️ Alert: You are not connected to the internet or are currently offline. Please check your network connection.'
+        );
+      }
     };
 
     window.addEventListener('online', onOnline);

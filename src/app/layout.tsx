@@ -63,7 +63,7 @@ export default function RootLayout({
           />
         )}
       </head>
-      <body className={`${dmSans.className} font-sans antialiased bg-base text-primary min-h-screen flex flex-col`}>
+      <body className={`${dmSans.className} font-sans antialiased bg-page text-primary min-h-screen flex flex-col`}>
         {process.env.NEXT_PUBLIC_GTM_ID && (
           <noscript>
             <iframe

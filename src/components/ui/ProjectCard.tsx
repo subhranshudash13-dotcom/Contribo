@@ -26,7 +26,7 @@ export function ProjectCard({
           {project.title}
         </h2>
         {project.difficulty && (
-          <span className="shrink-0 bg-base text-primary border border-hairline text-[11px] px-2 py-0.5 rounded-sm font-mono uppercase tracking-wide">
+          <span className="shrink-0 bg-page text-primary border border-hairline text-[11px] px-2 py-0.5 rounded-sm font-mono uppercase tracking-wide">
             {project.difficulty}
           </span>
         )}
@@ -54,7 +54,7 @@ export function ProjectCard({
             {project.techStack?.slice(0, 3).map((tech) => (
               <span
                 key={tech}
-                className="bg-base border border-hairline px-1.5 py-0.5 rounded-sm text-primary shrink-0"
+                className="bg-page border border-hairline px-1.5 py-0.5 rounded-sm text-primary shrink-0"
               >
                 {tech}
               </span>
@@ -135,34 +135,34 @@ export function ProjectCardSkeleton() {
       <div className="absolute top-0 left-0 w-full h-[2px] bg-hairline" />
 
       <div className="flex justify-between items-start gap-4 mb-3 mt-2">
-        <div className="h-5 w-3/4 bg-base rounded-sm" />
-        <div className="h-4 w-16 bg-base rounded-sm shrink-0" />
+        <div className="h-5 w-3/4 bg-page rounded-sm" />
+        <div className="h-4 w-16 bg-page rounded-sm shrink-0" />
       </div>
 
       <div className="flex gap-2 items-center mb-4">
-        <div className="h-3 w-20 bg-base rounded-sm" />
-        <div className="h-3 w-3 bg-base rounded-sm" />
-        <div className="h-3 w-12 bg-base rounded-sm" />
+        <div className="h-3 w-20 bg-page rounded-sm" />
+        <div className="h-3 w-3 bg-page rounded-sm" />
+        <div className="h-3 w-12 bg-page rounded-sm" />
       </div>
 
       <div className="space-y-2 mb-6 flex-grow">
-        <div className="h-4 w-full bg-base rounded-sm" />
-        <div className="h-4 w-full bg-base rounded-sm" />
-        <div className="h-4 w-4/5 bg-base rounded-sm" />
+        <div className="h-4 w-full bg-page rounded-sm" />
+        <div className="h-4 w-full bg-page rounded-sm" />
+        <div className="h-4 w-4/5 bg-page rounded-sm" />
       </div>
 
       <div className="mt-auto pt-4 border-t border-hairline">
         <div className="flex gap-2 mb-4">
-          <div className="h-5 w-12 bg-base rounded-sm" />
-          <div className="h-5 w-16 bg-base rounded-sm" />
+          <div className="h-5 w-12 bg-page rounded-sm" />
+          <div className="h-5 w-16 bg-page rounded-sm" />
         </div>
         <div className="flex justify-between mt-2">
-          <div className="h-4 w-24 bg-base rounded-sm" />
-          <div className="h-4 w-12 bg-base rounded-sm" />
+          <div className="h-4 w-24 bg-page rounded-sm" />
+          <div className="h-4 w-12 bg-page rounded-sm" />
         </div>
         <div className="flex gap-2 mt-4 pt-3 border-t border-hairline/80">
-          <div className="h-8 w-16 bg-base rounded-lg" />
-          <div className="h-8 w-28 bg-base rounded-lg" />
+          <div className="h-8 w-16 bg-page rounded-lg" />
+          <div className="h-8 w-28 bg-page rounded-lg" />
         </div>
       </div>
     </div>

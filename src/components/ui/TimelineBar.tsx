@@ -15,7 +15,7 @@ export function TimelineBar({ events }: { events: TimelineEvent[] }) {
           {i !== events.length - 1 && (
             <div className="absolute left-[5px] top-6 bottom-0 w-[1px] bg-hairline -z-10 group-hover:bg-program-accent transition-colors" />
           )}
-          <div className="w-3 h-3 rounded-none bg-base border border-hairline flex items-center justify-center shrink-0 z-10 mt-1.5 group-hover:border-program-accent transition-colors">
+          <div className="w-3 h-3 rounded-none bg-page border border-hairline flex items-center justify-center shrink-0 z-10 mt-1.5 group-hover:border-program-accent transition-colors">
             <div className="w-1.5 h-1.5 bg-program-accent opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
           <div>

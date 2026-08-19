@@ -88,7 +88,7 @@ export function StudioWorkspace() {
               <button
                 type="button"
                 onClick={studio.goHub}
-                className="inline-flex items-center gap-2 rounded-2xl border border-hairline bg-base px-3.5 py-2 font-mono text-xs sm:text-sm font-bold text-secondary hover:text-primary hover:bg-surface-raised transition-all cursor-pointer shrink-0"
+                className="inline-flex items-center gap-2 rounded-2xl border border-hairline bg-page px-3.5 py-2 font-mono text-xs sm:text-sm font-bold text-secondary hover:text-primary hover:bg-surface-raised transition-all cursor-pointer shrink-0"
                 title="Back to Proposal Studio Hub"
               >
                 <ArrowLeft size={15} />
@@ -102,7 +102,7 @@ export function StudioWorkspace() {
                   id="draft-switcher"
                   value={studio.activeDraftId}
                   onChange={(e) => studio.setActiveDraftId(e.target.value)}
-                  className="h-10 truncate max-w-[220px] sm:max-w-[340px] rounded-2xl border border-hairline bg-base px-3.5 text-xs sm:text-sm font-mono font-bold text-primary focus:outline-none focus:border-accent cursor-pointer shadow-xs"
+                  className="h-10 truncate max-w-[220px] sm:max-w-[340px] rounded-2xl border border-hairline bg-page px-3.5 text-xs sm:text-sm font-mono font-bold text-primary focus:outline-none focus:border-accent cursor-pointer shadow-xs"
                 >
                   {studio.drafts.map((d) => (
                     <option key={d.id} value={d.id}>
@@ -126,14 +126,14 @@ export function StudioWorkspace() {
               <button
                 type="button"
                 onClick={() => setShowHistoryModal(true)}
-                className="inline-flex h-10 items-center gap-2 rounded-2xl border border-hairline bg-base px-3.5 font-mono text-xs sm:text-sm font-bold text-secondary hover:text-primary hover:bg-surface-raised transition-all cursor-pointer"
+                className="inline-flex h-10 items-center gap-2 rounded-2xl border border-hairline bg-page px-3.5 font-mono text-xs sm:text-sm font-bold text-secondary hover:text-primary hover:bg-surface-raised transition-all cursor-pointer"
                 title="View version history"
               >
                 <History size={15} className="text-accent" />
                 <span className="hidden xl:inline">History</span>
               </button>
 
-              <span className="hidden md:inline-flex items-center gap-2 rounded-2xl border border-hairline bg-base px-3.5 py-2 font-mono text-xs font-semibold text-muted">
+              <span className="hidden md:inline-flex items-center gap-2 rounded-2xl border border-hairline bg-page px-3.5 py-2 font-mono text-xs font-semibold text-muted">
                 {studio.saveStatus === 'saving' ? (
                   <>
                     <RefreshCw size={12} className="animate-spin text-accent" />
@@ -169,7 +169,7 @@ export function StudioWorkspace() {
               <button
                 type="button"
                 onClick={() => studio.setIsFeedbackModalOpen(true)}
-                className="inline-flex h-10 items-center gap-2 rounded-2xl border border-hairline bg-base px-4 font-mono text-xs sm:text-sm font-bold text-primary hover:bg-surface-raised transition-all cursor-pointer"
+                className="inline-flex h-10 items-center gap-2 rounded-2xl border border-hairline bg-page px-4 font-mono text-xs sm:text-sm font-bold text-primary hover:bg-surface-raised transition-all cursor-pointer"
               >
                 <MessageSquarePlus size={14} className="text-accent" />
                 <span className="hidden lg:inline">Feedback</span>
@@ -204,7 +204,7 @@ export function StudioWorkspace() {
                       className={`rounded-lg px-2 py-0.5 text-xs tabular-nums font-bold ${
                         active
                           ? 'bg-white/20 text-white'
-                          : 'border border-hairline bg-base text-muted'
+                          : 'border border-hairline bg-page text-muted'
                       }`}
                     >
                       {badge}

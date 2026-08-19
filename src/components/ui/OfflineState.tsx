@@ -25,30 +25,36 @@ type OfflineStateProps = {
 function defaultCopy(reason: OfflineStateProps['reason']) {
   if (reason === 'browser') {
     return {
-      title: "You're offline",
+      title: 'No Internet Connection',
+      statement:
+        'You are currently offline. Please check your internet connection.',
       description:
-        'No internet connection detected. Reconnect to browse programs, projects, and your dashboard.',
-      tip: 'Check Wi-Fi or mobile data, then try again.',
+        'You are not connected to the internet. Reconnect to browse live programs, run AI project matches, and sync your applications.',
+      tip: 'Check your Wi-Fi, Ethernet, or mobile data. Contribo will automatically reconnect when your connection returns.',
     };
   }
   if (reason === 'server') {
     return {
-      title: 'Contribo is unreachable',
+      title: 'Contribo Server Unreachable',
+      statement:
+        'Unable to reach Contribo servers right now.',
       description:
-        "Your device is online, but we can't reach the Contribo service right now.",
+        "Your device is online, but our server cannot be reached right now. We're attempting to reconnect.",
       tip: 'This is usually temporary — retry in a few seconds.',
     };
   }
   return {
-    title: 'Connection problem',
+    title: 'Connection Lost',
+    statement:
+      'Network connection lost. Please check your internet connection.',
     description:
-      "We couldn't complete this request. Check your network and try again.",
+      "We couldn't reach the server. Please check your internet connection and try again.",
     tip: 'If the problem continues, refresh the page.',
   };
 }
 
 /**
- * Shared offline / unreachable UI — banner, full card, or inline chip.
+ * Shared offline / unreachable UI — banner, full card, inline chip, or alert statement box.
  */
 export function OfflineState({
   reason = 'unknown',
@@ -68,10 +74,14 @@ export function OfflineState({
     return (
       <span
         role="status"
-        className={`inline-flex items-center gap-1.5 rounded-full border border-error/25 bg-error/10 px-2.5 py-1 text-xs font-medium text-error ${className}`}
+        className={`inline-flex items-center gap-1.5 rounded-full border border-error/30 bg-error/10 px-3 py-1 text-xs font-semibold text-error ${className}`}
       >
-        <WifiOff size={12} aria-hidden />
-        {resolvedTitle}
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-error" />
+        </span>
+        <WifiOff size={13} aria-hidden />
+        <span>{resolvedTitle}</span>
       </span>
     );
   }
@@ -80,19 +90,26 @@ export function OfflineState({
     return (
       <div
         role="alert"
-        aria-live="polite"
-        className={`w-full border-b border-error/20 bg-gradient-to-r from-error/12 via-warning/8 to-error/10 text-primary backdrop-blur-sm ${className}`}
+        aria-live="assertive"
+        className={`w-full border-b border-error/30 bg-gradient-to-r from-error/15 via-warning/10 to-error/15 text-primary shadow-sm backdrop-blur-md ${className}`}
       >
-        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <div className="flex min-w-0 items-start gap-3 sm:items-center">
-            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-error/25 bg-surface shadow-sm sm:mt-0">
-              <Icon size={18} className="text-error" strokeWidth={1.75} aria-hidden />
+        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-error/30 bg-surface shadow-xs">
+              <span className="relative flex h-2.5 w-2.5 mr-0.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-error" />
+              </span>
+              <Icon size={16} className="text-error" strokeWidth={2} aria-hidden />
             </div>
             <div className="min-w-0 space-y-0.5">
-              <p className="text-sm font-semibold leading-tight tracking-tight">
-                {resolvedTitle}
+              <p className="text-xs sm:text-sm font-bold tracking-tight text-primary flex items-center gap-2 flex-wrap">
+                <span className="text-error font-extrabold uppercase text-[11px] tracking-wider bg-error/15 px-1.5 py-0.5 rounded border border-error/25">
+                  Offline Alert
+                </span>
+                <span>{copy.statement}</span>
               </p>
-              <p className="text-xs leading-snug text-secondary sm:text-[13px]">
+              <p className="text-[11px] sm:text-xs leading-snug text-secondary line-clamp-1">
                 {resolvedDescription}
               </p>
             </div>
@@ -102,14 +119,14 @@ export function OfflineState({
               type="button"
               onClick={() => void onRetry()}
               disabled={retrying}
-              className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-hairline bg-surface px-3.5 text-xs font-semibold text-primary shadow-sm transition-all hover:border-primary/20 hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-8 shrink-0 items-center gap-2 rounded-lg border border-error/30 bg-surface px-3.5 text-xs font-bold text-primary shadow-xs transition-all hover:border-error/50 hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-60"
             >
               {retrying ? (
-                <Loader2 size={14} className="animate-spin text-muted" />
+                <Loader2 size={13} className="animate-spin text-error" />
               ) : (
-                <RefreshCw size={14} className="text-muted" />
+                <RefreshCw size={13} className="text-error" />
               )}
-              {retrying ? 'Checking…' : 'Retry connection'}
+              <span>{retrying ? 'Connecting…' : 'Retry connection'}</span>
             </button>
           )}
         </div>
@@ -136,7 +153,7 @@ export function OfflineState({
 
       <div className="relative mx-auto mb-6 flex h-16 w-16 items-center justify-center">
         <div className="absolute inset-0 rounded-2xl bg-error/10" />
-        <div className="absolute inset-[3px] rounded-[13px] border border-error/20 bg-base" />
+        <div className="absolute inset-[3px] rounded-[13px] border border-error/20 bg-page" />
         <Icon size={28} className="relative text-error" strokeWidth={1.5} aria-hidden />
       </div>
 
@@ -201,3 +218,67 @@ export function OfflineBanner({
     </div>
   );
 }
+
+/**
+ * Standalone offline alert callout box for forms, cards, and modal dialogs.
+ */
+export function OfflineAlert({
+  statement,
+  description,
+  onRetry,
+  retrying,
+  className = '',
+}: {
+  statement?: string;
+  description?: string;
+  onRetry?: () => void | Promise<void>;
+  retrying?: boolean;
+  className?: string;
+}) {
+  return (
+    <div
+      role="alert"
+      aria-live="assertive"
+      className={`rounded-xl border border-error/30 bg-error/10 p-4 text-primary shadow-xs ${className}`}
+    >
+      <div className="flex items-start gap-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-error/30 bg-surface shadow-xs mt-0.5">
+          <span className="relative flex h-2 w-2 mr-0.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-error" />
+          </span>
+          <WifiOff size={15} className="text-error" aria-hidden />
+        </div>
+        <div className="min-w-0 flex-1 space-y-1">
+          <p className="text-xs sm:text-sm font-bold text-primary flex items-center gap-2 flex-wrap">
+            <span className="text-error font-extrabold uppercase text-[10px] tracking-wider bg-error/20 px-1.5 py-0.5 rounded border border-error/30">
+              Offline Alert
+            </span>
+            <span>{statement || 'You are currently offline. Please check your internet connection.'}</span>
+          </p>
+          <p className="text-xs text-secondary leading-relaxed">
+            {description || 'No internet connection detected. Please reconnect to continue with real-time matching, tracking, and proposals.'}
+          </p>
+          {onRetry && (
+            <div className="pt-1.5">
+              <button
+                type="button"
+                onClick={() => void onRetry()}
+                disabled={retrying}
+                className="inline-flex h-7 items-center gap-1.5 rounded-md border border-error/30 bg-surface px-2.5 text-[11px] font-bold text-primary shadow-xs transition-all hover:bg-surface-raised disabled:opacity-60"
+              >
+                {retrying ? (
+                  <Loader2 size={12} className="animate-spin text-error" />
+                ) : (
+                  <RefreshCw size={12} className="text-error" />
+                )}
+                <span>{retrying ? 'Retrying…' : 'Retry connection'}</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+

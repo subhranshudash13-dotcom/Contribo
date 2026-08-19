@@ -82,7 +82,7 @@ export function ReviewPanel() {
             <button
               type="button"
               onClick={() => selectTab('export')}
-              className="inline-flex h-11 items-center gap-2 rounded-xl border border-hairline bg-base px-5 text-xs font-mono font-bold uppercase tracking-wide text-primary hover:bg-surface-raised transition-colors cursor-pointer"
+              className="inline-flex h-11 items-center gap-2 rounded-xl border border-hairline bg-page px-5 text-xs font-mono font-bold uppercase tracking-wide text-primary hover:bg-surface-raised transition-colors cursor-pointer"
             >
               Go to export <ArrowRight size={14} />
             </button>
@@ -107,7 +107,7 @@ export function ReviewPanel() {
                       <span className="text-muted font-normal"> / 100 · {item.weight}</span>
                     </span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full border border-hairline bg-base">
+                  <div className="h-2 overflow-hidden rounded-full border border-hairline bg-page">
                     <div
                       className="h-full rounded-full bg-accent transition-[width] duration-500"
                       style={{ width: `${value}%` }}
@@ -168,7 +168,7 @@ export function ReviewPanel() {
                         setActiveSectionId(s.id);
                         selectTab('builder');
                       }}
-                      className="flex w-full items-center justify-between gap-2 rounded-xl border border-hairline bg-base px-3 py-2.5 text-left hover:border-accent/30 hover:bg-surface-raised transition-colors cursor-pointer"
+                      className="flex w-full items-center justify-between gap-2 rounded-xl border border-hairline bg-page px-3 py-2.5 text-left hover:border-accent/30 hover:bg-surface-raised transition-colors cursor-pointer"
                     >
                       <span className="text-sm font-medium text-primary">
                         {s.title}

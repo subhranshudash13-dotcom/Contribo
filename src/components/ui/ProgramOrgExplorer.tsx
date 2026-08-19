@@ -122,24 +122,20 @@ export function ProgramOrgExplorer({
 
   // Year toggle handler
   const toggleYear = (year: number) => {
-    setSelectedYears((prev) => {
-      const next = prev.includes(year)
-        ? prev.filter((y) => y !== year)
-        : [...prev, year];
-      fetchOrganizations(next, strictMatch, searchQuery, selectedTech);
-      syncUrl(next, strictMatch, searchQuery, selectedTech);
-      return next;
-    });
+    const next = selectedYears.includes(year)
+      ? selectedYears.filter((y) => y !== year)
+      : [...selectedYears, year];
+    setSelectedYears(next);
+    fetchOrganizations(next, strictMatch, searchQuery, selectedTech);
+    syncUrl(next, strictMatch, searchQuery, selectedTech);
   };
 
   // Strict match toggle
   const toggleStrictMatch = () => {
-    setStrictMatch((prev) => {
-      const next = !prev;
-      fetchOrganizations(selectedYears, next, searchQuery, selectedTech);
-      syncUrl(selectedYears, next, searchQuery, selectedTech);
-      return next;
-    });
+    const next = !strictMatch;
+    setStrictMatch(next);
+    fetchOrganizations(selectedYears, next, searchQuery, selectedTech);
+    syncUrl(selectedYears, next, searchQuery, selectedTech);
   };
 
   // Search with debounce
@@ -216,7 +212,7 @@ export function ProgramOrgExplorer({
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="Search organizations by name or keyword..."
-              className="w-full bg-base border border-hairline rounded-xl pl-10 pr-8 py-2.5 text-sm text-primary focus:outline-none focus:ring-1 focus:ring-accent placeholder-muted font-medium"
+              className="w-full bg-page border border-hairline rounded-xl pl-10 pr-8 py-2.5 text-sm text-primary focus:outline-none focus:ring-1 focus:ring-accent placeholder-muted font-medium"
             />
             {searchQuery && (
               <button
@@ -233,7 +229,7 @@ export function ProgramOrgExplorer({
             <select
               value={selectedTech}
               onChange={(e) => handleTechChange(e.target.value)}
-              className="w-full bg-base border border-hairline rounded-xl px-4 py-2.5 text-sm text-primary focus:outline-none focus:ring-1 focus:ring-accent font-medium appearance-none cursor-pointer pr-10"
+              className="w-full bg-page border border-hairline rounded-xl px-4 py-2.5 text-sm text-primary focus:outline-none focus:ring-1 focus:ring-accent font-medium appearance-none cursor-pointer pr-10"
             >
               <option value="">All Technologies</option>
               {availableTechnologies.map((tech) => (
@@ -267,7 +263,7 @@ export function ProgramOrgExplorer({
                       className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold border transition-all duration-150 cursor-pointer ${
                         isSelected
                           ? 'text-white shadow-sm'
-                          : 'bg-base border-hairline text-secondary hover:text-primary hover:border-accent/30'
+                          : 'bg-page border-hairline text-secondary hover:text-primary hover:border-accent/30'
                       }`}
                       style={
                         isSelected

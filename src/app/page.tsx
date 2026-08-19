@@ -14,6 +14,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { Hero } from '@/components/hero/Hero';
+import { ScrollReveal } from '@/components/ui/ScrollReveal';
 import { auth } from '@/auth';
 import { getUserItemStatus } from '@/lib/repositories/dashboard';
 import { getCachedHomeBundle, getCachedPrograms } from '@/lib/data-cache';
@@ -160,7 +161,8 @@ export default async function Home() {
 
       <div className="max-w-[1440px] mx-auto w-full px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 pb-20 pt-16 space-y-28">
         {/* CURATED OPPORTUNITIES */}
-        <section className="relative content-visibility-auto">
+        <ScrollReveal animation="fade">
+        <section className="relative">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 relative z-10">
             <div className="space-y-3 max-w-2xl">
               <span className="font-mono text-[10px] uppercase tracking-widest text-accent font-semibold bg-accent/10 px-3 py-1.5 rounded-full border border-accent/25 inline-flex items-center shadow-sm">
@@ -265,13 +267,15 @@ export default async function Home() {
             })}
           </div>
         </section>
+        </ScrollReveal>
 
 
         {/* LIVE STATS */}
         <DeferredHeroStats stats={stats} />
 
         {/* HOW IT WORKS */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center py-6 content-visibility-auto">
+        <ScrollReveal animation="slide-up">
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center py-6">
           <div className="lg:col-span-5 space-y-6">
             <span className="font-mono text-[10px] uppercase tracking-widest text-accent font-semibold bg-accent/10 px-3 py-1.5 rounded-full border border-accent/25 inline-flex items-center shadow-sm">
               <Compass size={12} className="mr-1.5" /> Guide
@@ -340,7 +344,7 @@ export default async function Home() {
               </div>
             </div>
 
-            <div className="relative overflow-hidden aspect-[16/10] w-full rounded-b-xl bg-base">
+            <div className="relative overflow-hidden aspect-[16/10] w-full rounded-b-xl bg-page">
               <Image
                 src="/contribo_dashboard_mockup.png"
                 alt="Contribo Contributor Dashboard Workspace"
@@ -352,6 +356,7 @@ export default async function Home() {
             </div>
           </div>
         </section>
+        </ScrollReveal>
 
         {/* PROPOSAL STUDIO — deferred */}
         <DeferredProposalStudioSection />
@@ -364,7 +369,7 @@ export default async function Home() {
         />
 
         {/* YEAR TIMELINE — deferred */}
-        <section className="space-y-8 content-visibility-auto">
+        <section className="space-y-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <span className="font-mono text-[10px] uppercase tracking-widest text-muted font-semibold">
@@ -385,7 +390,7 @@ export default async function Home() {
         </section>
 
         {/* POPULAR ORGS — deferred */}
-        <section className="space-y-8 content-visibility-auto">
+        <section className="space-y-8">
           <div className="flex items-end justify-between gap-4">
             <div>
               <span className="font-mono text-[10px] uppercase tracking-widest text-muted font-semibold flex items-center gap-2">
@@ -406,7 +411,8 @@ export default async function Home() {
         </section>
 
         {/* ROADMAP — static, light */}
-        <section className="space-y-8 content-visibility-auto">
+        <ScrollReveal animation="slide-up">
+        <section className="space-y-8">
           <div>
             <span className="font-mono text-[10px] uppercase tracking-widest text-muted font-semibold flex items-center gap-2">
               <Compass size={12} /> Path
@@ -441,9 +447,11 @@ export default async function Home() {
             })}
           </div>
         </section>
+        </ScrollReveal>
 
         {/* RESOURCES — static */}
-        <section className="space-y-8 content-visibility-auto">
+        <ScrollReveal animation="pop">
+        <section className="space-y-8">
           <div className="flex items-end justify-between">
             <div>
               <span className="font-mono text-[10px] uppercase tracking-widest text-muted font-semibold flex items-center gap-2">
@@ -472,9 +480,11 @@ export default async function Home() {
             ))}
           </div>
         </section>
+        </ScrollReveal>
 
         {/* TESTIMONIALS — static, light */}
-        <section className="space-y-8 py-4 content-visibility-auto">
+        <ScrollReveal animation="fade">
+        <section className="space-y-8 py-4">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <span className="font-mono text-[10px] uppercase tracking-widest text-accent font-semibold bg-accent/10 px-3 py-1.5 rounded-full border border-accent/25 inline-flex items-center shadow-sm">
               Success Stories
@@ -544,9 +554,11 @@ export default async function Home() {
             </div>
           </div>
         </section>
+        </ScrollReveal>
 
         {/* FAQs — deferred */}
-        <section className="space-y-8 max-w-4xl mx-auto py-4 content-visibility-auto">
+        <ScrollReveal animation="slide-up">
+        <section className="space-y-8 max-w-4xl mx-auto py-4">
           <div className="text-center space-y-3">
             <span className="font-mono text-[10px] uppercase tracking-widest text-accent font-semibold bg-accent/10 px-3 py-1.5 rounded-full border border-accent/25 inline-flex items-center shadow-sm">
               Questions
@@ -561,6 +573,7 @@ export default async function Home() {
 
           <DeferredFaq />
         </section>
+        </ScrollReveal>
       </div>
     </main>
   );

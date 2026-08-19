@@ -466,7 +466,7 @@ export default function RoadmapsClient() {
                           ? `${accent.bg} border-transparent text-white`
                           : isActive
                             ? `${accent.soft} ${accent.text} border-hairline`
-                            : 'bg-base border-hairline text-muted'
+                            : 'bg-page border-hairline text-muted'
                       }`}
                     >
                       {isDone ? <Check size={16} strokeWidth={3} aria-hidden /> : idx + 1}
@@ -593,7 +593,7 @@ export default function RoadmapsClient() {
                           className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
                             checked
                               ? `${accent.soft} border-hairline`
-                              : 'border-hairline bg-base hover:bg-surface-raised'
+                              : 'border-hairline bg-page hover:bg-surface-raised'
                           }`}
                         >
                           <input
@@ -661,7 +661,7 @@ export default function RoadmapsClient() {
                         <Link
                           key={link.href + link.label}
                           href={link.href}
-                          className="flex items-start justify-between gap-2 p-3 rounded-xl border border-hairline bg-base hover:bg-surface-raised transition-colors group focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                          className="flex items-start justify-between gap-2 p-3 rounded-xl border border-hairline bg-page hover:bg-surface-raised transition-colors group focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                         >
                           <div className="min-w-0">
                             <span className="text-xs font-bold text-primary group-hover:text-accent transition-colors block">
@@ -694,7 +694,7 @@ export default function RoadmapsClient() {
                       {activeStage.resources.map((res) => {
                         const external = res.external || res.url.startsWith('http');
                         const className =
-                          'flex items-center justify-between gap-2 p-3 rounded-xl border border-hairline bg-base hover:bg-surface-raised transition-colors text-xs font-mono font-bold text-primary group focus:outline-none focus-visible:ring-2 focus-visible:ring-accent';
+                          'flex items-center justify-between gap-2 p-3 rounded-xl border border-hairline bg-page hover:bg-surface-raised transition-colors text-xs font-mono font-bold text-primary group focus:outline-none focus-visible:ring-2 focus-visible:ring-accent';
                         if (external) {
                           return (
                             <a

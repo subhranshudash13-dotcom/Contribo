@@ -12,7 +12,7 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
-const EXPLORER_ENABLED_SLUGS = new Set(['gsoc', 'lfx', 'esoc', 'outreachy', 'sob']);
+const EXPLORER_ENABLED_SLUGS = new Set(['gsoc', 'lfx', 'esoc', 'outreachy', 'sob', 'mlh-fellowship', 'mlh']);
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;

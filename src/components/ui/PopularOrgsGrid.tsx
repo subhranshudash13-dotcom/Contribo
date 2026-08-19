@@ -119,7 +119,7 @@ export function PopularOrgsGrid() {
               <div className={`w-10 h-10 rounded-full border flex items-center justify-center font-mono font-extrabold text-base mb-2 shadow-sm transition-all group-hover:scale-105 ${
                 isSelected 
                   ? 'bg-accent text-white border-accent' 
-                  : 'bg-base border-hairline text-accent group-hover:bg-accent/10'
+                  : 'bg-page border-hairline text-accent group-hover:bg-accent/10'
               }`}>
                 {org.logoChar}
               </div>

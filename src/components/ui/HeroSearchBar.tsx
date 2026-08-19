@@ -16,7 +16,7 @@ export function HeroSearchBar() {
     >
       <Search size={18} className="group-hover:text-primary transition-colors" />
       <span className="flex-1 text-left truncate">Search programs, organizations or projects...</span>
-      <kbd className="hidden sm:inline-flex items-center justify-center font-mono text-[10px] bg-base w-5 h-5 rounded border border-hairline font-bold">
+      <kbd className="hidden sm:inline-flex items-center justify-center font-mono text-[10px] bg-page w-5 h-5 rounded border border-hairline font-bold">
         /
       </kbd>
     </button>

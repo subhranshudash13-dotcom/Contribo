@@ -46,7 +46,7 @@ export function OrgCard({
             {org.technologies?.slice(0, 3).map((tech) => (
               <span
                 key={tech}
-                className="bg-base border border-hairline px-1.5 py-0.5 rounded-sm text-primary shrink-0"
+                className="bg-page border border-hairline px-1.5 py-0.5 rounded-sm text-primary shrink-0"
               >
                 {tech}
               </span>
@@ -94,26 +94,26 @@ export function OrgCardSkeleton() {
       <div className="absolute top-0 left-0 w-full h-[2px] bg-hairline" />
 
       <div className="flex items-start gap-4 mb-4 mt-2">
-        <div className="w-10 h-10 rounded-sm bg-base shrink-0" />
+        <div className="w-10 h-10 rounded-sm bg-page shrink-0" />
         <div className="flex-1 min-w-0">
-          <div className="h-5 w-3/4 bg-base rounded-sm mb-2" />
-          <div className="h-3 w-1/2 bg-base rounded-sm" />
+          <div className="h-5 w-3/4 bg-page rounded-sm mb-2" />
+          <div className="h-3 w-1/2 bg-page rounded-sm" />
         </div>
       </div>
 
       <div className="space-y-2 mb-5 flex-grow">
-        <div className="h-4 w-full bg-base rounded-sm" />
-        <div className="h-4 w-full bg-base rounded-sm" />
-        <div className="h-4 w-5/6 bg-base rounded-sm" />
+        <div className="h-4 w-full bg-page rounded-sm" />
+        <div className="h-4 w-full bg-page rounded-sm" />
+        <div className="h-4 w-5/6 bg-page rounded-sm" />
       </div>
 
       <div className="mt-auto pt-4 border-t border-hairline">
         <div className="flex gap-2 mb-4">
-          <div className="h-5 w-12 bg-base rounded-sm" />
-          <div className="h-5 w-16 bg-base rounded-sm" />
+          <div className="h-5 w-12 bg-page rounded-sm" />
+          <div className="h-5 w-16 bg-page rounded-sm" />
         </div>
-        <div className="h-10 w-full bg-base rounded-sm" />
-        <div className="h-8 w-full bg-base rounded-lg mt-2" />
+        <div className="h-10 w-full bg-page rounded-sm" />
+        <div className="h-8 w-full bg-page rounded-lg mt-2" />
       </div>
     </div>
   );

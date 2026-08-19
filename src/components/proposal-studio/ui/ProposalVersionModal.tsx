@@ -67,7 +67,7 @@ export function ProposalVersionModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-hairline bg-base text-muted hover:text-primary cursor-pointer"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-hairline bg-page text-muted hover:text-primary cursor-pointer"
           >
             <X size={16} />
           </button>
@@ -85,7 +85,7 @@ export function ProposalVersionModal({
                 className={`p-3.5 rounded-2xl border text-left space-y-1 transition-all cursor-pointer ${
                   active
                     ? 'border-accent bg-accent/10 shadow-sm'
-                    : 'border-hairline bg-base hover:bg-surface-raised'
+                    : 'border-hairline bg-page hover:bg-surface-raised'
                 }`}
               >
                 <div className="flex items-center justify-between font-mono text-[11px] font-bold">
@@ -101,7 +101,7 @@ export function ProposalVersionModal({
         </div>
 
         {/* Selected Snapshot Preview */}
-        <div className="space-y-4 rounded-2xl border border-hairline bg-base p-5">
+        <div className="space-y-4 rounded-2xl border border-hairline bg-page p-5">
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs font-bold uppercase tracking-wider text-accent">
               Snapshot Preview: {selectedSnap.label}

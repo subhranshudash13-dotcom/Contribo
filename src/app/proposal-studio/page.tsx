@@ -23,7 +23,15 @@ function ProposalStudioFallback() {
   );
 }
 
-export default function ProposalStudioPage() {
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
+
+export default async function ProposalStudioPage() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect('/login');
+  }
+
   return (
     <Suspense fallback={<ProposalStudioFallback />}>
       <ProposalStudioClient />

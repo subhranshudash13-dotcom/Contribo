@@ -12,12 +12,23 @@ import {
   Clock,
   Globe,
   Inbox,
+  Github,
+  ExternalLink,
+  Building2,
+  BarChart3,
+  ChevronDown,
+  ChevronUp,
+  FolderGit2,
+  Star,
+  Users,
 } from 'lucide-react';
 import { SaveButton, TrackApplicationButton } from '@/components/ui/SaveTrackActions';
 import { OfflineState } from '@/components/ui/OfflineState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { useNetwork } from '@/components/ui/NetworkProvider';
-import { friendlyApiMessage, isApiError, runMatcher } from '@/lib/client/api';
+import { OrgLogo } from '@/components/ui/OrgLogo';
+import { OrgProjectBarChart } from '@/components/ui/OrgProjectBarChart';
+import { friendlyApiMessage, isApiError, runMatcher, type MatchResult } from '@/lib/client/api';
 
 const SKILL_CATEGORIES = [
   {
@@ -113,24 +124,6 @@ const AVAILABLE_MATCH_PROGRAMS = [
   { slug: 'gssoc', name: 'GSSoC', color: '#FFB800' },
 ];
 
-type MatchResult = {
-  id?: string;
-  projectId?: string;
-  title: string;
-  orgName: string;
-  orgSlug?: string;
-  techStack: string[];
-  description: string;
-  matchPercentage: number;
-  reasoning: string;
-  programName: string;
-  programColor: string;
-  programSlug?: string;
-  difficulty?: string;
-  year?: number;
-  matchedSkills?: string[];
-};
-
 export default function MatcherClient() {
   const { isOnline, browserOnline, recheck, checking } = useNetwork();
   const [step, setStep] = useState(1);
@@ -143,9 +136,18 @@ export default function MatcherClient() {
 
   const [isMatching, setIsMatching] = useState(false);
   const [results, setResults] = useState<MatchResult[]>([]);
+  const [visibleCount, setVisibleCount] = useState<number>(10);
   const [matchMode, setMatchMode] = useState<string | null>(null);
   const [matchError, setMatchError] = useState<string | null>(null);
   const [matchOffline, setMatchOffline] = useState(false);
+  const [expandedStats, setExpandedStats] = useState<Record<string, boolean>>({});
+
+  const toggleOrgStats = (key: string) => {
+    setExpandedStats((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
   const toggleSkill = (skill: string) => {
     setSelectedSkills((prev) =>
@@ -169,6 +171,7 @@ export default function MatcherClient() {
     setMatchError(null);
     setMatchOffline(false);
     setResults([]);
+    setVisibleCount(10);
     setMatchMode(null);
 
     if (!isOnline) {
@@ -267,7 +270,7 @@ export default function MatcherClient() {
                           className={`px-3 py-1.5 rounded-sm border text-sm font-medium transition-colors ${
                             selectedSkills.includes(skill)
                               ? 'bg-brass border-brass text-white'
-                              : 'bg-base border-hairline text-primary hover:border-muted'
+                              : 'bg-page border-hairline text-primary hover:border-muted'
                           }`}
                         >
                           {skill}
@@ -293,7 +296,7 @@ export default function MatcherClient() {
                         }
                       }}
                       placeholder="Type and press Enter…"
-                      className="flex-1 p-3 bg-base border border-hairline rounded-sm text-primary focus:outline-none focus:border-brass text-sm"
+                      className="flex-1 p-3 bg-page border border-hairline rounded-sm text-primary focus:outline-none focus:border-brass text-sm"
                       maxLength={48}
                     />
                     <button
@@ -350,7 +353,7 @@ export default function MatcherClient() {
                     className={`p-6 border rounded-sm text-left transition-all ${
                       experience === level.id
                         ? 'border-brass bg-surface-raised ring-1 ring-brass'
-                        : 'border-hairline bg-base hover:border-muted'
+                        : 'border-hairline bg-page hover:border-muted'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -404,7 +407,7 @@ export default function MatcherClient() {
                   <select
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full p-3 bg-base border border-hairline rounded-sm text-primary focus:outline-none focus:border-brass"
+                    className="w-full p-3 bg-page border border-hairline rounded-sm text-primary focus:outline-none focus:border-brass"
                   >
                     <option value="worldwide">Worldwide (Remote)</option>
                     <option value="us">United States</option>
@@ -476,7 +479,7 @@ export default function MatcherClient() {
                     {selectedSkills.map((s) => (
                       <span
                         key={s}
-                        className="bg-base border border-hairline px-2 py-0.5 rounded-sm text-xs font-mono text-primary"
+                        className="bg-page border border-hairline px-2 py-0.5 rounded-sm text-xs font-mono text-primary"
                       >
                         {s}
                       </span>
@@ -545,7 +548,7 @@ export default function MatcherClient() {
                     <h2 className="text-3xl font-extrabold text-primary mb-3">Your matches</h2>
                     <p className="text-muted">
                       {results.length > 0
-                        ? `Top ${results.length} projects ordered by skill fit.`
+                        ? `Showing ${Math.min(visibleCount, results.length)} of ${results.length} ranked projects ordered by skill fit.`
                         : 'No ranked results for this profile.'}
                       {matchMode && (
                         <span className="block mt-1 font-mono text-[10px] uppercase tracking-wide text-muted">
@@ -585,7 +588,7 @@ export default function MatcherClient() {
                         className={`px-3 py-1.5 rounded-sm border text-xs font-medium font-mono transition-all ${
                           selectedOutputPrograms.length === 0
                             ? 'bg-brass text-white border-brass font-bold'
-                            : 'bg-base border-hairline text-muted hover:border-brass/40'
+                            : 'bg-page border-hairline text-muted hover:border-brass/40'
                         }`}
                       >
                         All Programs
@@ -609,7 +612,7 @@ export default function MatcherClient() {
                             className={`px-3 py-1.5 rounded-sm border text-xs font-medium font-mono transition-all flex items-center gap-1.5 ${
                               isSelected
                                 ? 'bg-surface-raised border-brass text-primary font-bold shadow-sm ring-1 ring-brass'
-                                : 'bg-base border-hairline text-muted hover:border-hairline/80'
+                                : 'bg-page border-hairline text-muted hover:border-hairline/80'
                             }`}
                           >
                             <span
@@ -676,114 +679,296 @@ export default function MatcherClient() {
                       </button>
                     </div>
                   ) : !matchOffline && !matchError && results.length > 0 ? (
-                    results.map((match, i) => {
-                      const pid = match.projectId || match.id || '';
-                      return (
-                        <div
-                          key={pid || i}
-                          className="group border border-hairline rounded-sm p-6 bg-surface flex flex-col hover:bg-surface-raised transition-colors relative"
-                        >
+                    <>
+                      {results.slice(0, visibleCount).map((match, i) => {
+                        const pid = match.projectId || match.id || '';
+                        const cardKey = pid || `match-${i}-${match.orgSlug || match.orgName}`;
+                        const isStatsOpen = expandedStats[cardKey] ?? false;
+
+                        const orgDirectWebsite =
+                          match.orgWebsiteUrl ||
+                          match.orgGithubUrl ||
+                          `https://www.google.com/search?q=${encodeURIComponent(match.orgName + ' open source')}`;
+
+                        return (
                           <div
-                            className="absolute top-0 left-0 w-full h-[2px] opacity-0 group-hover:opacity-100 transition-opacity"
-                            style={{ backgroundColor: match.programColor || '#C9A24B' }}
-                          />
+                            key={cardKey}
+                            className="group border border-hairline rounded-xl bg-surface hover:bg-surface-raised/40 transition-all duration-200 relative shadow-sm overflow-hidden"
+                          >
+                            {/* Top Program Accent Strip */}
+                            <div
+                              className="h-[3px] w-full"
+                              style={{ backgroundColor: match.programColor || '#C9A24B' }}
+                            />
 
-                          <div className="flex justify-between items-start mb-4 gap-3">
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <span className="font-mono text-[10px] uppercase tracking-wider bg-base px-2 py-0.5 border border-hairline text-muted">
-                                  {match.programName || 'Program'}
-                                </span>
-                                <span className="font-mono text-[10px] uppercase tracking-wider text-brass font-bold">
-                                  {match.matchPercentage}% Match
-                                </span>
-                                {match.difficulty && (
-                                  <span className="font-mono text-[10px] uppercase tracking-wider text-muted">
-                                    {match.difficulty}
-                                  </span>
-                                )}
-                                {match.year && (
-                                  <span className="font-mono text-[10px] text-muted">
-                                    {match.year}
-                                  </span>
-                                )}
+                            <div className="p-5 sm:p-6 space-y-5">
+                              {/* ── 1. ORGANIZATION HEADER & QUICK ACTIONS ── */}
+                              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-hairline/60">
+                                {/* Org Brand & Details */}
+                                <a
+                                  href={orgDirectWebsite}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="group/org flex items-center gap-3.5 hover:opacity-90 transition-opacity min-w-0"
+                                  title={`Visit ${match.orgName} official website`}
+                                >
+                                  <OrgLogo
+                                    logoUrl={match.orgLogoUrl}
+                                    name={match.orgName}
+                                    slug={match.orgSlug}
+                                    className="w-12 h-12 rounded-xl shrink-0 border border-hairline bg-page shadow-xs"
+                                  />
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <h3 className="text-lg font-heading font-bold text-primary group-hover/org:text-accent transition-colors flex items-center gap-1.5 truncate">
+                                        {match.orgName}
+                                        <ExternalLink size={13} className="text-muted group-hover/org:text-accent shrink-0" />
+                                      </h3>
+                                      <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 bg-page border border-hairline text-muted rounded-full font-medium">
+                                        {match.orgCategory || 'Open Source'}
+                                      </span>
+                                    </div>
+                                    {match.orgDescription ? (
+                                      <p className="text-xs text-muted line-clamp-1 mt-0.5 max-w-xl font-normal">
+                                        {match.orgDescription}
+                                      </p>
+                                    ) : (
+                                      <p className="text-xs text-muted mt-0.5 font-mono">
+                                        {match.programName || 'Open Source Mentorship'}
+                                      </p>
+                                    )}
+                                  </div>
+                                </a>
+
+                                {/* Org Navigation Buttons & Stats Toggle */}
+                                <div className="flex items-center gap-2 flex-wrap shrink-0">
+                                  <a
+                                    href={orgDirectWebsite}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg bg-page hover:bg-surface-raised border border-hairline hover:border-accent/40 text-primary text-xs font-mono font-medium transition-all"
+                                    title={`Visit ${match.orgName} official website`}
+                                  >
+                                    <Globe size={13} className="text-accent" />
+                                    <span>Website</span>
+                                  </a>
+
+                                  {match.orgGithubUrl && (
+                                    <a
+                                      href={match.orgGithubUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg bg-page hover:bg-surface-raised border border-hairline hover:border-accent/40 text-primary text-xs font-mono font-medium transition-all"
+                                      title={`Visit ${match.orgName} on GitHub`}
+                                    >
+                                      <Github size={13} className="text-muted" />
+                                      <span>GitHub</span>
+                                    </a>
+                                  )}
+
+                                  {/* Org Stats 2017-2026 CTA */}
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleOrgStats(cardKey)}
+                                    className={`inline-flex items-center gap-2 h-8 px-3.5 rounded-lg text-xs font-mono font-bold transition-all shadow-xs ${
+                                      isStatsOpen
+                                        ? 'bg-accent text-white shadow-accent/25 ring-2 ring-accent/30'
+                                        : 'bg-accent/10 hover:bg-accent hover:text-white border border-accent/30 hover:border-accent text-accent'
+                                    }`}
+                                    title="Inspect annual project volume from 2017 to 2026"
+                                  >
+                                    <BarChart3 size={13} className="shrink-0" />
+                                    <span>{isStatsOpen ? 'Hide Org Stats' : 'Org Stats 2017-2026'}</span>
+                                    {isStatsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                                  </button>
+                                </div>
                               </div>
-                              <h3 className="text-xl font-bold text-primary group-hover:text-brass transition-colors">
-                                {match.title}
-                              </h3>
-                              <p className="text-sm text-muted mt-1">{match.orgName}</p>
+
+                              {/* ── EXPANDABLE ANNUAL PROJECT HISTORY GRAPH ── */}
+                              {isStatsOpen && (
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: 'auto' }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  transition={{ duration: 0.25 }}
+                                  className="overflow-hidden"
+                                >
+                                  <OrgProjectBarChart data={match.yearlyStats} orgName={match.orgName} />
+                                </motion.div>
+                              )}
+
+                              {/* ── 2. MATCHED PROJECT SPECIFICS ── */}
+                              <div className="space-y-3.5 pt-1">
+                                {/* Project Title & Fit Badges */}
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                  <div className="min-w-0">
+                                    {match.githubUrl ? (
+                                      <a
+                                        href={match.githubUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-lg font-heading font-bold text-primary hover:text-accent transition-colors inline-flex items-center gap-2 group/title"
+                                        title="Open project code repository"
+                                      >
+                                        <span>{match.title}</span>
+                                        <ExternalLink size={15} className="text-muted group-hover/title:text-accent shrink-0" />
+                                      </a>
+                                    ) : (
+                                      <h4 className="text-lg font-heading font-bold text-primary">{match.title}</h4>
+                                    )}
+                                  </div>
+
+                                  {/* Match Percentage & Difficulty Badge */}
+                                  <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                                    <span className="font-mono text-xs font-bold text-brass bg-brass/10 border border-brass/30 px-2.5 py-1 rounded-md">
+                                      {match.matchPercentage}% Match
+                                    </span>
+                                    {match.difficulty && (
+                                      <span className="font-mono text-[11px] text-muted bg-page border border-hairline px-2 py-1 rounded-md uppercase">
+                                        {match.difficulty}
+                                      </span>
+                                    )}
+                                    {match.year && (
+                                      <span className="font-mono text-[11px] text-muted">
+                                        {match.year}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Why it matches - Clean minimalist callout */}
+                                <div className="bg-page border-l-2 border-l-brass border-y border-r border-hairline p-3.5 rounded-r-lg">
+                                  <p className="text-xs sm:text-sm text-primary flex items-start gap-2.5 leading-relaxed">
+                                    <Sparkles size={15} className="text-brass shrink-0 mt-0.5" />
+                                    <span>
+                                      <strong className="text-brass font-semibold">Why this matches:</strong>{' '}
+                                      {match.reasoning}
+                                    </span>
+                                  </p>
+                                </div>
+
+                                {/* Tech Stack Pills */}
+                                <div className="flex items-center gap-2 text-xs font-mono text-muted flex-wrap">
+                                  <Code2 size={14} className="shrink-0 text-muted" />
+                                  {match.techStack?.slice(0, 8).map((t: string) => (
+                                    <span
+                                      key={t}
+                                      className={`bg-page border px-2 py-0.5 rounded-md text-[11px] font-mono ${
+                                        match.matchedSkills?.some((m) => m.toLowerCase() === t.toLowerCase())
+                                          ? 'border-brass/60 text-brass font-bold bg-brass/5'
+                                          : 'border-hairline text-secondary'
+                                      }`}
+                                    >
+                                      {t}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* ── 3. UNIFIED ACTION FOOTER ── */}
+                              <div className="pt-4 border-t border-hairline/70 flex flex-wrap items-center justify-between gap-3">
+                                {/* Left Actions: Code Repo & Ideas List (clean text, no front icon) */}
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {match.githubUrl && (
+                                    <a
+                                      href={match.githubUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-lg bg-page hover:bg-surface-raised border border-hairline hover:border-brass text-primary text-xs font-mono font-bold uppercase transition-all"
+                                      title="Open project code repository"
+                                    >
+                                      <FolderGit2 size={14} className="text-brass" />
+                                      <span>Code Repo</span>
+                                      <ExternalLink size={11} className="text-muted" />
+                                    </a>
+                                  )}
+
+                                  {match.orgIdeasUrl && (
+                                    <a
+                                      href={match.orgIdeasUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-lg bg-page hover:bg-surface-raised border border-hairline hover:border-brass/70 text-primary text-xs font-mono font-bold uppercase transition-all"
+                                      title={`${match.orgName} Official Project Ideas List`}
+                                    >
+                                      <span>Ideas List</span>
+                                      <ExternalLink size={11} className="text-muted" />
+                                    </a>
+                                  )}
+                                </div>
+
+                                {/* Right Actions: Save, Track, Proposal Studio */}
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {pid && (
+                                    <>
+                                      <SaveButton
+                                        payload={{
+                                          type: 'project',
+                                          targetId: pid,
+                                          title: match.title,
+                                          subtitle: match.orgName,
+                                          slug: match.orgSlug,
+                                          programSlug: match.programSlug,
+                                          techStack: match.techStack?.slice(0, 12),
+                                        }}
+                                      />
+                                      <TrackApplicationButton
+                                        payload={{
+                                          projectId: pid,
+                                          projectTitle: match.title,
+                                          orgName: match.orgName,
+                                          orgSlug: match.orgSlug,
+                                          programSlug: match.programSlug,
+                                          programName: match.programName,
+                                          status: 'researching',
+                                        }}
+                                      />
+                                      <Link
+                                        href={`/proposal-studio?project=${encodeURIComponent(match.title)}&org=${encodeURIComponent(match.orgName)}`}
+                                        className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-lg bg-accent text-white text-xs font-mono font-bold uppercase hover:bg-accent-hover transition-all shadow-xs"
+                                      >
+                                        <Sparkles size={12} />
+                                        <span>Proposal Studio</span>
+                                      </Link>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
+                        );
+                      })}
 
-                          <p className="text-sm text-muted mb-4 line-clamp-3 leading-relaxed">
-                            {match.description}
-                          </p>
-
-                          <div className="bg-base border border-hairline p-4 rounded-sm mb-4">
-                            <p className="text-sm text-primary flex items-start gap-3">
-                              <Sparkles size={16} className="text-brass shrink-0 mt-0.5" />
-                              <span>
-                                <strong className="text-brass">Why it matches:</strong>{' '}
-                                {match.reasoning}
-                              </span>
-                            </p>
-                          </div>
-
-                          <div className="flex items-center gap-2 text-xs font-mono text-muted mt-auto pt-4 border-t border-hairline flex-wrap">
-                            <Code2 size={14} className="shrink-0" />
-                            {match.techStack?.slice(0, 8).map((t: string) => (
-                              <span
-                                key={t}
-                                className={`bg-base border px-1.5 py-0.5 rounded-sm ${
-                                  match.matchedSkills?.some(
-                                    (m) => m.toLowerCase() === t.toLowerCase()
-                                  )
-                                    ? 'border-brass/50 text-brass'
-                                    : 'border-hairline'
-                                }`}
-                              >
-                                {t}
-                              </span>
-                            ))}
-                          </div>
-
-                          {pid && (
-                            <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-hairline/80">
-                              <SaveButton
-                                payload={{
-                                  type: 'project',
-                                  targetId: pid,
-                                  title: match.title,
-                                  subtitle: match.orgName,
-                                  slug: match.orgSlug,
-                                  programSlug: match.programSlug,
-                                  techStack: match.techStack?.slice(0, 12),
-                                }}
-                              />
-                              <TrackApplicationButton
-                                payload={{
-                                  projectId: pid,
-                                  projectTitle: match.title,
-                                  orgName: match.orgName,
-                                  orgSlug: match.orgSlug,
-                                  programSlug: match.programSlug,
-                                  programName: match.programName,
-                                  status: 'researching',
-                                }}
-                              />
-
-                              <Link
-                                href={`/proposal-studio?project=${encodeURIComponent(match.title)}&org=${encodeURIComponent(match.orgName)}`}
-                                className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-accent text-white text-xs font-mono font-bold uppercase hover:bg-accent-hover transition-colors"
-                              >
-                                <Sparkles size={12} />
-                                <span>Proposal: Not Started [Start]</span>
-                              </Link>
-                            </div>
-                          )}
+                      {/* ── VIEW MORE / SHOW LESS CONTROLS ── */}
+                      {results.length > visibleCount && (
+                        <div className="pt-3 text-center">
+                          <button
+                            type="button"
+                            onClick={() => setVisibleCount((prev) => Math.min(prev + 10, results.length))}
+                            className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-surface border border-brass/40 hover:border-brass text-primary font-heading font-bold text-sm hover:bg-surface-raised transition-all shadow-xs hover:shadow-md group"
+                          >
+                            <ChevronDown size={17} className="text-brass group-hover:translate-y-0.5 transition-transform" />
+                            <span>View More Projects ({results.length - visibleCount} remaining)</span>
+                          </button>
                         </div>
-                      );
-                    })
+                      )}
+
+                      {results.length > 10 && visibleCount >= results.length && (
+                        <div className="pt-3 text-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setVisibleCount(10);
+                              window.scrollTo({ top: 300, behavior: 'smooth' });
+                            }}
+                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-surface border border-hairline hover:border-muted text-muted hover:text-primary font-mono text-xs font-medium transition-all"
+                          >
+                            <ChevronUp size={14} className="text-muted" />
+                            <span>Show Less (Collapse to 10)</span>
+                          </button>
+                        </div>
+                      )}
+                    </>
                   ) : null}
 
                   <div className="text-center pt-8">

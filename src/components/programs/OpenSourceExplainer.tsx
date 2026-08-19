@@ -205,7 +205,7 @@ export function OpenSourceExplainer({ className = '', showCta = true }: { classN
                     step="5"
                     value={stipendHours}
                     onChange={(e) => setStipendHours(Number(e.target.value))}
-                    className="w-full h-2 bg-base rounded-lg appearance-none cursor-pointer accent-accent"
+                    className="w-full h-2 bg-page rounded-lg appearance-none cursor-pointer accent-accent"
                   />
                   <div className="flex justify-between text-[10px] font-mono text-muted mt-1">
                     <span>90h (Short Sprint)</span>
@@ -237,7 +237,7 @@ export function OpenSourceExplainer({ className = '', showCta = true }: { classN
 
                 {/* Simulated Chat Messages */}
                 <div className="space-y-3">
-                  <div className="p-3 rounded-xl bg-base border border-hairline space-y-1">
+                  <div className="p-3 rounded-xl bg-page border border-hairline space-y-1">
                     <div className="flex items-center justify-between text-[10px] text-accent font-bold">
                       <span>@k8s_maintainer (Senior Staff)</span>
                       <span>10:42 AM</span>
@@ -269,7 +269,7 @@ export function OpenSourceExplainer({ className = '', showCta = true }: { classN
                   </span>
                 </div>
 
-                <div className="p-4 rounded-xl bg-base border border-hairline space-y-3 font-mono text-xs">
+                <div className="p-4 rounded-xl bg-page border border-hairline space-y-3 font-mono text-xs">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-primary">Git Commit History</span>
                     <span className="text-accent font-bold">Top 2% Contributor</span>

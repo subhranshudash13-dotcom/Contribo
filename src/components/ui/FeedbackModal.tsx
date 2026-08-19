@@ -104,7 +104,7 @@ export function FeedbackModal({
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value)}
-                className="w-full bg-base border border-hairline rounded-xl px-3.5 py-2.5 text-xs font-mono text-primary font-semibold focus:outline-none focus:border-accent cursor-pointer"
+                className="w-full bg-page border border-hairline rounded-xl px-3.5 py-2.5 text-xs font-mono text-primary font-semibold focus:outline-none focus:border-accent cursor-pointer"
               >
                 <option value="Feature Request">✨ Feature Request</option>
                 <option value="New Program Proposal">🚀 Suggest New Mentorship Program (GSoC/LFX/C4GT/etc.)</option>
@@ -123,7 +123,7 @@ export function FeedbackModal({
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="e.g. Add C4GT & SoD sample proposals to library"
-                className="w-full bg-base border border-hairline rounded-xl px-3.5 py-2.5 text-xs font-mono text-primary focus:outline-none focus:border-accent"
+                className="w-full bg-page border border-hairline rounded-xl px-3.5 py-2.5 text-xs font-mono text-primary focus:outline-none focus:border-accent"
               />
             </div>
 
@@ -136,7 +136,7 @@ export function FeedbackModal({
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Describe the feature or improvement you'd love to see on Contribo..."
-                className="w-full bg-base border border-hairline rounded-xl p-3.5 text-xs font-mono text-primary focus:outline-none focus:border-accent leading-relaxed"
+                className="w-full bg-page border border-hairline rounded-xl p-3.5 text-xs font-mono text-primary focus:outline-none focus:border-accent leading-relaxed"
                 required
               />
             </div>
@@ -150,7 +150,7 @@ export function FeedbackModal({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@domain.com"
-                className="w-full bg-base border border-hairline rounded-xl px-3.5 py-2.5 text-xs font-mono text-primary focus:outline-none focus:border-accent"
+                className="w-full bg-page border border-hairline rounded-xl px-3.5 py-2.5 text-xs font-mono text-primary focus:outline-none focus:border-accent"
               />
             </div>
 

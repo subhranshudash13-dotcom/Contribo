@@ -69,7 +69,7 @@ export function DeferredOpenSourceExplainer() {
     <LazySection
       fallback={<SectionSkeleton variant="cards" count={3} />}
       minHeight={420}
-      className="content-visibility-auto"
+      
     >
       <OpenSourceExplainer />
     </LazySection>
@@ -78,7 +78,7 @@ export function DeferredOpenSourceExplainer() {
 
 export function DeferredHeroStats({ stats }: { stats: Record<string, number> }) {
   return (
-    <section className="content-visibility-auto">
+    <section >
       <HeroStats stats={stats} />
     </section>
   );
@@ -89,7 +89,7 @@ export function DeferredProposalStudioSection() {
     <LazySection
       fallback={<SectionSkeleton variant="cards" count={3} />}
       minHeight={480}
-      className="content-visibility-auto"
+      
     >
       <ProposalStudioSection />
     </LazySection>
@@ -109,7 +109,7 @@ export function DeferredTrendingProjects({
     <LazySection
       fallback={<SectionSkeleton variant="cards" count={6} />}
       minHeight={520}
-      className="content-visibility-auto"
+      
     >
       <TrendingProjects
         projects={projects}

@@ -239,7 +239,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
                   name="q" 
                   defaultValue={q || ""} 
                   placeholder="Title, tech, org..."
-                  className="w-full bg-base border border-hairline rounded-xl pl-9 pr-4 py-2 text-sm text-primary placeholder-muted/80 focus:outline-none focus:border-accent"
+                  className="w-full bg-page border border-hairline rounded-xl pl-9 pr-4 py-2 text-sm text-primary placeholder-muted/80 focus:outline-none focus:border-accent"
                 />
                 <Search size={14} className="absolute left-3.5 top-3 text-muted/70" />
               </div>
@@ -251,7 +251,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
               <select 
                 name="difficulty" 
                 defaultValue={difficulty || "all"}
-                className="w-full bg-base border border-hairline rounded-xl px-3.5 py-2.5 text-sm text-primary focus:outline-none focus:border-accent cursor-pointer"
+                className="w-full bg-page border border-hairline rounded-xl px-3.5 py-2.5 text-sm text-primary focus:outline-none focus:border-accent cursor-pointer"
               >
                 <option value="all">All Difficulties</option>
                 {difficulties.map((d) => (
@@ -266,7 +266,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
               <select 
                 name="programId" 
                 defaultValue={programId || "all"}
-                className="w-full bg-base border border-hairline rounded-xl px-3.5 py-2.5 text-sm text-primary focus:outline-none focus:border-accent cursor-pointer"
+                className="w-full bg-page border border-hairline rounded-xl px-3.5 py-2.5 text-sm text-primary focus:outline-none focus:border-accent cursor-pointer"
               >
                 <option value="all">All Programs</option>
                 {programs.map(p => (
@@ -298,7 +298,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
                       className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                         isActive 
                           ? 'bg-accent/10 border-accent/40 text-accent font-semibold' 
-                          : 'bg-base border-hairline text-secondary hover:border-accent/40'
+                          : 'bg-page border-hairline text-secondary hover:border-accent/40'
                       }`}
                     >
                       {t}
@@ -323,7 +323,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
                 <select
                   name="sortBy"
                   defaultValue={sortBy}
-                  className="bg-base border border-hairline rounded-xl px-3 py-1.5 text-xs text-primary focus:outline-none cursor-pointer"
+                  className="bg-page border border-hairline rounded-xl px-3 py-1.5 text-xs text-primary focus:outline-none cursor-pointer"
                 >
                   <option value="newest">Newest Added</option>
                   <option value="stars">GitHub Stars</option>
@@ -331,7 +331,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
                 </select>
                 <button 
                   type="submit" 
-                  className="px-3 py-1.5 bg-base border border-hairline hover:border-accent/45 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
+                  className="px-3 py-1.5 bg-page border border-hairline hover:border-accent/45 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
                 >
                   Sort
                 </button>
@@ -378,7 +378,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
                       <ChevronLeft size={16} />
                     </Link>
                   ) : (
-                    <span className="w-9 h-9 rounded-xl border border-hairline/50 bg-base/50 flex items-center justify-center text-muted/40 cursor-not-allowed">
+                    <span className="w-9 h-9 rounded-xl border border-hairline/50 bg-page/50 flex items-center justify-center text-muted/40 cursor-not-allowed">
                       <ChevronLeft size={16} />
                     </span>
                   )}
@@ -408,7 +408,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
                       <ChevronRight size={16} />
                     </Link>
                   ) : (
-                    <span className="w-9 h-9 rounded-xl border border-hairline/50 bg-base/50 flex items-center justify-center text-muted/40 cursor-not-allowed">
+                    <span className="w-9 h-9 rounded-xl border border-hairline/50 bg-page/50 flex items-center justify-center text-muted/40 cursor-not-allowed">
                       <ChevronRight size={16} />
                     </span>
                   )}
@@ -448,7 +448,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono text-xs">
-            <div className="bg-base p-4.5 rounded-2xl border border-hairline space-y-1">
+            <div className="bg-page p-4.5 rounded-2xl border border-hairline space-y-1">
               <span className="text-muted text-[10px] uppercase tracking-wider font-bold">Proposal Status</span>
               <div className="flex justify-between items-center font-bold text-primary text-sm pt-1">
                 <span>0% Progress</span>
@@ -456,7 +456,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
               </div>
             </div>
 
-            <div className="bg-base p-4.5 rounded-2xl border border-hairline space-y-1">
+            <div className="bg-page p-4.5 rounded-2xl border border-hairline space-y-1">
               <span className="text-muted text-[10px] uppercase tracking-wider font-bold">Accepted Proposals</span>
               <div className="flex justify-between items-center font-bold text-primary text-sm pt-1">
                 <span>3 Similar</span>
@@ -466,7 +466,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
               </div>
             </div>
 
-            <div className="bg-base p-4.5 rounded-2xl border border-hairline space-y-1">
+            <div className="bg-page p-4.5 rounded-2xl border border-hairline space-y-1">
               <span className="text-muted text-[10px] uppercase tracking-wider font-bold">Proposal Guide</span>
               <div className="flex justify-between items-center font-bold text-primary text-sm pt-1">
                 <span>Tailored Docs</span>
@@ -476,7 +476,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
               </div>
             </div>
 
-            <div className="bg-base p-4.5 rounded-2xl border border-hairline space-y-1">
+            <div className="bg-page p-4.5 rounded-2xl border border-hairline space-y-1">
               <span className="text-muted text-[10px] uppercase tracking-wider font-bold">Checklist & Review</span>
               <div className="flex justify-between items-center font-bold text-primary text-sm pt-1">
                 <span>Readiness Audit</span>

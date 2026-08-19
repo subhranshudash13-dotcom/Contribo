@@ -65,7 +65,7 @@ export function StudioHub() {
               <span className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-1.5 font-mono text-xs font-bold uppercase tracking-wider text-accent border border-accent/25">
                 <Sparkles size={13} /> Proposal Studio
               </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-base border border-hairline px-3 py-1 font-mono text-[11px] font-semibold text-muted">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-page border border-hairline px-3 py-1 font-mono text-[11px] font-semibold text-muted">
                 GSoC · LFX · Outreachy Ready
               </span>
             </div>
@@ -368,7 +368,7 @@ export function StudioHub() {
               className={`mb-4 rounded-xl border px-4 py-3 text-sm ${
                 isOfflineMode
                   ? 'border-alert/30 bg-alert/5 text-alert'
-                  : 'border-hairline bg-base text-muted'
+                  : 'border-hairline bg-page text-muted'
               }`}
             >
               {bootstrapError}

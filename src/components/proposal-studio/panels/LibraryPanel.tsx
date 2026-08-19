@@ -49,7 +49,7 @@ export function LibraryPanel() {
             <button
               type="button"
               onClick={() => setIsFeedbackModalOpen(true)}
-              className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border border-hairline bg-base px-4 text-xs font-mono font-bold text-primary hover:bg-surface-raised transition-colors cursor-pointer"
+              className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border border-hairline bg-page px-4 text-xs font-mono font-bold text-primary hover:bg-surface-raised transition-colors cursor-pointer"
             >
               <MessageSquarePlus size={14} className="text-accent" />
               Suggest a proposal
@@ -147,7 +147,7 @@ export function LibraryPanel() {
                     <span className="rounded-full border border-accent/20 bg-accent/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-accent">
                       {orgGroup.programTag}
                     </span>
-                    <span className="rounded-lg border border-hairline bg-base px-2 py-0.5 font-mono text-[10px] font-bold text-muted">
+                    <span className="rounded-lg border border-hairline bg-page px-2 py-0.5 font-mono text-[10px] font-bold text-muted">
                       {orgGroup.proposalCount}{' '}
                       {orgGroup.proposalCount === 1 ? 'proposal' : 'proposals'}
                     </span>
@@ -159,7 +159,7 @@ export function LibraryPanel() {
                     {orgGroup.techStack.slice(0, 5).map((tech) => (
                       <span
                         key={tech}
-                        className="rounded-md border border-hairline bg-base px-1.5 py-0.5 font-mono text-[10px] font-semibold text-secondary"
+                        className="rounded-md border border-hairline bg-page px-1.5 py-0.5 font-mono text-[10px] font-semibold text-secondary"
                       >
                         {tech}
                       </span>
@@ -173,7 +173,7 @@ export function LibraryPanel() {
                       key={prop.id}
                       type="button"
                       onClick={() => setSelectedProposalPreview(prop)}
-                      className="flex w-full items-center justify-between gap-2 rounded-xl border border-hairline bg-base px-3 py-2.5 text-left hover:bg-surface-raised transition-colors cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      className="flex w-full items-center justify-between gap-2 rounded-xl border border-hairline bg-page px-3 py-2.5 text-left hover:bg-surface-raised transition-colors cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                     >
                       <span className="flex min-w-0 items-center gap-2">
                         <FileText size={13} className="shrink-0 text-accent" />
@@ -193,7 +193,7 @@ export function LibraryPanel() {
           </div>
         )}
 
-        <div className="flex items-start gap-3 rounded-2xl border border-hairline bg-base/60 p-4">
+        <div className="flex items-start gap-3 rounded-2xl border border-hairline bg-page/60 p-4">
           <Info size={16} className="mt-0.5 shrink-0 text-accent" />
           <p className="text-xs text-secondary leading-relaxed">
             <span className="font-mono font-bold uppercase text-primary">

@@ -28,7 +28,7 @@ import { getProgramBySlug } from '@/lib/repositories/programs';
 import { getProgramGuide } from '@/lib/program-guides';
 
 /** Programs that get the full org explorer treatment */
-const EXPLORER_ENABLED_SLUGS = new Set(['gsoc', 'lfx', 'esoc', 'outreachy', 'sob']);
+const EXPLORER_ENABLED_SLUGS = new Set(['gsoc', 'lfx', 'esoc', 'outreachy', 'sob', 'mlh-fellowship', 'mlh']);
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -84,7 +84,7 @@ export default async function ProgramDetailPage({ params }: Props) {
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6">
-            <div className="w-20 h-20 rounded-2xl flex items-center justify-center bg-base border border-hairline/80 p-3 shadow-md shrink-0">
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center bg-page border border-hairline/80 p-3 shadow-md shrink-0">
               <ProgramLogo
                 slug={program.slug}
                 color={true}
@@ -97,7 +97,7 @@ export default async function ProgramDetailPage({ params }: Props) {
                   Organized by {program.organizer}
                 </span>
                 {program.difficulty && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-[10px] uppercase font-bold bg-base border border-hairline text-muted">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-[10px] uppercase font-bold bg-page border border-hairline text-muted">
                     {program.difficulty}
                   </span>
                 )}
@@ -261,7 +261,7 @@ export default async function ProgramDetailPage({ params }: Props) {
               {guide.howItWorks.map((step, idx) => (
                 <li
                   key={idx}
-                  className="flex gap-3 sm:gap-4 items-start rounded-2xl border border-hairline bg-base/40 px-4 py-3.5"
+                  className="flex gap-3 sm:gap-4 items-start rounded-2xl border border-hairline bg-page/40 px-4 py-3.5"
                 >
                   <span
                     className="w-7 h-7 rounded-lg flex items-center justify-center font-mono text-xs font-bold shrink-0 mt-0.5 text-white"
@@ -277,7 +277,7 @@ export default async function ProgramDetailPage({ params }: Props) {
             </ol>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="rounded-2xl border border-hairline bg-base/30 p-5">
+              <div className="rounded-2xl border border-hairline bg-page/30 p-5">
                 <h3 className="font-bold text-primary text-sm mb-3 flex items-center gap-2">
                   <Users size={16} style={{ color: accent }} />
                   Who it&apos;s for
@@ -291,7 +291,7 @@ export default async function ProgramDetailPage({ params }: Props) {
                   ))}
                 </ul>
               </div>
-              <div className="rounded-2xl border border-hairline bg-base/30 p-5">
+              <div className="rounded-2xl border border-hairline bg-page/30 p-5">
                 <h3 className="font-bold text-primary text-sm mb-3 flex items-center gap-2">
                   <Target size={16} style={{ color: accent }} />
                   What you walk away with
@@ -432,7 +432,7 @@ export default async function ProgramDetailPage({ params }: Props) {
               <h2 className="text-xl sm:text-2xl font-bold mb-6 flex items-center gap-2 text-primary">
                 <BarChart3 size={20} className="text-accent" /> Past Statistics
               </h2>
-              <div className="border border-hairline rounded-2xl overflow-hidden bg-base/10 shadow-inner overflow-x-auto">
+              <div className="border border-hairline rounded-2xl overflow-hidden bg-page/10 shadow-inner overflow-x-auto">
                 <table className="w-full text-left font-mono text-xs sm:text-sm border-collapse min-w-[480px]">
                   <thead>
                     <tr className="border-b border-hairline bg-surface-raised/40 text-muted uppercase text-[10px] sm:text-xs tracking-wider">
@@ -516,7 +516,7 @@ export default async function ProgramDetailPage({ params }: Props) {
                 <div className="text-xs text-muted font-mono uppercase tracking-wider mb-2 font-bold">
                   Duration
                 </div>
-                <div className="font-semibold text-[15px] sm:text-base text-primary font-mono bg-base/50 px-3 py-1.5 border border-hairline rounded-xl w-fit">
+                <div className="font-semibold text-[15px] sm:text-base text-primary font-mono bg-page/50 px-3 py-1.5 border border-hairline rounded-xl w-fit">
                   {program.durationWeeks} Weeks
                 </div>
               </li>
@@ -542,7 +542,7 @@ export default async function ProgramDetailPage({ params }: Props) {
                   <div className="text-xs text-muted font-mono uppercase tracking-wider mb-2 font-bold">
                     Difficulty
                   </div>
-                  <div className="font-semibold text-[15px] sm:text-base text-primary bg-base/50 px-3 py-1.5 border border-hairline rounded-xl w-fit">
+                  <div className="font-semibold text-[15px] sm:text-base text-primary bg-page/50 px-3 py-1.5 border border-hairline rounded-xl w-fit">
                     {program.difficulty}
                   </div>
                 </li>

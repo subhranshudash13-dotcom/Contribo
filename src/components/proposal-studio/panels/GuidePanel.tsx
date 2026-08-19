@@ -49,7 +49,7 @@ export function GuidePanel() {
             {guide.repoStructure.map((item) => (
               <li
                 key={item.path}
-                className="flex flex-col gap-1 rounded-xl border border-hairline bg-base px-4 py-3 sm:flex-row sm:items-start sm:gap-4"
+                className="flex flex-col gap-1 rounded-xl border border-hairline bg-page px-4 py-3 sm:flex-row sm:items-start sm:gap-4"
               >
                 <code className="shrink-0 font-mono text-xs font-bold text-accent">
                   {item.path}
@@ -138,7 +138,7 @@ export function GuidePanel() {
                   href={item.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between gap-3 rounded-xl border border-hairline bg-base px-4 py-3 hover:border-accent/30 hover:bg-surface-raised transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-hairline bg-page px-4 py-3 hover:border-accent/30 hover:bg-surface-raised transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-primary">

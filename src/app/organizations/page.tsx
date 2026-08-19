@@ -98,7 +98,7 @@ export default async function OrganizationsDirectory({ searchParams }: Props) {
           <select
             name="programId"
             defaultValue={programId || 'all'}
-            className="bg-base border border-hairline rounded-xl px-3 py-2 text-sm text-primary"
+            className="bg-page border border-hairline rounded-xl px-3 py-2 text-sm text-primary"
           >
             <option value="all">All programs</option>
             {programs.map((p) => (

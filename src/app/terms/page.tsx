@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function TermsAndConditionsPage() {
   return (
-    <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12 md:pt-10 md:pb-20 bg-base mt-12">
+    <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12 md:pt-10 md:pb-20 bg-page mt-12">
       
       {/* Breadcrumb / Back Button */}
       <div className="mb-6">

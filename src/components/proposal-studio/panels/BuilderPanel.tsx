@@ -87,7 +87,7 @@ export function BuilderPanel() {
                     ? 'border-accent bg-accent text-white shadow-md scale-[1.02]'
                     : filled
                       ? 'border-success/40 bg-success/10 text-success hover:bg-success/20'
-                      : 'border-hairline bg-base text-secondary hover:text-primary hover:bg-surface-raised'
+                      : 'border-hairline bg-page text-secondary hover:text-primary hover:bg-surface-raised'
                 }`}
               >
                 <span>{filled && !active ? <Check size={14} className="inline inline-block" /> : `${idx + 1}.`}</span>
@@ -135,7 +135,7 @@ export function BuilderPanel() {
       {/* 3. Main Expansive Writing Canvas */}
       <section className="rounded-3xl border border-hairline bg-surface shadow-md overflow-hidden space-y-0">
         {/* Editor Header Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline bg-base/80 px-5 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline bg-page/80 px-5 py-3">
           <div className="flex items-center gap-1.5 flex-wrap">
             {(
               [
@@ -202,7 +202,7 @@ export function BuilderPanel() {
         />
 
         {/* Textarea Footer Metrics */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-hairline bg-base/80 px-6 py-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-hairline bg-page/80 px-6 py-3.5">
           <div className="flex items-center gap-3 font-mono text-xs sm:text-sm text-muted tabular-nums">
             <span className="font-semibold text-primary">
               {status?.chars ?? textVal.length} chars
@@ -240,7 +240,7 @@ export function BuilderPanel() {
         </button>
 
         {showSnippet && (
-          <div className="border-t border-hairline bg-base p-6 space-y-4">
+          <div className="border-t border-hairline bg-page p-6 space-y-4">
             <div className="flex items-center justify-between">
               <span className="font-mono text-xs font-bold uppercase text-muted">
                 Official Benchmark Example

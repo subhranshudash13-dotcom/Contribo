@@ -78,7 +78,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-base">
+    <main className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-page">
 
       {/* Left Column: Visual Showcase (Tech grid + Mockup + Brand Message) */}
       <div className="hidden lg:flex lg:col-span-6 bg-surface-raised border-r border-hairline relative flex-col justify-between p-12 overflow-hidden">
@@ -88,13 +88,6 @@ export default function LoginPage() {
         {/* Subtle Radial Glow */}
         <div className="absolute top-1/4 left-1/4 w-[350px] h-[350px] bg-accent/5 rounded-full blur-[120px] pointer-events-none z-0" />
 
-        {/* Branding header block */}
-        <div className="relative z-10 flex items-center gap-2.5">
-          <Logo className="w-9 h-9" />
-          <span className="font-bold text-xl text-primary tracking-tight font-sans">
-            Contri<span className="text-accent">bo</span>
-          </span>
-        </div>
 
         {/* Laptop Mockup Visual */}
         <div className="relative z-10 flex items-center justify-center my-auto translate-y-6">
@@ -105,15 +98,7 @@ export default function LoginPage() {
           />
         </div>
 
-        {/* Brand visual text footer */}
-        <div className="relative z-10 space-y-3 max-w-md">
-          <h2 className="text-2xl font-bold text-primary tracking-tight leading-tight">
-            Find your match in open source.
-          </h2>
-          <p className="text-secondary text-sm leading-relaxed">
-            Track stipends, explore structures, and access detailed contribution pathways for GSoC, Outreachy, LFX, and more.
-          </p>
-        </div>
+
       </div>
 
       {/* Right Column: Sign-in Card Center */}

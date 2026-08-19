@@ -20,7 +20,7 @@ export function Footer() {
             Your premium companion for discovering, matching, and tracking paid open-source mentorship programs and verified starter issues.
           </p>
           <div className="flex items-center gap-4 text-muted pt-2">
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md p-1 transition-colors" aria-label="GitHub">
+            <a href="https://github.com/subhranshudash13-dotcom/Contribo" target="_blank" rel="noopener noreferrer" className="hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md p-1 transition-colors" aria-label="GitHub">
               <Github size={18} />
             </a>
             <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md p-1 transition-colors" aria-label="Twitter">
@@ -77,7 +77,7 @@ export function Footer() {
           <h3 className="font-semibold text-xs uppercase tracking-wider text-primary mb-4 font-mono">Community</h3>
           <ul className="space-y-2.5 text-sm text-secondary font-normal">
             <li>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md transition-colors">
+              <a href="https://github.com/subhranshudash13-dotcom/Contribo" target="_blank" rel="noopener noreferrer" className="hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md transition-colors">
                 GitHub Repository
               </a>
             </li>
@@ -86,11 +86,7 @@ export function Footer() {
                 Code of Conduct
               </Link>
             </li>
-            <li>
-              <a href="#" className="hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md transition-colors">
-                Contributor Hall
-              </a>
-            </li>
+
           </ul>
         </div>
 

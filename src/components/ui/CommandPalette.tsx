@@ -155,7 +155,7 @@ export function CommandPalette({ hideTrigger = false }: { hideTrigger?: boolean 
       >
         <Search size={16} className="group-hover:text-primary transition-colors" />
         <span className="flex-1 text-left truncate">Search programs, organizations or projects...</span>
-        <kbd className="hidden sm:inline-flex items-center justify-center font-mono text-[10px] bg-base w-5 h-5 rounded border border-hairline font-bold">
+        <kbd className="hidden sm:inline-flex items-center justify-center font-mono text-[10px] bg-page w-5 h-5 rounded border border-hairline font-bold">
           /
         </kbd>
       </button>
@@ -169,7 +169,7 @@ export function CommandPalette({ hideTrigger = false }: { hideTrigger?: boolean 
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] sm:pt-[15vh]">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-base/80 backdrop-blur-sm transition-opacity" 
+        className="fixed inset-0 bg-page/80 backdrop-blur-sm transition-opacity" 
         onClick={() => setIsOpen(false)}
       />
 
@@ -200,7 +200,7 @@ export function CommandPalette({ hideTrigger = false }: { hideTrigger?: boolean 
           ) : (
             <button 
               onClick={() => setIsOpen(false)}
-              className="text-xs font-mono text-muted bg-base px-2 py-1 rounded border border-hairline ml-2"
+              className="text-xs font-mono text-muted bg-page px-2 py-1 rounded border border-hairline ml-2"
             >
               ESC
             </button>
@@ -341,7 +341,7 @@ export function CommandPalette({ hideTrigger = false }: { hideTrigger?: boolean 
                               <p className="text-[11px] text-muted truncate">at {item.org}</p>
                             </div>
                             {item.techStack && item.techStack.length > 0 && (
-                              <span className="text-[10px] font-mono bg-base px-1.5 py-0.5 border border-hairline rounded text-muted hidden sm:inline">{item.techStack[0]}</span>
+                              <span className="text-[10px] font-mono bg-page px-1.5 py-0.5 border border-hairline rounded text-muted hidden sm:inline">{item.techStack[0]}</span>
                             )}
                           </button>
                         </li>
@@ -354,7 +354,7 @@ export function CommandPalette({ hideTrigger = false }: { hideTrigger?: boolean 
           )}
         </div>
         
-        <div className="border-t border-hairline px-4 py-3 bg-base flex items-center justify-between text-[11px] font-mono text-muted">
+        <div className="border-t border-hairline px-4 py-3 bg-page flex items-center justify-between text-[11px] font-mono text-muted">
           <div className="flex gap-4">
             <span className="flex items-center gap-1"><kbd className="bg-surface border border-hairline px-1.5 py-0.5 rounded shadow-sm">↑</kbd> <kbd className="bg-surface border border-hairline px-1.5 py-0.5 rounded shadow-sm">↓</kbd> navigate</span>
             <span className="flex items-center gap-1"><kbd className="bg-surface border border-hairline px-1.5 py-0.5 rounded shadow-sm">↵</kbd> select</span>

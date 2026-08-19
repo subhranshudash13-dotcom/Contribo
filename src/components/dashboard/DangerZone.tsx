@@ -90,7 +90,7 @@ export function DangerZone() {
               spellCheck={false}
               placeholder={CONFIRM_WORD}
               disabled={loading}
-              className="w-full h-11 rounded-xl border border-hairline bg-base px-3 text-sm font-mono text-primary placeholder:text-muted focus:outline-none focus:border-red-500/50 focus:ring-2 focus:ring-red-500/20"
+              className="w-full h-11 rounded-xl border border-hairline bg-page px-3 text-sm font-mono text-primary placeholder:text-muted focus:outline-none focus:border-red-500/50 focus:ring-2 focus:ring-red-500/20"
               aria-invalid={!!error}
               aria-describedby={error ? 'danger-zone-error' : undefined}
             />

@@ -101,7 +101,7 @@ export function ProgramOrgCard({
               {techs.slice(0, 3).map((tech, idx) => (
                 <span
                   key={`${tech}-${idx}`}
-                  className="bg-base border border-hairline px-1.5 py-0.5 rounded-md text-primary shrink-0"
+                  className="bg-page border border-hairline px-1.5 py-0.5 rounded-md text-primary shrink-0"
                 >
                   {tech}
                 </span>
@@ -157,23 +157,23 @@ export function ProgramOrgCardSkeleton() {
       <div className="h-[3px] w-full bg-hairline" />
       <div className="p-5">
         <div className="flex items-start gap-3.5 mb-3">
-          <div className="w-11 h-11 rounded-xl bg-base shrink-0" />
+          <div className="w-11 h-11 rounded-xl bg-page shrink-0" />
           <div className="flex-1 min-w-0">
-            <div className="h-4 w-3/4 bg-base rounded-md mb-1.5" />
-            <div className="h-3 w-1/2 bg-base rounded-md" />
+            <div className="h-4 w-3/4 bg-page rounded-md mb-1.5" />
+            <div className="h-3 w-1/2 bg-page rounded-md" />
           </div>
         </div>
         <div className="space-y-2 mb-4">
-          <div className="h-3.5 w-full bg-base rounded-md" />
-          <div className="h-3.5 w-5/6 bg-base rounded-md" />
+          <div className="h-3.5 w-full bg-page rounded-md" />
+          <div className="h-3.5 w-5/6 bg-page rounded-md" />
         </div>
         <div className="flex gap-1.5 mb-3">
-          <div className="h-5 w-12 bg-base rounded-md" />
-          <div className="h-5 w-12 bg-base rounded-md" />
-          <div className="h-5 w-12 bg-base rounded-md" />
+          <div className="h-5 w-12 bg-page rounded-md" />
+          <div className="h-5 w-12 bg-page rounded-md" />
+          <div className="h-5 w-12 bg-page rounded-md" />
         </div>
         <div className="pt-3 border-t border-hairline">
-          <div className="h-9 w-full bg-base rounded-xl" />
+          <div className="h-9 w-full bg-page rounded-xl" />
         </div>
       </div>
     </div>

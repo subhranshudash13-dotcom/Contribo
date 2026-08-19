@@ -10,7 +10,7 @@ export type GeminiImproveResult = {
   rationale: string;
 };
 
-const GEMINI_MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash'] as const;
+const GEMINI_MODELS = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'] as const;
 
 export async function generateGeminiContent(
   prompt: string,
@@ -55,6 +55,7 @@ export async function generateGeminiContent(
           'x-goog-api-key': apiKey,
         },
         body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(7000),
       });
 
       if (res.ok) {
