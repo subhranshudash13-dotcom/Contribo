@@ -1,207 +1,367 @@
 'use client';
 
-import React, { useState } from 'react';
-import { X, Sparkles, ShieldAlert, GitCommit } from 'lucide-react';
+import React from 'react';
+import Link from 'next/link';
+import {
+  Building2,
+  GitPullRequest,
+  ArrowRight,
+} from 'lucide-react';
 
-interface OrgDetail {
+export interface OrgDetail {
   name: string;
   slug: string;
-  logoChar: string;
+  category: string;
+  logoUrl: string;
   description: string;
   programs: string[];
   contributions: string;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
   techStack: string[];
+  accentColor?: string;
 }
 
-const POPULAR_ORGS: OrgDetail[] = [
+const ROW_1_ORGS: OrgDetail[] = [
   {
-    name: "Apache Software Foundation",
-    slug: "apache",
-    logoChar: "A",
-    description: "Providing software for the public good, housing projects like HTTP Server, Spark, and Kafka.",
-    programs: ["GSoC", "LFX Mentorship"],
-    contributions: "420+ Merged PRs",
-    difficulty: "Intermediate",
-    techStack: ["Java", "Scala", "Python", "C++"]
+    name: 'Apache Software Foundation',
+    slug: 'apache',
+    category: 'Cloud & Big Data',
+    logoUrl: 'https://cdn.simpleicons.org/apache',
+    description: 'Spark, Kafka, Flink, and foundational cloud infrastructure.',
+    programs: ['GSoC', 'LFX'],
+    contributions: '420+ Projects',
+    difficulty: 'Intermediate',
+    techStack: ['Java', 'Scala', 'Python'],
+    accentColor: '#D22128',
   },
   {
-    name: "KDE Community",
-    slug: "kde",
-    logoChar: "K",
-    description: "International technology team creating free and open-source software for desktop and portable computing.",
-    programs: ["GSoC", "Outreachy", "Season of KDE"],
-    contributions: "280+ Merged PRs",
-    difficulty: "Beginner",
-    techStack: ["C++", "Qt", "JavaScript", "Python"]
+    name: 'CNCF (Linux Foundation)',
+    slug: 'cncf',
+    category: 'Container Orchestration',
+    logoUrl: 'https://cdn.simpleicons.org/cncf',
+    description: 'Kubernetes, Envoy, Prometheus, and cloud native systems.',
+    programs: ['LFX', 'GSoC'],
+    contributions: '350+ Projects',
+    difficulty: 'Advanced',
+    techStack: ['Go', 'Rust', 'Kubernetes'],
+    accentColor: '#4285F4',
   },
   {
-    name: "LLVM Compiler Infrastructure",
-    slug: "llvm",
-    logoChar: "L",
-    description: "A collection of modular and reusable compiler and toolchain technologies.",
-    programs: ["GSoC"],
-    contributions: "110+ Merged PRs",
-    difficulty: "Advanced",
-    techStack: ["C++", "Assembly", "TableGen", "Python"]
+    name: 'Python Software Foundation',
+    slug: 'python',
+    category: 'Languages & Core',
+    logoUrl: 'https://cdn.simpleicons.org/python',
+    description: 'CPython compiler, pip, asyncio, and standard libraries.',
+    programs: ['GSoC', 'Outreachy'],
+    contributions: '340+ Projects',
+    difficulty: 'Intermediate',
+    techStack: ['Python', 'C', 'Rust'],
+    accentColor: '#3776AB',
   },
   {
-    name: "Python Software Foundation",
-    slug: "python",
-    logoChar: "P",
-    description: "Promoting, protecting, and advancing the Python programming language and supporting its community.",
-    programs: ["GSoC", "Outreachy"],
-    contributions: "340+ Merged PRs",
-    difficulty: "Intermediate",
-    techStack: ["Python", "C", "Rust", "HTML/CSS"]
+    name: 'NumFOCUS Scientific',
+    slug: 'numfocus',
+    category: 'AI & Data Science',
+    logoUrl: 'https://cdn.simpleicons.org/numfocus',
+    description: 'NumPy, pandas, SciPy, Jupyter, and PyData computing.',
+    programs: ['GSoC', 'Outreachy'],
+    contributions: '210+ Projects',
+    difficulty: 'Intermediate',
+    techStack: ['Python', 'C++', 'Fortran'],
+    accentColor: '#E26D5C',
   },
   {
-    name: "NumFOCUS",
-    slug: "numfocus",
-    logoChar: "N",
-    description: "Supporting open-source scientific computing projects like NumPy, pandas, and Jupyter.",
-    programs: ["GSoC", "Outreachy"],
-    contributions: "190+ Merged PRs",
-    difficulty: "Intermediate",
-    techStack: ["Python", "C", "C++", "Fortran"]
+    name: 'KDE Community',
+    slug: 'kde',
+    category: 'Desktop & Creative',
+    logoUrl: 'https://cdn.simpleicons.org/kde',
+    description: 'Plasma desktop, Krita digital painting, and KDE Frameworks.',
+    programs: ['GSoC', 'Outreachy'],
+    contributions: '280+ Projects',
+    difficulty: 'Beginner',
+    techStack: ['C++', 'Qt', 'QML'],
+    accentColor: '#1D99F3',
   },
   {
-    name: "Rocket.Chat",
-    slug: "rocket-chat",
-    logoChar: "R",
-    description: "The ultimate open-source communication platform, customizable and highly secure.",
-    programs: ["GSoC", "LFX Mentorship"],
-    contributions: "150+ Merged PRs",
-    difficulty: "Beginner",
-    techStack: ["TypeScript", "JavaScript", "React", "Node.js"]
+    name: 'Mozilla Devs',
+    slug: 'mozilla',
+    category: 'Web Standards & Privacy',
+    logoUrl: 'https://cdn.simpleicons.org/mozilla',
+    description: 'Firefox engine, WebAssembly, Servo, and privacy tooling.',
+    programs: ['GSoC', 'Outreachy'],
+    contributions: '180+ Projects',
+    difficulty: 'Intermediate',
+    techStack: ['Rust', 'C++', 'JavaScript'],
+    accentColor: '#FF7139',
   },
   {
-    name: "Jupyter Project",
-    slug: "jupyter",
-    logoChar: "J",
-    description: "Developing open-source software, open-standards, and services for interactive computing.",
-    programs: ["GSoC", "Outreachy"],
-    contributions: "130+ Merged PRs",
-    difficulty: "Intermediate",
-    techStack: ["Python", "TypeScript", "React", "Rust"]
+    name: 'Google Open Source',
+    slug: 'google',
+    category: 'AI & Mobile',
+    logoUrl: 'https://cdn.simpleicons.org/google',
+    description: 'TensorFlow, Flutter, Dart, Bazel, and Chromium ecosystem.',
+    programs: ['GSoC'],
+    contributions: '400+ Projects',
+    difficulty: 'Intermediate',
+    techStack: ['C++', 'Python', 'Dart'],
+    accentColor: '#EA4335',
   },
   {
-    name: "VideoLAN",
-    slug: "videolan",
-    logoChar: "V",
-    description: "Non-profit organization behind VLC media player and other free multimedia engines.",
-    programs: ["GSoC"],
-    contributions: "95+ Merged PRs",
-    difficulty: "Advanced",
-    techStack: ["C", "C++", "Objective-C", "Assembly"]
-  }
+    name: 'Red Hat Open Source',
+    slug: 'redhat',
+    category: 'Enterprise Linux',
+    logoUrl: 'https://cdn.simpleicons.org/redhat',
+    description: 'Fedora, Quarkus, Podman, and enterprise Linux core.',
+    programs: ['GSoC', 'LFX'],
+    contributions: '190+ Projects',
+    difficulty: 'Advanced',
+    techStack: ['Go', 'C', 'Java'],
+    accentColor: '#EE0000',
+  },
 ];
 
-export function PopularOrgsGrid() {
-  const [selectedOrg, setSelectedOrg] = useState<OrgDetail | null>(null);
+const ROW_2_ORGS: OrgDetail[] = [
+  {
+    name: 'LLVM Compiler Project',
+    slug: 'llvm',
+    category: 'Compilers & Toolchains',
+    logoUrl: 'https://cdn.simpleicons.org/llvm',
+    description: 'Clang, MLIR, LLDB, and modern code generation engines.',
+    programs: ['GSoC'],
+    contributions: '110+ Projects',
+    difficulty: 'Advanced',
+    techStack: ['C++', 'TableGen', 'Assembly'],
+    accentColor: '#6B7280',
+  },
+  {
+    name: 'Jupyter Interactive',
+    slug: 'jupyter',
+    category: 'Scientific Notebooks',
+    logoUrl: 'https://cdn.simpleicons.org/jupyter',
+    description: 'JupyterLab, interactive kernels, and data science standards.',
+    programs: ['GSoC', 'Outreachy'],
+    contributions: '130+ Projects',
+    difficulty: 'Intermediate',
+    techStack: ['TypeScript', 'Python', 'React'],
+    accentColor: '#F37626',
+  },
+  {
+    name: 'VideoLAN (VLC)',
+    slug: 'videolan',
+    category: 'Multimedia & Codecs',
+    logoUrl: 'https://cdn.simpleicons.org/vlc',
+    description: 'VLC media player, libvlc, and open multimedia decoding.',
+    programs: ['GSoC'],
+    contributions: '95+ Projects',
+    difficulty: 'Advanced',
+    techStack: ['C', 'C++', 'OpenGL'],
+    accentColor: '#FF8800',
+  },
+  {
+    name: 'Rocket.Chat Engine',
+    slug: 'rocket-chat',
+    category: 'Comms & Messaging',
+    logoUrl: 'https://cdn.simpleicons.org/rocketchat',
+    description: 'Real-time collaboration, bots, and omni-channel messaging.',
+    programs: ['GSoC', 'LFX'],
+    contributions: '150+ Projects',
+    difficulty: 'Beginner',
+    techStack: ['TypeScript', 'React', 'Node.js'],
+    accentColor: '#F5455C',
+  },
+  {
+    name: 'GNOME Foundation',
+    slug: 'gnome',
+    category: 'Desktop Environment',
+    logoUrl: 'https://cdn.simpleicons.org/gnome',
+    description: 'GTK4, GNOME Shell, libadwaita, and Linux desktop tools.',
+    programs: ['GSoC', 'Outreachy'],
+    contributions: '160+ Projects',
+    difficulty: 'Beginner',
+    techStack: ['C', 'Rust', 'GTK4'],
+    accentColor: '#4A90D9',
+  },
+  {
+    name: 'The Tor Project',
+    slug: 'tor-project',
+    category: 'Privacy & Security',
+    logoUrl: 'https://cdn.simpleicons.org/torbrowser',
+    description: 'Onion routing, censorship circumvention, and Tor Browser.',
+    programs: ['GSoC', 'Outreachy'],
+    contributions: '105+ Projects',
+    difficulty: 'Advanced',
+    techStack: ['Rust', 'C', 'Python'],
+    accentColor: '#7D4698',
+  },
+  {
+    name: 'Meta Open Source',
+    slug: 'meta',
+    category: 'AI & Web Platforms',
+    logoUrl: 'https://cdn.simpleicons.org/meta',
+    description: 'PyTorch, React, LLaMA toolchains, and Relay.',
+    programs: ['MLH', 'GSoC'],
+    contributions: '260+ Projects',
+    difficulty: 'Advanced',
+    techStack: ['Python', 'C++', 'Rust'],
+    accentColor: '#0081FB',
+  },
+  {
+    name: 'Docker Community',
+    slug: 'docker',
+    category: 'DevOps & Containers',
+    logoUrl: 'https://cdn.simpleicons.org/docker',
+    description: 'Moby, BuildKit, Compose, and developer container tools.',
+    programs: ['LFX', 'GSoC'],
+    contributions: '140+ Projects',
+    difficulty: 'Intermediate',
+    techStack: ['Go', 'TypeScript', 'Docker'],
+    accentColor: '#2496ED',
+  },
+];
+
+function difficultyBadge(d: 'Beginner' | 'Intermediate' | 'Advanced') {
+  if (d === 'Beginner') {
+    return 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+  }
+  if (d === 'Advanced') {
+    return 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20';
+  }
+  return 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20';
+}
+
+function OrgMarqueeCard({ org }: { org: OrgDetail }) {
+  const orgUrl = `/organizations/${org.slug}`;
 
   return (
-    <div className="space-y-6">
-      {/* Grid of Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-        {POPULAR_ORGS.map((org) => {
-          const isSelected = selectedOrg?.slug === org.slug;
-          return (
-            <button
-              key={org.slug}
-              onClick={() => setSelectedOrg(isSelected ? null : org)}
-              className={`p-4 rounded-xl border text-left transition-all relative flex flex-col items-center justify-center min-h-[120px] group ${
-                isSelected
-                  ? 'border-accent bg-accent/5 shadow-sm'
-                  : 'border-hairline bg-surface hover:border-accent/40 hover:bg-surface-raised/40 hover:shadow-[0_4px_20px_rgba(0,0,0,0.01)]'
-              }`}
-            >
-              <div className={`w-10 h-10 rounded-full border flex items-center justify-center font-mono font-extrabold text-base mb-2 shadow-sm transition-all group-hover:scale-105 ${
-                isSelected 
-                  ? 'bg-accent text-white border-accent' 
-                  : 'bg-page border-hairline text-accent group-hover:bg-accent/10'
-              }`}>
-                {org.logoChar}
-              </div>
-              <span className="font-extrabold text-xs text-primary text-center line-clamp-1 group-hover:text-accent transition-colors">{org.name}</span>
-              <span className="font-mono text-[9px] uppercase tracking-wider text-muted mt-1 font-bold">{org.techStack[0]}</span>
-            </button>
-          );
-        })}
+    <Link
+      href={orgUrl}
+      className="group relative flex flex-col justify-between w-[285px] sm:w-[315px] h-[160px] p-4 rounded-2xl border border-hairline bg-surface/90 hover:bg-surface transition-all duration-200 hover:border-brass/50 hover:shadow-md dark:hover:shadow-[0_8px_25px_rgba(0,0,0,0.4)] shrink-0 overflow-hidden select-none cursor-pointer"
+    >
+      {/* Top Brand Accent Line */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        style={{ backgroundColor: org.accentColor || 'var(--brass)' }}
+      />
+
+      <div>
+        {/* Top Header: Logo + Name + Difficulty */}
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-page border border-hairline flex items-center justify-center p-2 shadow-xs group-hover:scale-105 transition-transform shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={org.logoUrl}
+              alt={`${org.name} logo`}
+              className="w-full h-full object-contain filter dark:brightness-110"
+              loading="lazy"
+              onError={(e) => {
+                const target = e.currentTarget;
+                target.style.display = 'none';
+                if (target.parentElement) {
+                  target.parentElement.innerHTML = `<span class="font-bold text-xs text-primary">${org.name.charAt(0)}</span>`;
+                }
+              }}
+            />
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <h4 className="font-heading font-semibold text-sm text-primary group-hover:text-brass transition-colors truncate">
+              {org.name}
+            </h4>
+            <p className="text-[11px] font-mono text-muted truncate">
+              {org.category}
+            </p>
+          </div>
+
+          <span
+            className={`shrink-0 px-1.5 py-0.5 rounded border text-[9px] font-mono font-semibold uppercase tracking-wider ${difficultyBadge(
+              org.difficulty
+            )}`}
+          >
+            {org.difficulty}
+          </span>
+        </div>
+
+        {/* Short Description */}
+        <p className="text-secondary text-[11px] sm:text-xs leading-relaxed line-clamp-1 mt-2.5">
+          {org.description}
+        </p>
       </div>
 
-      {/* Info Panel when clicked */}
-      {selectedOrg && (
-        <div className="bg-surface-raised/50 border border-hairline rounded-[24px] p-6 relative animate-[fade_0.2s_ease-out_forwards] shadow-sm overflow-hidden">
-          {/* Subtle ambient light dot inside drawer */}
-          <div className="absolute top-0 right-0 w-40 h-40 bg-accent/[0.02] rounded-full blur-2xl pointer-events-none -z-10" />
-          
-          <button
-            onClick={() => setSelectedOrg(null)}
-            className="absolute top-5 right-5 p-2 text-muted hover:text-primary transition-colors cursor-pointer bg-surface border border-hairline rounded-full shadow-sm hover:shadow-md"
-            aria-label="Close details"
-          >
-            <X size={14} />
-          </button>
-
-          <div className="flex flex-col lg:flex-row gap-6 lg:items-start pr-6">
-            <div className="flex-1 space-y-4">
-              <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-accent animate-pulse" />
-                <h3 className="font-extrabold text-lg text-primary">{selectedOrg.name}</h3>
-              </div>
-              <p className="text-secondary text-sm leading-relaxed max-w-2xl">{selectedOrg.description}</p>
-              
-              <div className="flex flex-wrap gap-1.5 pt-2">
-                {selectedOrg.techStack.map((tech) => (
-                  <span key={tech} className="bg-surface border border-hairline px-2.5 py-1 rounded-lg font-mono text-[10px] font-semibold text-primary shadow-sm">
-                    {tech}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Compartmentalized Card Deck */}
-            <div className="w-full lg:w-72 grid grid-cols-1 gap-3 shrink-0 pt-4 lg:pt-0 lg:pl-6 lg:border-l border-hairline">
-              
-              {/* Compartment 1: Programs */}
-              <div className="bg-surface border border-hairline rounded-xl p-4 shadow-sm">
-                <div className="text-[9px] font-mono uppercase tracking-wider text-muted font-bold mb-2 flex items-center gap-1.5">
-                  <Sparkles size={12} className="text-accent" /> Programs Available
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedOrg.programs.map((prog) => (
-                    <span key={prog} className="bg-accent/15 border border-accent/25 text-accent px-2 py-0.5 rounded-md font-mono text-[9px] font-bold">
-                      {prog}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Compartment 2: Contributions */}
-              <div className="bg-surface border border-hairline rounded-xl p-4 shadow-sm flex items-center justify-between">
-                <div>
-                  <div className="text-[9px] font-mono uppercase tracking-wider text-muted font-bold mb-1 flex items-center gap-1.5">
-                    <GitCommit size={12} className="text-secondary" /> Past Contributions
-                  </div>
-                  <span className="font-mono text-xs font-bold text-primary">{selectedOrg.contributions}</span>
-                </div>
-              </div>
-
-              {/* Compartment 3: Difficulty */}
-              <div className="bg-surface border border-hairline rounded-xl p-4 shadow-sm flex items-center justify-between">
-                <div>
-                  <div className="text-[9px] font-mono uppercase tracking-wider text-muted font-bold mb-1 flex items-center gap-1.5">
-                    <ShieldAlert size={12} className="text-muted" /> Difficulty Level
-                  </div>
-                  <span className="font-sans text-xs font-extrabold text-accent">{selectedOrg.difficulty}</span>
-                </div>
-              </div>
-
-            </div>
-          </div>
+      {/* Bottom Footer: Program & Tech Pills + Arrow */}
+      <div className="flex items-center justify-between pt-2 border-t border-hairline/60 gap-2">
+        <div className="flex items-center gap-1 overflow-hidden">
+          {org.programs.slice(0, 2).map((prog) => (
+            <span
+              key={prog}
+              className="px-1.5 py-0.5 rounded bg-page border border-hairline text-[9px] font-mono font-medium text-secondary shrink-0"
+            >
+              {prog}
+            </span>
+          ))}
+          {org.techStack.slice(0, 2).map((tech) => (
+            <span
+              key={tech}
+              className="px-1.5 py-0.5 rounded bg-surface border border-hairline text-[9px] font-mono text-muted shrink-0"
+            >
+              {tech}
+            </span>
+          ))}
         </div>
-      )}
+
+        <span className="inline-flex items-center gap-0.5 text-[11px] font-mono font-semibold text-muted group-hover:text-brass transition-colors shrink-0">
+          <GitPullRequest size={11} className="text-secondary" />
+          <span className="text-[10px]">{org.contributions.split(' ')[0]}</span>
+          <ArrowRight size={11} className="group-hover:translate-x-0.5 transition-transform ml-0.5" />
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+export function PopularOrgsGrid() {
+  // Seamless loop by duplicating rows
+  const row1 = [...ROW_1_ORGS, ...ROW_1_ORGS];
+  const row2 = [...ROW_2_ORGS, ...ROW_2_ORGS];
+
+  return (
+    <div className="w-full space-y-4 relative overflow-hidden py-2">
+      {/* Track 1: Moving Smoothly Left to Right */}
+      <div className="overflow-hidden w-full">
+        <div className="animate-marquee-left pause-on-hover flex gap-3.5 sm:gap-4 items-center">
+          {row1.map((org, index) => (
+            <OrgMarqueeCard key={`row1-${org.slug}-${index}`} org={org} />
+          ))}
+        </div>
+      </div>
+
+      {/* Track 2: Moving Smoothly Left to Right with Offset Speed */}
+      <div className="overflow-hidden w-full">
+        <div className="animate-marquee-right pause-on-hover flex gap-3.5 sm:gap-4 items-center">
+          {row2.map((org, index) => (
+            <OrgMarqueeCard key={`row2-${org.slug}-${index}`} org={org} />
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom Directory Strip */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl border border-hairline bg-surface/60 backdrop-blur-sm mt-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-brass/10 border border-brass/20 flex items-center justify-center text-brass shrink-0">
+            <Building2 size={16} />
+          </div>
+          <p className="text-xs sm:text-sm text-secondary">
+            Hover any organization card to pause • <span className="font-semibold text-primary">1,250+ active mentoring orgs</span> indexed.
+          </p>
+        </div>
+
+        <Link
+          href="/organizations"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-all shadow-xs shrink-0"
+        >
+          Browse All (1.2k+)
+          <ArrowRight size={12} />
+        </Link>
+      </div>
     </div>
   );
 }

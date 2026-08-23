@@ -31,6 +31,8 @@ const LEAN_PROJECT_PROJECTION = {
   programId: 1,
   topics: 1,
   mentors: 1,
+  student: 1,
+  contributor: 1,
   githubUrl: 1,
   applicationDeadline: 1,
   programName: 1,

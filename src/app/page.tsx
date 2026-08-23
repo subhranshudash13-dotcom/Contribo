@@ -390,21 +390,26 @@ export default async function Home() {
         </section>
 
         {/* POPULAR ORGS — deferred */}
-        <section className="space-y-8">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <span className="font-mono text-[10px] uppercase tracking-widest text-muted font-semibold flex items-center gap-2">
-                <Building2 size={12} /> Organizations
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-heading font-semibold text-primary mt-2">
-                Popular mentoring orgs
+        <section className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface border border-hairline text-xs font-mono font-medium text-secondary shadow-xs">
+                <Building2 size={13} className="text-brass" />
+                <span className="tracking-wide uppercase text-[11px]">Ecosystem Leaders</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-primary font-heading">
+                Popular mentoring organizations
               </h2>
+              <p className="text-secondary text-sm sm:text-[15px] leading-relaxed max-w-xl">
+                Global foundations and engineering teams actively sponsoring contributors across open-source programs.
+              </p>
             </div>
             <Link
               href="/organizations"
-              className="text-sm text-accent font-mono hover:underline inline-flex items-center gap-1"
+              className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl border border-hairline bg-surface hover:bg-surface-raised text-primary text-xs sm:text-sm font-semibold transition-all shrink-0 self-start sm:self-auto"
             >
-              Browse all <ArrowRight size={14} />
+              Browse all 1,250+
+              <ArrowRight size={14} />
             </Link>
           </div>
           <DeferredPopularOrgs />

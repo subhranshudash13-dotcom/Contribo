@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import Link from 'next/link';
 import { Code2, ArrowRight, FolderOpen } from 'lucide-react';
 import { Organization } from '../../../types';
 import { Button } from './Button';
@@ -34,20 +37,20 @@ export function ProgramOrgCard({
 
       <div className="p-5 flex flex-col h-full">
         {/* Header: logo + name */}
-        <div className="flex items-start gap-3.5 mb-3">
+        <Link href={`/organizations/${org.slug}`} className="flex items-start gap-3.5 mb-3 group/header">
           <OrgLogo logoUrl={org.logoUrl} name={org.name} className="w-11 h-11 rounded-xl" size={22} />
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-bold line-clamp-1 text-primary group-hover:text-accent transition-colors duration-150">
+            <h3 className="text-base font-bold line-clamp-1 text-primary group-hover/header:text-accent transition-colors duration-150">
               {org.name}
             </h3>
             <p className="text-[11px] text-muted font-mono mt-0.5 uppercase tracking-wider line-clamp-1">
               {org.category || 'Open Source'}
             </p>
           </div>
-        </div>
+        </Link>
 
         {/* Description */}
-        <p className="text-muted text-sm mb-4 line-clamp-2 flex-grow leading-relaxed">
+        <p className="text-secondary text-sm mb-4 line-clamp-2 flex-grow leading-relaxed">
           {org.description}
         </p>
 
@@ -118,13 +121,13 @@ export function ProgramOrgCard({
         {/* Actions */}
         <div className="mt-auto pt-3 border-t border-hairline flex flex-col gap-2">
           <Button
-            href={`/projects?orgSlug=${org.slug}`}
+            href={`/organizations/${org.slug}`}
             variant="outline"
-            className="w-full text-xs group/btn"
+            className="w-full text-xs font-mono font-bold group/btn"
             analyticsId={`explore_org_${org.slug}`}
           >
             <span className="flex items-center justify-center gap-1.5 w-full">
-              Explore this org
+              View Organization
               <ArrowRight
                 size={13}
                 className="transition-transform group-hover/btn:translate-x-0.5"

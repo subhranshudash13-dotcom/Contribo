@@ -1,8 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
-import { ExternalLink, Code2, Users } from 'lucide-react';
+import { ExternalLink, Code2, Users, Banknote, Clock } from 'lucide-react';
 import { Project } from '../../../types';
 import { SaveButton, TrackApplicationButton } from './SaveTrackActions';
+import { getProjectScopeAndStipend } from '@/lib/project-utils';
 
 export function ProjectCard({
   project,
@@ -16,12 +17,18 @@ export function ProjectCard({
   initialTracked?: boolean;
 }) {
   const projectId = project._id ? String(project._id) : '';
+  const scope = getProjectScopeAndStipend({
+    title: project.title,
+    description: project.description,
+    difficulty: project.difficulty,
+    programName: project.programName,
+  });
 
   return (
     <div className="group border border-hairline rounded-md p-6 bg-surface flex flex-col h-full transition-all duration-150 ease-in-out hover:elevation-2 hover:bg-surface-raised focus-within:ring-2 focus-within:ring-brass focus-within:ring-offset-2 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-[2px] bg-hairline group-hover:bg-program-accent transition-colors duration-150" />
 
-      <div className="flex justify-between items-start gap-4 mb-3 mt-2">
+      <div className="flex justify-between items-start gap-4 mb-2 mt-2">
         <h2 className="text-lg font-bold line-clamp-2 leading-tight text-primary group-hover:text-program-accent transition-colors duration-100">
           {project.title}
         </h2>
@@ -32,15 +39,34 @@ export function ProjectCard({
         )}
       </div>
 
-      <div className="text-xs text-muted mb-4 flex gap-2 items-center font-mono uppercase tracking-wide">
+      {/* Org, Year, Stipend & Project Size Row */}
+      <div className="text-xs text-muted mb-4 flex flex-wrap gap-2 items-center font-mono">
         <Link
-          href={`/organizations?orgSlug=${project.orgSlug}`}
-          className="hover:text-program-accent transition-colors focus-visible:outline-none focus-visible:underline"
+          href={`/organizations/${project.orgSlug}`}
+          className="hover:text-program-accent transition-colors focus-visible:outline-none focus-visible:underline uppercase tracking-wide"
         >
           {project.org}
         </Link>
         <span className="text-hairline">•</span>
         <span>{project.year}</span>
+
+        {/* Stipend Badge */}
+        <span
+          title={scope.tooltip}
+          className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold cursor-help ml-auto"
+        >
+          <Banknote size={12} className="shrink-0" />
+          <span>{scope.shortStipend}</span>
+        </span>
+
+        {/* Size Badge */}
+        <span
+          title={scope.tooltip}
+          className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-brass/10 text-brass border border-brass/20 font-medium cursor-help"
+        >
+          <Clock size={11} className="shrink-0" />
+          <span>{scope.sizeLabel}</span>
+        </span>
       </div>
 
       <p className="text-muted text-sm mb-6 line-clamp-3 flex-grow leading-relaxed">

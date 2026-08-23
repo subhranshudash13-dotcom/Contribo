@@ -60,27 +60,27 @@ export function OrgProjectBarChart({
         )}
       </div>
 
-      <div className="relative pt-2 pb-1">
+      <div className="relative pt-1 pb-1">
         {/* Tooltip Header */}
-        <div className="h-6 mb-2 flex items-center justify-center">
+        <div className="h-5 mb-1.5 flex items-center justify-center">
           {hoveredYear ? (
             <motion.div
               initial={{ opacity: 0, y: 2 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xs font-mono bg-surface border border-hairline px-3 py-0.5 rounded-full text-primary shadow-xs font-medium"
+              className="text-[11px] font-mono bg-surface border border-hairline px-2.5 py-0.5 rounded-full text-primary shadow-2xs font-medium"
             >
               <span className="text-accent font-bold">{hoveredYear.count}</span> project
               {hoveredYear.count === 1 ? '' : 's'} in <strong className="text-primary">{hoveredYear.year}</strong>
             </motion.div>
           ) : (
-            <span className="text-[11px] font-mono text-muted">
-              Hover over any year bar to view completed project count
+            <span className="text-[10px] font-mono text-muted">
+              Hover over bars to view completed counts
             </span>
           )}
         </div>
 
         {/* Chart Canvas */}
-        <div className="relative h-40 flex items-end ml-7 mr-2">
+        <div className="relative h-28 sm:h-32 flex items-end ml-7 mr-2">
           {/* Y-Axis Guidelines */}
           <div className="absolute inset-0 pointer-events-none flex flex-col justify-between -ml-7 w-full">
             {[...yTicks].reverse().map((tick) => (

@@ -124,7 +124,7 @@ export function CommandPalette({ hideTrigger = false }: { hideTrigger?: boolean 
     if (item.type === 'program') {
       router.push(`/programs/${item.slug}`);
     } else if (item.type === 'org') {
-      router.push(`/organizations?orgSlug=${item.slug}`);
+      router.push(`/organizations/${item.slug}`);
     } else if (item.type === 'project') {
       router.push(`/projects?orgSlug=${item.orgSlug || item.org}`);
     }

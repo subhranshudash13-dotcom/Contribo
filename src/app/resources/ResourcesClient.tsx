@@ -10,7 +10,6 @@ import {
   ShieldAlert,
   ChevronDown,
   ChevronUp,
-  ExternalLink,
   Zap
 } from 'lucide-react';
 import Link from 'next/link';
@@ -38,20 +37,19 @@ const RESOURCES: ResourceGuide[] = [
     isHighlight: true,
     description: "Learn how to formulate and present winning project proposals for GSoC, Outreachy, LFX, and ESoC.",
     keyPoints: [
-      "Break your timeline into specific, weekly technical deliverables.",
-      "Reference actual files and API endpoints in your technical spec.",
-      "Include links to your merged PRs to prove competence.",
-      "Get feedback from mentors at least a week before the deadline."
+      "Focus heavily on the technical implementation breakdown, not just marketing speak.",
+      "Include realistic, week-by-week timelines with clear deliverable milestones.",
+      "Show evidence of preliminary research (e.g. referencing specific functions or files)."
     ],
     realLifeExample: {
-      title: "Real GSoC Timeline Excerpt (Accepted)",
+      title: "Real Excerpt from an Accepted GSoC Proposal Timeline",
       content: (
         <div className="space-y-3 font-mono text-xs text-secondary bg-surface-raised p-4 rounded-xl border border-hairline">
           <p><strong className="text-accent">Week 1-2:</strong> Set up API routes in `src/app/api/matcher/route.ts`. Implement the MongoDB `$text` search index schema migration. Write initial unit tests using Jest.</p>
           <p><strong className="text-accent">Week 3-4:</strong> Build the `ResultsGrid.tsx` React component. Hook the frontend state to the new API endpoint. Ensure loading skeletons are implemented for UX.</p>
           <p><strong className="text-accent">Week 5 (Midterm):</strong> Polish the UI, resolve any TypeScript strict-mode warnings, and deploy to the staging branch for mentor review.</p>
           <div className="mt-4 p-2 bg-success/10 border border-success/20 rounded text-success text-[11px] font-sans">
-            <strong>Why this worked:</strong> It names specific files, frameworks, and milestones rather than just saying "I will write code."
+            <strong>Why this worked:</strong> It names specific files, frameworks, and milestones rather than just saying &ldquo;I will write code.&rdquo;
           </div>
         </div>
       )
@@ -75,11 +73,11 @@ const RESOURCES: ResourceGuide[] = [
         <div className="space-y-4 text-sm text-secondary">
           <p>Instead of manually browsing, use this exact query in the GitHub global search bar to find issues that are open, beginner-friendly, and not yet assigned or linked to a PR:</p>
           <div className="bg-surface-raised p-3 rounded-lg border border-hairline font-mono text-xs text-brass break-all">
-            is:issue is:open label:"good first issue" no:assignee -linked:pr language:typescript
+            is:issue is:open label:&quot;good first issue&quot; no:assignee -linked:pr language:typescript
           </div>
           <div className="mt-2 p-3 bg-accent/5 border border-accent/10 rounded-lg">
             <strong className="text-primary block mb-1">Real Interaction Example:</strong>
-            <p className="italic text-tertiary">"Hi! I see this issue is open. I'd like to fix the contrast bug by updating the `text-gray-900` class to `text-primary` in `Footer.tsx`. May I open a PR for this?"</p>
+            <p className="italic text-tertiary">&ldquo;Hi! I see this issue is open. I&apos;d like to fix the contrast bug by updating the `text-gray-900` class to `text-primary` in `Footer.tsx`. May I open a PR for this?&rdquo;</p>
           </div>
         </div>
       )
@@ -101,14 +99,14 @@ const RESOURCES: ResourceGuide[] = [
       content: (
         <div className="space-y-3 font-mono text-xs text-secondary bg-surface-raised p-4 rounded-xl border border-hairline">
           <p className="text-tertiary"># You made 3 messy commits while debugging:</p>
-          <p>1. <span className="text-error">"fix bug"</span></p>
-          <p>2. <span className="text-error">"oops typo"</span></p>
-          <p>3. <span className="text-error">"actually fix it this time"</span></p>
+          <p>1. <span className="text-error">&ldquo;fix bug&rdquo;</span></p>
+          <p>2. <span className="text-error">&ldquo;oops typo&rdquo;</span></p>
+          <p>3. <span className="text-error">&ldquo;actually fix it this time&rdquo;</span></p>
           <div className="my-2 border-t border-hairline" />
           <p className="text-tertiary"># A maintainer asks you to squash them. You run:</p>
           <p className="text-brass font-bold">git rebase -i HEAD~3</p>
           <p className="text-tertiary mt-2"># You change the final commit message to:</p>
-          <p className="text-success font-bold">"fix(auth): resolve null pointer exception in login flow"</p>
+          <p className="text-success font-bold">&ldquo;fix(auth): resolve null pointer exception in login flow&rdquo;</p>
         </div>
       )
     }
@@ -191,10 +189,10 @@ const RESOURCES: ResourceGuide[] = [
       title: "Handling the 'Code Walkthrough' Question",
       content: (
         <div className="space-y-4 text-sm text-secondary p-4 bg-surface-raised rounded-xl border border-hairline">
-          <p><strong>Interviewer:</strong> "In this PR you submitted, why did you choose to use a Hash Map instead of an Array to store the connected users?"</p>
+          <p><strong>Interviewer:</strong> &ldquo;In this PR you submitted, why did you choose to use a Hash Map instead of an Array to store the connected users?&rdquo;</p>
           <div className="pl-4 border-l-2 border-accent mt-2">
             <strong className="text-primary">Excellent Response:</strong>
-            <p className="mt-1 italic">"I initially considered an Array, but realized that checking if a user is online requires an `O(n)` lookup. Since this websocket server handles thousands of concurrent connections, I switched to a Hash Map using the User ID as the key, which reduces the lookup time to `O(1)`. It uses slightly more memory, but the performance trade-off for a real-time system is worth it."</p>
+            <p className="mt-1 italic">&ldquo;I initially considered an Array, but realized that checking if a user is online requires an `O(n)` lookup. Since this websocket server handles thousands of concurrent connections, I switched to a Hash Map using the User ID as the key, which reduces the lookup time to `O(1)`. It uses slightly more memory, but the performance trade-off for a real-time system is worth it.&rdquo;</p>
           </div>
           <div className="mt-2 p-2 bg-success/10 border border-success/20 rounded text-success text-[11px] font-sans">
             <strong>Why this worked:</strong> It demonstrates knowledge of Big O notation and explains the architectural trade-offs behind the code.

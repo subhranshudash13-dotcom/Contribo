@@ -47,6 +47,13 @@ export interface Organization {
   years: number[];
   is2026?: boolean;
   projectCount?: number;
+  contactEmail?: string;
+  mailingList?: string;
+  chatUrl?: string;
+  twitterUrl?: string;
+  blogUrl?: string;
+  ircChannel?: string;
+  githubUrl?: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }
@@ -67,6 +74,8 @@ export interface Project {
   location?: string;
   orgSize?: string;
   mentors: string[];
+  student?: string;
+  contributor?: string;
   topics: string[];
   year: number;
   /** Optional denormalized program fields for matcher/UI */

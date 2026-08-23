@@ -34,7 +34,7 @@ Thank you for your time!
 [Your Name] | [GitHub Link]`}
             </div>
             <p className="text-xs text-tertiary">
-              *Pro Tip: Never start with "Hi, I want to contribute, please guide me." Mentors ignore vague requests. Show proof of work first.*
+              *Pro Tip: Never start with &ldquo;Hi, I want to contribute, please guide me.&rdquo; Mentors ignore vague requests. Show proof of work first.*
             </p>
           </div>
         </div>
@@ -57,14 +57,14 @@ Thank you for your time!
               <span className="text-error font-bold mt-0.5">2.</span>
               <p className="text-sm text-secondary">
                 <strong className="text-primary block">Vague Timeline.</strong> 
-                Writing "Week 1: Write code. Week 2: Write tests." is an instant fail. You must break deliverables down by specific files, API endpoints, or UI components.
+                Writing &ldquo;Week 1: Write code. Week 2: Write tests.&rdquo; is an instant fail. You must break deliverables down by specific files, API endpoints, or UI components.
               </p>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-error font-bold mt-0.5">3.</span>
               <p className="text-sm text-secondary">
                 <strong className="text-primary block">No technical depth.</strong> 
-                If your proposal reads like a product pitch rather than an engineering specification, mentors will assume you don't know how to build it.
+                If your proposal reads like a product pitch rather than an engineering specification, mentors will assume you don&apos;t know how to build it.
               </p>
             </li>
           </ul>

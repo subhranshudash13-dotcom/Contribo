@@ -1,12 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useSyncExternalStore } from 'react';
+
+const subscribe = () => () => {};
+const getSnapshot = () => true;
+const getServerSnapshot = () => false;
+
+function useIsMounted() {
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
 import { 
   LayoutDashboard, 
   PenTool, 
   Library, 
-  GraduationCap,
-  ChevronRight
+  GraduationCap
 } from 'lucide-react';
 
 import { ProposalBuilder } from './ProposalBuilder';
@@ -29,41 +36,44 @@ export interface ProposalDraft {
 
 export type TabMode = 'dashboard' | 'builder' | 'library' | 'playbook';
 
+const DEFAULT_DRAFT: ProposalDraft = {
+  program: 'GSoC',
+  org: '',
+  techSpec: '',
+  contributions: '',
+  timeline: '',
+  bio: '',
+  risks: ''
+};
+
 export function CommandCenterClient() {
   const [activeTab, setActiveTab] = useState<TabMode>('builder');
+  const isMounted = useIsMounted();
   
   // Draft State (with local storage hydration)
-  const [draft, setDraft] = useState<ProposalDraft>({
-    program: 'GSoC',
-    org: '',
-    techSpec: '',
-    contributions: '',
-    timeline: '',
-    bio: '',
-    risks: ''
-  });
-
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('contribo_proposal_draft');
-    if (saved) {
+  const [draft, setDraft] = useState<ProposalDraft>(() => {
+    if (typeof window !== 'undefined') {
       try {
-        setDraft(JSON.parse(saved));
+        const saved = localStorage.getItem('contribo_proposal_draft');
+        if (saved) return JSON.parse(saved);
       } catch (e) {
         console.error('Failed to parse draft', e);
       }
     }
-    setMounted(true);
-  }, []);
+    return DEFAULT_DRAFT;
+  });
 
   useEffect(() => {
-    if (mounted) {
-      localStorage.setItem('contribo_proposal_draft', JSON.stringify(draft));
+    if (isMounted) {
+      try {
+        localStorage.setItem('contribo_proposal_draft', JSON.stringify(draft));
+      } catch (e) {
+        console.error('Failed to save draft', e);
+      }
     }
-  }, [draft, mounted]);
+  }, [draft, isMounted]);
 
-  if (!mounted) return null; // Avoid hydration mismatch
+  if (!isMounted) return null; // Avoid hydration mismatch
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

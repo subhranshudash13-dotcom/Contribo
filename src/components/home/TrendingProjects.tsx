@@ -5,7 +5,6 @@ import Link from 'next/link';
 import {
   Star,
   Building2,
-  TrendingUp,
   Sparkles,
   Globe,
   Brain,
@@ -13,8 +12,13 @@ import {
   ArrowRight,
   Compass,
   Layers,
+  ChevronDown,
+  ChevronUp,
+  Banknote,
+  Clock,
 } from 'lucide-react';
 import { SaveButton, TrackApplicationButton } from '@/components/ui/SaveTrackActions';
+import { getProjectScopeAndStipend } from '@/lib/project-utils';
 
 export type TrendingProject = {
   id: string;
@@ -59,6 +63,7 @@ const WEB_TOKENS = new Set([
   'sass',
   'graphql',
 ]);
+
 const AI_TOKENS = new Set([
   'python',
   'machine learning',
@@ -79,6 +84,7 @@ const AI_TOKENS = new Set([
   'numpy',
   'discord.py',
 ]);
+
 const SYS_TOKENS = new Set([
   'go',
   'golang',
@@ -114,14 +120,12 @@ function classifyDomains(techStack: string[]): Domain[] {
 const TABS: {
   id: Domain;
   label: string;
-  short: string;
   icon: React.ElementType;
-  hint: string;
 }[] = [
-  { id: 'all', label: 'All', short: 'All', icon: Layers, hint: 'Every stack' },
-  { id: 'web', label: 'Web', short: 'Web', icon: Globe, hint: 'UI & apps' },
-  { id: 'ai', label: 'AI & Data', short: 'AI', icon: Brain, hint: 'ML & data' },
-  { id: 'systems', label: 'Systems', short: 'Sys', icon: Server, hint: 'Infra & core' },
+  { id: 'all', label: 'All Stacks', icon: Layers },
+  { id: 'web', label: 'Web & UI', icon: Globe },
+  { id: 'ai', label: 'AI & Data', icon: Brain },
+  { id: 'systems', label: 'Systems & Cloud', icon: Server },
 ];
 
 function formatStars(n: number) {
@@ -129,16 +133,88 @@ function formatStars(n: number) {
   return n.toLocaleString();
 }
 
-function difficultyTone(d: string) {
-  const x = d.toLowerCase();
-  if (x.includes('begin') || x.includes('easy')) {
-    return 'text-merge bg-merge/10 border-merge/25';
-  }
-  if (x.includes('adv') || x.includes('hard')) {
-    return 'text-alert bg-alert/10 border-alert/25';
-  }
-  return 'text-brass bg-brass/10 border-brass/25';
+/**
+ * Cohesive Theme-Matched Subtle Color System:
+ * - Uses Contribo's native design tokens (bg-surface, text-primary, text-secondary, border-hairline)
+ * - Harmonious translucent color tints for every card
+ * - Flawless light and dark mode support with 100% text contrast
+ */
+interface CardPalette {
+  tintBg: string;
+  border: string;
+  accentBar: string;
+  numberTag: string;
+  badge: string;
 }
+
+const CARD_PALETTES: CardPalette[] = [
+  {
+    // 1. Sage Emerald
+    tintBg: 'bg-emerald-500/[0.04] dark:bg-emerald-500/[0.06] hover:bg-emerald-500/[0.08]',
+    border: 'border-emerald-500/25 hover:border-emerald-500/50',
+    accentBar: 'bg-emerald-500',
+    numberTag: 'text-emerald-600 dark:text-emerald-400',
+    badge: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/25',
+  },
+  {
+    // 2. Warm Amber
+    tintBg: 'bg-amber-500/[0.04] dark:bg-amber-500/[0.06] hover:bg-amber-500/[0.08]',
+    border: 'border-amber-500/25 hover:border-amber-500/50',
+    accentBar: 'bg-amber-500',
+    numberTag: 'text-amber-600 dark:text-amber-400',
+    badge: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/25',
+  },
+  {
+    // 3. Sky Blue
+    tintBg: 'bg-sky-500/[0.04] dark:bg-sky-500/[0.06] hover:bg-sky-500/[0.08]',
+    border: 'border-sky-500/25 hover:border-sky-500/50',
+    accentBar: 'bg-sky-500',
+    numberTag: 'text-sky-600 dark:text-sky-400',
+    badge: 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/25',
+  },
+  {
+    // 4. Rose / Terracotta
+    tintBg: 'bg-rose-500/[0.04] dark:bg-rose-500/[0.06] hover:bg-rose-500/[0.08]',
+    border: 'border-rose-500/25 hover:border-rose-500/50',
+    accentBar: 'bg-rose-500',
+    numberTag: 'text-rose-600 dark:text-rose-400',
+    badge: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/25',
+  },
+  {
+    // 5. Purple / Violet
+    tintBg: 'bg-purple-500/[0.04] dark:bg-purple-500/[0.06] hover:bg-purple-500/[0.08]',
+    border: 'border-purple-500/25 hover:border-purple-500/50',
+    accentBar: 'bg-purple-500',
+    numberTag: 'text-purple-600 dark:text-purple-400',
+    badge: 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/25',
+  },
+  {
+    // 6. Orange / Copper
+    tintBg: 'bg-orange-500/[0.04] dark:bg-orange-500/[0.06] hover:bg-orange-500/[0.08]',
+    border: 'border-orange-500/25 hover:border-orange-500/50',
+    accentBar: 'bg-orange-500',
+    numberTag: 'text-orange-600 dark:text-orange-400',
+    badge: 'bg-orange-500/10 text-orange-700 dark:text-orange-300 border-orange-500/25',
+  },
+  {
+    // 7. Seafoam Teal
+    tintBg: 'bg-teal-500/[0.04] dark:bg-teal-500/[0.06] hover:bg-teal-500/[0.08]',
+    border: 'border-teal-500/25 hover:border-teal-500/50',
+    accentBar: 'bg-teal-500',
+    numberTag: 'text-teal-600 dark:text-teal-400',
+    badge: 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/25',
+  },
+  {
+    // 8. Indigo
+    tintBg: 'bg-indigo-500/[0.04] dark:bg-indigo-500/[0.06] hover:bg-indigo-500/[0.08]',
+    border: 'border-indigo-500/25 hover:border-indigo-500/50',
+    accentBar: 'bg-indigo-500',
+    numberTag: 'text-indigo-600 dark:text-indigo-400',
+    badge: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/25',
+  },
+];
+
+const INITIAL_DISPLAY_COUNT = 6;
 
 export function TrendingProjects({
   projects,
@@ -146,6 +222,7 @@ export function TrendingProjects({
   trackedProjects = [],
 }: TrendingProjectsProps) {
   const [domain, setDomain] = useState<Domain>('all');
+  const [showAll, setShowAll] = useState(false);
 
   const classified = useMemo(
     () =>
@@ -171,52 +248,49 @@ export function TrendingProjects({
     return c;
   }, [classified]);
 
+  const displayedProjects = showAll ? filtered : filtered.slice(0, INITIAL_DISPLAY_COUNT);
+
   return (
-    <section className="w-full" aria-labelledby="trending-heading">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
-        <div className="max-w-2xl space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full border border-hairline bg-surface px-3 py-1.5 shadow-sm">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brass/15 text-brass">
-              <TrendingUp size={12} strokeWidth={2.5} />
-            </span>
-            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-muted">
-              Start here
-            </span>
+    <section className="w-full relative" aria-labelledby="trending-heading">
+      {/* Header with High-Contrast Action Buttons */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 mb-8 pb-6 border-b border-hairline">
+        <div className="space-y-2.5 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface border border-hairline text-xs font-mono font-medium text-secondary shadow-xs">
+            <Sparkles size={13} className="text-brass" />
+            <span className="tracking-wide uppercase text-[11px] font-semibold">High-Signal Opportunities</span>
           </div>
           <h2
             id="trending-heading"
-            className="text-3xl sm:text-4xl font-bold tracking-tight text-primary font-heading leading-[1.15]"
+            className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-primary font-heading"
           >
             Projects worth contributing to
           </h2>
-          <p className="text-secondary text-[15px] leading-relaxed max-w-xl">
-            High-signal ideas from GSoC, Outreachy, LFX, GSSoC, ESoC and more. Filter by domain,
-            save favorites, and track applications — one place to start your open-source career.
+          <p className="text-secondary text-sm sm:text-[15px] leading-relaxed">
+            Handpicked opportunities across GSoC, Outreachy, LFX, and top open-source ecosystems.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
           <Link
             href="/matcher"
-            className="inline-flex items-center gap-2 h-11 px-4 rounded-xl bg-brass text-white text-sm font-semibold shadow-sm hover:brightness-110 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2"
+            className="inline-flex items-center gap-2 h-10 px-4 rounded-xl bg-brass hover:bg-brass-hover text-white text-xs sm:text-sm font-semibold transition-all shadow-xs cursor-pointer"
           >
-            <Sparkles size={16} />
-            Match my skills
+            <Sparkles size={14} />
+            Match skills
           </Link>
           <Link
             href="/projects?sortBy=stars"
-            className="inline-flex items-center gap-2 h-11 px-4 rounded-xl border border-hairline bg-surface text-primary text-sm font-semibold hover:border-brass/40 hover:bg-surface-raised transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2"
+            className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl border border-hairline bg-surface hover:bg-surface-raised text-primary text-xs sm:text-sm font-semibold transition-all cursor-pointer"
           >
-            Full directory
-            <ArrowRight size={16} />
+            All 13.4k+
+            <ArrowRight size={14} />
           </Link>
         </div>
       </div>
 
-      {/* Domain filter — segmented control */}
+      {/* Domain Filter Tabs */}
       <div
-        className="mb-8 p-1.5 rounded-2xl border border-hairline bg-page/80 backdrop-blur-sm flex flex-wrap gap-1"
+        className="mb-8 flex flex-wrap items-center gap-1.5 p-1 rounded-2xl border border-hairline bg-surface/70 backdrop-blur-md"
         role="tablist"
         aria-label="Filter projects by domain"
       >
@@ -230,19 +304,21 @@ export function TrendingProjects({
               type="button"
               role="tab"
               aria-selected={active}
-              onClick={() => setDomain(tab.id)}
-              className={`flex-1 min-w-[7.5rem] sm:min-w-0 inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 ${
+              onClick={() => {
+                setDomain(tab.id);
+                setShowAll(false);
+              }}
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 cursor-pointer ${
                 active
-                  ? 'bg-surface text-primary shadow-sm border border-hairline'
-                  : 'text-muted hover:text-primary border border-transparent'
+                  ? 'bg-surface-raised text-primary shadow-xs border border-hairline font-semibold'
+                  : 'text-muted hover:text-primary hover:bg-surface/50 border border-transparent'
               }`}
             >
-              <Icon size={16} className={active ? 'text-brass' : ''} strokeWidth={2} />
-              <span className="hidden sm:inline">{tab.label}</span>
-              <span className="sm:hidden">{tab.short}</span>
+              <Icon size={14} className={active ? 'text-brass' : 'opacity-70'} />
+              <span>{tab.label}</span>
               <span
-                className={`font-mono text-[11px] tabular-nums px-1.5 py-0.5 rounded-md ${
-                  active ? 'bg-brass/12 text-brass' : 'bg-surface-raised text-muted'
+                className={`font-mono text-[10px] px-1.5 py-0.5 rounded-md tabular-nums ${
+                  active ? 'bg-brass/15 text-brass font-bold' : 'bg-surface border border-hairline text-muted'
                 }`}
               >
                 {count}
@@ -252,222 +328,206 @@ export function TrendingProjects({
         })}
       </div>
 
+      {/* Projects Grid: SHARP-CORNERED BOXES (rounded-none) + COHESIVE SUBTLE COLOR PALETTES */}
       {projects.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-hairline bg-surface px-6 py-16 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-hairline bg-page">
-            <Compass size={22} className="text-muted" />
-          </div>
-          <p className="text-primary font-semibold mb-1">No trending projects yet</p>
-          <p className="text-sm text-muted max-w-md mx-auto mb-5">
-            When project data is available, high-signal ideas will appear here.
-          </p>
-          <Link href="/projects" className="text-sm font-semibold text-brass hover:underline">
-            Browse all projects →
-          </Link>
+        <div className="rounded-2xl border border-dashed border-hairline bg-surface/50 p-12 text-center">
+          <Compass size={24} className="mx-auto text-muted mb-2 opacity-50" />
+          <p className="text-primary font-medium text-sm">No curated projects found</p>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-hairline bg-surface px-6 py-14 text-center">
-          <p className="text-primary font-semibold mb-1">Nothing in this domain yet</p>
-          <p className="text-sm text-muted mb-4">Try another filter or open the full directory.</p>
+        <div className="rounded-2xl border border-dashed border-hairline bg-surface/50 p-10 text-center">
+          <p className="text-secondary text-sm mb-3">No projects found for this stack.</p>
           <button
             type="button"
             onClick={() => setDomain('all')}
-            className="text-sm font-semibold text-brass hover:underline"
+            className="text-xs font-semibold text-brass hover:underline cursor-pointer"
           >
             Show all projects
           </button>
         </div>
       ) : (
         <>
-          <p className="sr-only" aria-live="polite">
-            Showing {filtered.length} projects
-            {domain !== 'all' ? ` in ${domain}` : ''}.
-          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {displayedProjects.map((proj, idx) => {
+              const projectLink = `/projects?q=${encodeURIComponent(proj.title.slice(0, 80))}`;
+              const palette = CARD_PALETTES[idx % CARD_PALETTES.length];
+              const scope = getProjectScopeAndStipend({
+                title: proj.title,
+                description: proj.description,
+                difficulty: proj.difficulty,
+                programName: proj.programName,
+              });
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
-            {filtered.map((proj, index) => {
-              const isFeatured = index === 0 && domain === 'all';
               return (
                 <article
                   key={proj.id}
-                  className={`group relative flex flex-col rounded-2xl border border-hairline bg-surface transition-all duration-200 hover:border-brass/35 hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.35)] ${
-                    isFeatured
-                      ? 'md:col-span-2 xl:col-span-2 md:flex-row md:items-stretch overflow-hidden'
-                      : ''
-                  }`}
+                  className={`group relative flex flex-col justify-between rounded-none border bg-surface ${palette.border} ${palette.tintBg} p-5 transition-all duration-200 hover:shadow-md overflow-hidden`}
                 >
-                  {/* Accent edge */}
-                  <div
-                    className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl bg-brass/0 group-hover:bg-brass transition-colors"
-                    aria-hidden
-                  />
+                  {/* Top Color Accent Bar */}
+                  <div className={`absolute top-0 left-0 right-0 h-[3px] ${palette.accentBar}`} />
 
-                  <div
-                    className={`flex flex-1 flex-col p-5 sm:p-6 ${
-                      isFeatured ? 'md:max-w-[58%]' : ''
-                    }`}
-                  >
-                    {/* Meta row */}
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="flex flex-wrap items-center gap-2 min-w-0">
-                        <span className="inline-flex items-center gap-1.5 max-w-full rounded-lg border border-hairline bg-page px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-muted">
-                          <Building2 size={11} className="shrink-0" />
+                  <div>
+                    {/* Index Coordinate & Organization Row */}
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`text-[11px] font-mono font-bold ${palette.numberTag}`}>
+                          #{String(idx + 1).padStart(2, '0')}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none bg-surface-raised border border-hairline text-[11px] font-mono font-medium text-secondary truncate">
+                          <Building2 size={11} className="shrink-0 text-muted" />
                           <span className="truncate">{proj.org}</span>
                         </span>
                         {proj.year && (
-                          <span className="font-mono text-[10px] text-muted tabular-nums">
+                          <span className="text-[10px] font-mono text-muted tabular-nums">
                             {proj.year}
                           </span>
                         )}
-                        {isFeatured && (
-                          <span className="inline-flex items-center gap-1 rounded-lg bg-brass/12 border border-brass/25 px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-brass">
-                            <Star size={10} className="fill-brass" /> Top pick
-                          </span>
-                        )}
                       </div>
-                      <div className="shrink-0 inline-flex items-center gap-1 font-mono text-xs font-bold text-brass tabular-nums">
-                        <Star size={13} className="fill-brass stroke-brass" />
+
+                      <div className="shrink-0 inline-flex items-center gap-1 text-[11px] font-mono font-semibold text-brass tabular-nums bg-surface-raised px-1.5 py-0.5 rounded-none border border-hairline">
+                        <Star size={11} className="fill-brass stroke-brass" />
                         {formatStars(proj.stars)}
                       </div>
                     </div>
 
-                    <h3
-                      className={`font-heading font-bold text-primary leading-snug tracking-tight group-hover:text-brass transition-colors ${
-                        isFeatured ? 'text-xl sm:text-2xl mb-2' : 'text-base sm:text-lg mb-2'
-                      }`}
-                    >
-                      <Link
-                        href={`/projects?q=${encodeURIComponent(proj.title.slice(0, 80))}`}
-                        className="focus-visible:outline-none focus-visible:underline"
+                    {/* Scope, Stipend & Difficulty Badges */}
+                    <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                      {/* Stipend Tag */}
+                      <span
+                        title={scope.tooltip}
+                        className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-none bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-mono font-bold cursor-help"
                       >
+                        <Banknote size={11} className="shrink-0" />
+                        <span>{scope.shortStipend}</span>
+                      </span>
+
+                      {/* Size Tag */}
+                      <span
+                        title={scope.tooltip}
+                        className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-none ${palette.badge} border font-mono font-semibold cursor-help`}
+                      >
+                        <Clock size={10} className="shrink-0" />
+                        <span>{scope.sizeLabel}</span>
+                      </span>
+
+                      {/* Difficulty Tag */}
+                      <span className="text-[10px] font-mono font-medium uppercase px-1.5 py-0.5 rounded-none bg-surface-raised border border-hairline text-muted ml-auto">
+                        {proj.difficulty}
+                      </span>
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="text-[15px] sm:text-base font-heading font-semibold text-primary group-hover:text-brass transition-colors leading-snug line-clamp-2 mb-2">
+                      <Link href={projectLink} className="focus-visible:outline-none focus-visible:underline">
                         {proj.title}
                       </Link>
                     </h3>
 
-                    <p
-                      className={`text-secondary leading-relaxed mb-4 flex-grow ${
-                        isFeatured ? 'text-sm line-clamp-3' : 'text-sm line-clamp-2'
-                      }`}
-                    >
+                    {/* Clean Description */}
+                    <p className="text-secondary text-xs sm:text-[13px] leading-relaxed line-clamp-2 mb-4">
                       {proj.description}
                     </p>
+                  </div>
 
-                    <div className="flex flex-wrap items-center gap-1.5 mb-4">
-                      <span
-                        className={`rounded-md border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wide ${difficultyTone(
-                          proj.difficulty
-                        )}`}
-                      >
-                        {proj.difficulty}
-                      </span>
-                      {(proj.techStack || []).slice(0, isFeatured ? 5 : 3).map((t) => (
+                  {/* Bottom Tech & Actions */}
+                  <div>
+                    {/* Tech Stack Chips */}
+                    <div className="flex flex-wrap items-center gap-1.5 mb-4 pt-3 border-t border-hairline/60">
+                      {(proj.techStack || []).slice(0, 3).map((tech) => (
                         <span
-                          key={t}
-                          className="rounded-md border border-hairline bg-page px-2 py-0.5 font-mono text-[10px] font-medium text-muted"
+                          key={tech}
+                          className="px-2 py-0.5 rounded-none bg-surface-raised border border-hairline text-[10px] font-mono text-muted"
                         >
-                          {t}
+                          {tech}
                         </span>
                       ))}
-                      {proj.techStack && proj.techStack.length > (isFeatured ? 5 : 3) && (
-                        <span className="font-mono text-[10px] text-muted">
-                          +{proj.techStack.length - (isFeatured ? 5 : 3)}
+                      {proj.techStack && proj.techStack.length > 3 && (
+                        <span className="text-[10px] font-mono text-muted font-medium">
+                          +{proj.techStack.length - 3}
                         </span>
                       )}
                     </div>
 
-                    <div className="mt-auto pt-4 border-t border-hairline flex flex-wrap items-center gap-2">
-                      <SaveButton
-                        payload={{
-                          type: 'project',
-                          targetId: proj.id,
-                          title: proj.title,
-                          subtitle: proj.org,
-                          slug: proj.orgSlug,
-                          techStack: proj.techStack?.slice(0, 12),
-                          programSlug: proj.programName,
-                        }}
-                        initialSaved={savedProjects.includes(proj.id)}
-                      />
-                      <TrackApplicationButton
-                        payload={{
-                          projectId: proj.id,
-                          projectTitle: proj.title,
-                          orgName: proj.org,
-                          orgSlug: proj.orgSlug,
-                          programId: proj.programId,
-                          programName: proj.programName || 'Open Source Program',
-                          status: 'researching',
-                        }}
-                        initialTracked={trackedProjects.includes(proj.id)}
-                      />
+                    {/* Action Bar */}
+                    <div className="flex items-center justify-between pt-1">
+                      <div className="flex items-center gap-1.5">
+                        <SaveButton
+                          payload={{
+                            type: 'project',
+                            targetId: proj.id,
+                            title: proj.title,
+                            subtitle: proj.org,
+                            slug: proj.orgSlug,
+                            techStack: proj.techStack?.slice(0, 12),
+                            programSlug: proj.programName,
+                          }}
+                          initialSaved={savedProjects.includes(proj.id)}
+                        />
+                        <TrackApplicationButton
+                          payload={{
+                            projectId: proj.id,
+                            projectTitle: proj.title,
+                            orgName: proj.org,
+                            orgSlug: proj.orgSlug,
+                            programId: proj.programId,
+                            programName: proj.programName || 'Open Source Program',
+                            status: 'researching',
+                          }}
+                          initialTracked={trackedProjects.includes(proj.id)}
+                        />
+                      </div>
+
                       <Link
-                        href={`/projects?q=${encodeURIComponent(proj.title.slice(0, 80))}`}
-                        className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-muted hover:text-primary transition-colors"
+                        href={projectLink}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-secondary hover:text-brass transition-colors"
                       >
-                        Details
-                        <ArrowRight size={14} />
+                        <span>Details</span>
+                        <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
                       </Link>
                     </div>
                   </div>
-
-                  {isFeatured && (
-                    <div className="hidden md:flex md:flex-1 flex-col justify-between border-t md:border-t-0 md:border-l border-hairline bg-page/40 p-6">
-                      <div>
-                        <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted mb-3">
-                          Why start here
-                        </p>
-                        <ul className="space-y-2.5 text-sm text-secondary leading-relaxed">
-                          <li className="flex gap-2">
-                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brass" />
-                            Clear tech stack match signals for new contributors
-                          </li>
-                          <li className="flex gap-2">
-                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brass" />
-                            Save now, track status later on your dashboard
-                          </li>
-                          <li className="flex gap-2">
-                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brass" />
-                            Jump to AI matcher if you want ranked fits
-                          </li>
-                        </ul>
-                      </div>
-                      <Link
-                        href="/proposal-studio"
-                        className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-brass hover:underline"
-                      >
-                        <Compass size={16} />
-                        Ready to apply? Build a winning proposal in Proposal Studio
-                      </Link>
-                    </div>
-                  )}
                 </article>
               );
             })}
           </div>
 
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-hairline bg-surface px-5 py-4">
-            <p className="text-sm text-secondary text-center sm:text-left">
-              <span className="font-semibold text-primary">{filtered.length}</span> projects shown
-              {domain !== 'all' ? (
-                <>
-                  {' '}
-                  in <span className="font-semibold text-primary">{TABS.find((t) => t.id === domain)?.label}</span>
-                </>
-              ) : null}
-              . Not sure where to begin?
+          {/* Normal Rounded Catalog Expand Bar */}
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl border border-hairline bg-surface/60 backdrop-blur-sm">
+            <p className="text-xs sm:text-sm text-secondary">
+              Showing <span className="font-semibold text-primary">{displayedProjects.length}</span> of{' '}
+              <span className="font-semibold text-primary">{filtered.length}</span> curated opportunities
+              {domain !== 'all' && (
+                <span> in <span className="text-primary font-medium">{TABS.find((t) => t.id === domain)?.label}</span></span>
+              )}
             </p>
-            <div className="flex flex-wrap justify-center gap-2">
+
+            <div className="flex items-center gap-2">
+              {filtered.length > INITIAL_DISPLAY_COUNT && (
+                <button
+                  type="button"
+                  onClick={() => setShowAll(!showAll)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-hairline bg-surface hover:bg-surface-raised text-primary text-xs font-semibold transition-all cursor-pointer"
+                >
+                  {showAll ? (
+                    <>
+                      <ChevronUp size={14} />
+                      Show less
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown size={14} />
+                      Show all {filtered.length} picks
+                    </>
+                  )}
+                </button>
+              )}
+
               <Link
-                href="/programs"
-                className="inline-flex h-10 items-center rounded-xl border border-hairline px-4 text-sm font-semibold text-primary hover:border-brass/40 transition-colors"
+                href="/projects?sortBy=stars"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brass hover:bg-brass-hover text-white text-xs font-semibold transition-all shadow-xs"
               >
-                Compare programs
-              </Link>
-              <Link
-                href="/guidelines"
-                className="inline-flex h-10 items-center rounded-xl bg-primary text-base px-4 text-sm font-semibold hover:opacity-90 transition-opacity dark:bg-white dark:text-black"
-              >
-                Read contributor guidelines
+                All 13.4k+ Projects
+                <ArrowRight size={13} />
               </Link>
             </div>
           </div>

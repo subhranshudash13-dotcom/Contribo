@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "node --test tests/unit-suite.test.mjs",
+    "audit": "npm audit && node scripts/audit-coverage.js",
     "db:indexes": "node scripts/setup-indexes.js",
     "db:seed": "node scripts/seed-programs.js",
     "db:setup": "node scripts/setup-indexes.js && node scripts/seed-programs.js",

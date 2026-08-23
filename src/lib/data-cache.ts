@@ -74,11 +74,11 @@ export const getCachedHomeBundle = unstable_cache(
 export const getCachedDefaultOrganizations = unstable_cache(
   async () =>
     listOrganizations({
-      limit: 48,
+      limit: 120,
       skip: 0,
       lean: true,
     }),
-  ['default-organizations-v4'],
+  ['default-organizations-v5'],
   { revalidate: 180 }
 );
 

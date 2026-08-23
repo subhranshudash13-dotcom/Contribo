@@ -1,7 +1,9 @@
+'use client';
+
 import React from 'react';
-import { Code2 } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { Organization } from '../../../types';
-import { Button } from './Button';
 import { SaveButton } from './SaveTrackActions';
 import { OrgLogo } from './OrgLogo';
 
@@ -15,105 +17,143 @@ export function OrgCard({
   initialSaved?: boolean;
 }) {
   const orgId = org._id ? String(org._id) : '';
+  const years = org.years || [];
+  const techs = org.technologies || [];
 
   return (
-    <div className="group border border-hairline rounded-md p-6 bg-surface flex flex-col h-full transition-all duration-150 ease-in-out hover:elevation-2 hover:bg-surface-raised focus-within:ring-2 focus-within:ring-brass focus-within:ring-offset-2 relative overflow-hidden">
+    <Link
+      href={`/organizations/${org.slug}`}
+      className="group relative border border-hairline rounded-none bg-surface hover:border-accent/60 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)] transition-all duration-200 flex flex-col justify-between min-h-[360px] overflow-hidden select-none cursor-pointer"
+    >
+      {/* Top Brand Accent Line */}
       <div
-        className="absolute top-0 left-0 w-full h-[2px] bg-hairline group-hover:bg-program-accent transition-colors duration-150"
+        className="absolute top-0 left-0 right-0 h-[2.5px] bg-hairline group-hover:bg-accent transition-colors duration-200 z-10"
         style={{ backgroundColor: org.backgroundColor || undefined }}
       />
 
-      <div className="flex items-start gap-4 mb-4 mt-2">
-        <OrgLogo logoUrl={org.logoUrl} name={org.name} className="w-10 h-10 rounded-lg" />
-        <div className="flex-1 min-w-0">
-          <h2 className="text-lg font-bold line-clamp-1 text-primary group-hover:text-program-accent transition-colors duration-100">
-            {org.name}
-          </h2>
-          <p className="text-xs text-muted font-mono mt-1 uppercase tracking-wide">
-            {org.category || 'OPEN SOURCE'}
-          </p>
-        </div>
-      </div>
+      <div>
+        {/* Full-Width Highlighted Top Logo Box */}
+        <div className="w-full h-32 bg-page/60 dark:bg-page/40 border-b border-hairline flex items-center justify-center p-4 relative group-hover:bg-page transition-colors">
+          <div className="w-full h-full flex items-center justify-center">
+            <OrgLogo
+              logoUrl={org.logoUrl}
+              name={org.name}
+              className="max-h-20 w-auto max-w-[85%] object-contain group-hover:scale-105 transition-transform duration-200"
+              size={54}
+            />
+          </div>
 
-      <p className="text-muted text-sm mb-5 line-clamp-3 flex-grow leading-relaxed">
-        {org.description}
-      </p>
-
-      <div className="mt-auto pt-4 border-t border-hairline">
-        <div className="flex items-center gap-2 mb-4 text-xs text-muted">
-          <Code2 size={14} className="shrink-0" />
-          <div className="flex flex-wrap gap-1.5 overflow-hidden h-[22px] font-mono">
-            {org.technologies?.slice(0, 3).map((tech) => (
-              <span
-                key={tech}
-                className="bg-page border border-hairline px-1.5 py-0.5 rounded-sm text-primary shrink-0"
+          {/* Badges Overlaid at Top */}
+          <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
+            {org.is2026 && (
+              <span className="inline-flex items-center gap-1 text-[9px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 uppercase tracking-wider backdrop-blur-xs shadow-2xs">
+                <Sparkles size={9} /> 2026
+              </span>
+            )}
+            {showActions && orgId && (
+              <div
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className="opacity-90 hover:opacity-100 transition-opacity rounded-full"
               >
-                {tech}
-              </span>
-            ))}
-            {org.technologies && org.technologies.length > 3 && (
-              <span className="text-muted shrink-0 flex items-center">
-                +{org.technologies.length - 3}
-              </span>
+                <SaveButton
+                  payload={{
+                    type: 'organization',
+                    targetId: orgId,
+                    title: org.name,
+                    subtitle: org.category || 'Organization',
+                    slug: org.slug,
+                    techStack: techs.slice(0, 12),
+                  }}
+                  initialSaved={initialSaved}
+                />
+              </div>
             )}
           </div>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <Button
-            href={`/projects?orgSlug=${org.slug}`}
-            variant="outline"
-            className="w-full focus-visible:ring-0 focus-visible:outline-none"
-            analyticsId={`view_org_projects_${org.slug}`}
-          >
-            Explore Projects
-          </Button>
-          {showActions && orgId && (
-            <SaveButton
-              className="w-full [&>button]:w-full [&>button]:justify-center"
-              payload={{
-                type: 'organization',
-                targetId: orgId,
-                title: org.name,
-                subtitle: org.category || 'Organization',
-                slug: org.slug,
-                techStack: org.technologies?.slice(0, 12),
-              }}
-              initialSaved={initialSaved}
-            />
-          )}
+        {/* Card Content Area */}
+        <div className="p-4 sm:p-5">
+          {/* Organization Name & Category */}
+          <div className="mb-2">
+            <h2 className="text-base font-bold font-heading text-primary group-hover:text-accent transition-colors line-clamp-1 leading-snug">
+              {org.name}
+            </h2>
+            <p className="text-[10px] font-mono text-muted uppercase tracking-wider mt-0.5 line-clamp-1">
+              {org.category || 'Open Source Software'}
+            </p>
+          </div>
+
+          {/* Description */}
+          <p className="text-xs text-secondary line-clamp-3 leading-relaxed">
+            {org.description}
+          </p>
         </div>
       </div>
-    </div>
+
+      {/* Bottom Footer Section */}
+      <div className="p-4 sm:p-5 pt-0">
+        <div className="pt-3 border-t border-hairline/60 space-y-2.5">
+          {/* Technologies micro-badges */}
+          {techs.length > 0 && (
+            <div className="flex flex-wrap gap-1 overflow-hidden h-[22px]">
+              {techs.slice(0, 3).map((tech) => (
+                <span
+                  key={tech}
+                  className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-page border border-hairline text-muted"
+                >
+                  {tech}
+                </span>
+              ))}
+              {techs.length > 3 && (
+                <span className="text-[10px] font-mono text-muted flex items-center px-1">
+                  +{techs.length - 3}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Card Footer: Years count / Projects count & Hover Arrow */}
+          <div className="flex items-center justify-between text-xs font-mono text-muted pt-1">
+            <span className="text-[10px]">
+              {years.length > 0 ? `${years.length} active years` : 'Open Source'}
+            </span>
+            <span className="inline-flex items-center gap-1 font-semibold text-accent group-hover:translate-x-1 transition-transform text-[11px]">
+              Explore <ArrowRight size={11} />
+            </span>
+          </div>
+        </div>
+      </div>
+    </Link>
   );
 }
 
 export function OrgCardSkeleton() {
   return (
-    <div className="border border-hairline rounded-md p-6 bg-surface flex flex-col h-full relative overflow-hidden animate-pulse">
-      <div className="absolute top-0 left-0 w-full h-[2px] bg-hairline" />
-
-      <div className="flex items-start gap-4 mb-4 mt-2">
-        <div className="w-10 h-10 rounded-sm bg-page shrink-0" />
-        <div className="flex-1 min-w-0">
-          <div className="h-5 w-3/4 bg-page rounded-sm mb-2" />
-          <div className="h-3 w-1/2 bg-page rounded-sm" />
+    <div className="border border-hairline rounded-none bg-surface flex flex-col justify-between min-h-[360px] animate-pulse">
+      <div>
+        <div className="w-full h-32 bg-page border-b border-hairline" />
+        <div className="p-5">
+          <div className="h-5 w-3/4 bg-page rounded-none mb-2" />
+          <div className="h-3 w-1/2 bg-page rounded-none mb-4" />
+          <div className="space-y-2">
+            <div className="h-3.5 w-full bg-page rounded-none" />
+            <div className="h-3.5 w-full bg-page rounded-none" />
+            <div className="h-3.5 w-4/5 bg-page rounded-none" />
+          </div>
         </div>
       </div>
 
-      <div className="space-y-2 mb-5 flex-grow">
-        <div className="h-4 w-full bg-page rounded-sm" />
-        <div className="h-4 w-full bg-page rounded-sm" />
-        <div className="h-4 w-5/6 bg-page rounded-sm" />
-      </div>
-
-      <div className="mt-auto pt-4 border-t border-hairline">
-        <div className="flex gap-2 mb-4">
-          <div className="h-5 w-12 bg-page rounded-sm" />
-          <div className="h-5 w-16 bg-page rounded-sm" />
+      <div className="p-5 pt-0">
+        <div className="pt-3 border-t border-hairline space-y-2">
+          <div className="flex gap-1">
+            <div className="h-4 w-12 bg-page rounded-none" />
+            <div className="h-4 w-14 bg-page rounded-none" />
+          </div>
+          <div className="h-3 w-full bg-page rounded-none" />
         </div>
-        <div className="h-10 w-full bg-page rounded-sm" />
-        <div className="h-8 w-full bg-page rounded-lg mt-2" />
       </div>
     </div>
   );
