@@ -45,9 +45,14 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Auto-close menu on navigation
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
   return (
     <header className="fixed top-2 left-0 right-0 z-50 px-3 sm:px-4 pointer-events-none flex justify-center">
-      <div className={`w-full max-w-[1380px] bg-surface/80 backdrop-blur-md border border-hairline rounded-full px-4.5 sm:px-6 py-0.5 flex items-center justify-between shadow-[0_8px_30px_rgba(0,0,0,0.02)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.15)] transition-all pointer-events-auto relative ${isScrolled ? 'border-hairline/90 shadow-[0_12px_40px_rgba(0,0,0,0.05)]' : ''}`}>
+      <div className={`w-full max-w-[1380px] bg-surface/80 backdrop-blur-md border border-hairline rounded-full px-4.5 sm:px-6 py-0.5 flex items-center justify-between shadow-[0_8px_30px_rgba(0,0,0,0.02)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.15)] transition-all pointer-events-auto relative z-50 ${isScrolled ? 'border-hairline/90 shadow-[0_12px_40px_rgba(0,0,0,0.05)]' : ''}`}>
         
         {/* Logo with Branch Monogram (Left) */}
         <div className="flex items-center flex-shrink-0">
@@ -150,9 +155,17 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
         </div>
       </div>
 
+      {/* Mobile Backdrop Overlay to dismiss on tap */}
+      {isOpen && (
+        <div 
+          onClick={() => setIsOpen(false)}
+          className="xl:hidden fixed inset-0 bg-black/20 dark:bg-black/50 backdrop-blur-xs z-40 pointer-events-auto"
+        />
+      )}
+
       {/* Mobile & Tablet Dropdown Card */}
       {isOpen && (
-        <div className="xl:hidden fixed top-[72px] left-4 right-4 z-50 border border-hairline bg-surface/95 backdrop-blur-md rounded-2xl shadow-lg p-2 animate-[fade_0.2s_ease-out_forwards]">
+        <div className="xl:hidden fixed top-[72px] left-4 right-4 z-50 pointer-events-auto border border-hairline bg-surface/98 dark:bg-[#18110D]/98 backdrop-blur-xl rounded-2xl shadow-2xl p-2.5 animate-[fade_0.2s_ease-out_forwards]">
           <div className="flex flex-col gap-1">
             {LINKS.map(link => {
               const isActive = pathname === link.href || pathname?.startsWith(link.href + '/');
@@ -161,7 +174,11 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsOpen(false)}
-                  className={`block px-4 py-3 text-sm font-semibold rounded-xl transition-colors ${isActive ? 'text-accent bg-accent/5 font-bold' : 'text-primary hover:bg-surface-raised'}`}
+                  className={`block px-4 py-3 text-sm font-semibold rounded-xl transition-all pointer-events-auto cursor-pointer ${
+                    isActive 
+                      ? 'text-accent bg-accent/10 font-bold border border-accent/20' 
+                      : 'text-primary hover:bg-surface-raised active:bg-surface-raised'
+                  }`}
                 >
                   {link.label}
                 </Link>
