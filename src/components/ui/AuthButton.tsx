@@ -1,38 +1,12 @@
-import { signOut, auth } from "@/auth";
-import Image from "next/image";
+import { auth } from "@/auth";
 import Link from "next/link";
+import { UserAccountMenu } from "./UserAccountMenu";
 
 export default async function AuthButton() {
   const session = await auth();
 
   if (session?.user) {
-    return (
-      <form
-        action={async () => {
-          "use server";
-          await signOut();
-        }}
-        className="flex items-center gap-3"
-      >
-        {session.user.image && (
-          <Image
-            src={session.user.image}
-            alt={session.user.name || "User"}
-            width={32}
-            height={32}
-            className="w-8 h-8 rounded-full border border-hairline object-cover"
-            // Avatars are tiny; skip heavy optimization pipeline when host varies
-            unoptimized
-          />
-        )}
-        <button
-          type="submit"
-          className="text-base font-medium text-muted hover:text-primary transition-colors cursor-pointer"
-        >
-          Log Out
-        </button>
-      </form>
-    );
+    return <UserAccountMenu user={session.user} />;
   }
 
   return (

@@ -119,29 +119,22 @@ export function Footer() {
 
       </div>
       
-      {/* Bottom Bar with Centered Highlight */}
-      <div className="max-w-[1320px] mx-auto mt-14 pt-8 border-t border-hairline/80 flex flex-col items-center justify-center gap-4 text-center">
-        {/* Prominent Centered Creator Badge */}
-        <div className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-surface-raised/90 border border-hairline shadow-2xs text-sm sm:text-[15px] font-medium text-primary">
-          <span>Made with</span>
-          <Heart size={16} className="fill-rose-500 text-rose-500 animate-pulse shrink-0" />
-          <span>by</span>
+      {/* Bottom Bar with Centered Clean Attribution */}
+      <div className="max-w-[1320px] mx-auto mt-12 pt-8 border-t border-hairline/80 flex flex-col items-center justify-center gap-2 text-center">
+        <p className="text-sm font-medium text-primary flex items-center justify-center gap-1.5">
+          <span>Made with love by</span>
           <a
             href="https://github.com/subhranshudash13-dotcom"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-bold text-accent hover:underline decoration-accent/60 underline-offset-4 transition-all"
+            className="font-semibold text-accent hover:underline decoration-accent/60 underline-offset-4 transition-colors"
           >
             Subhranshu Sekhar Dash
           </a>
-        </div>
-
-        {/* Sub-text Copyright */}
-        <div className="text-xs text-secondary font-normal flex flex-wrap items-center justify-center gap-2">
-          <span>© 2026 Contribo.</span>
-          <span className="text-hairline hidden sm:inline">•</span>
-          <span>Built for the global open-source community.</span>
-        </div>
+        </p>
+        <p className="text-xs text-muted">
+          © 2026 Contribo. Built for the global open-source community.
+        </p>
       </div>
     </footer>
   );
