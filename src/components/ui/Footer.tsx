@@ -119,16 +119,13 @@ export function Footer() {
 
       </div>
       
-      {/* Bottom Bar: Left Status, Center Attribution, Right Copyright */}
-      <div className="max-w-[1320px] mx-auto mt-12 pt-8 border-t border-hairline/80 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
-        {/* Left: Operational Status */}
-        <div className="flex items-center gap-2 text-xs font-mono text-secondary order-2 md:order-1">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-          <span className="font-semibold text-primary">All Systems Operational</span>
-        </div>
+      {/* Bottom Bar: Perfectly Centered Attribution, Right Copyright */}
+      <div className="max-w-[1320px] mx-auto mt-12 pt-8 border-t border-hairline/80 grid grid-cols-1 md:grid-cols-3 items-center gap-4 text-center">
+        {/* Left Placeholder for Exact Center Balance on Desktop */}
+        <div className="hidden md:block" />
 
         {/* Center: Creator Attribution */}
-        <p className="text-sm font-medium text-primary flex items-center justify-center gap-1.5 order-1 md:order-2">
+        <p className="text-sm font-medium text-primary flex items-center justify-center gap-1.5">
           <span>Made with love by</span>
           <a
             href="https://github.com/subhranshudash13-dotcom"
@@ -141,7 +138,7 @@ export function Footer() {
         </p>
 
         {/* Right: Copyright */}
-        <p className="text-xs text-muted text-center md:text-right order-3">
+        <p className="text-xs text-muted text-center md:text-right">
           © 2026 Contribo. Built for the global open-source community.
         </p>
       </div>
