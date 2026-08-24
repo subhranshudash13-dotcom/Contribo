@@ -119,13 +119,10 @@ export function Footer() {
 
       </div>
       
-      {/* Bottom Bar: Perfectly Centered Attribution, Right Copyright */}
-      <div className="max-w-[1320px] mx-auto mt-12 pt-8 border-t border-hairline/80 grid grid-cols-1 md:grid-cols-3 items-center gap-4 text-center">
-        {/* Left Placeholder for Exact Center Balance on Desktop */}
-        <div className="hidden md:block" />
-
-        {/* Center: Creator Attribution */}
-        <p className="text-sm font-medium text-primary flex items-center justify-center gap-1.5">
+      {/* Bottom Bar: Left Creator Attribution, Right Copyright */}
+      <div className="max-w-[1320px] mx-auto mt-12 pt-8 border-t border-hairline/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+        {/* Left: Creator Attribution */}
+        <p className="text-sm font-medium text-primary flex items-center gap-1.5">
           <span>Made with love by</span>
           <a
             href="https://github.com/subhranshudash13-dotcom"
@@ -138,7 +135,7 @@ export function Footer() {
         </p>
 
         {/* Right: Copyright */}
-        <p className="text-xs text-muted text-center md:text-right">
+        <p className="text-xs text-muted text-center sm:text-right">
           © 2026 Contribo. Built for the global open-source community.
         </p>
       </div>
