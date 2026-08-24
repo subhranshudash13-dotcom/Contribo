@@ -119,16 +119,28 @@ export function Footer() {
 
       </div>
       
-      {/* Bottom Bar */}
-      <div className="max-w-[1320px] mx-auto mt-12 pt-8 border-t border-hairline/80 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted">
-        <div>
-          <p>© 2026 Contribo. Built for the global open-source community.</p>
-          <p className="mt-1 text-[11px] text-muted/70">Made with love by Subhranshu Sekhar Dash</p>
+      {/* Bottom Bar with Centered Highlight */}
+      <div className="max-w-[1320px] mx-auto mt-14 pt-8 border-t border-hairline/80 flex flex-col items-center justify-center gap-4 text-center">
+        {/* Prominent Centered Creator Badge */}
+        <div className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-surface-raised/90 border border-hairline shadow-2xs text-sm sm:text-[15px] font-medium text-primary">
+          <span>Made with</span>
+          <Heart size={16} className="fill-rose-500 text-rose-500 animate-pulse shrink-0" />
+          <span>by</span>
+          <a
+            href="https://github.com/subhranshudash13-dotcom"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-bold text-accent hover:underline decoration-accent/60 underline-offset-4 transition-all"
+          >
+            Subhranshu Sekhar Dash
+          </a>
         </div>
-        <div className="flex items-center gap-1.5 font-medium text-secondary">
-          <span>Designed & built with</span>
-          <Heart size={12} className="fill-accent stroke-accent animate-[pulse_1.5s_infinite]" />
-          <span>for open source</span>
+
+        {/* Sub-text Copyright */}
+        <div className="text-xs text-secondary font-normal flex flex-wrap items-center justify-center gap-2">
+          <span>© 2026 Contribo.</span>
+          <span className="text-hairline hidden sm:inline">•</span>
+          <span>Built for the global open-source community.</span>
         </div>
       </div>
     </footer>
