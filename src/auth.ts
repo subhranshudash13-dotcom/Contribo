@@ -32,7 +32,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: MongoDBAdapter(clientPromise, {
     databaseName: resolveDatabaseName(),
   }),
-  session: { strategy: "jwt" },
+  session: { 
+    strategy: "jwt",
+    maxAge: 7 * 24 * 60 * 60, // 7 days in seconds (604,800s)
+    updateAge: 24 * 60 * 60,  // Re-validate cookie age daily
+  },
+  jwt: {
+    maxAge: 7 * 24 * 60 * 60, // 7 days JWT lifetime
+  },
   pages: {
     signIn: "/login",
   },
