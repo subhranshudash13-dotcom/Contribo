@@ -26,6 +26,7 @@ import {
   DeferredPopularOrgs,
   DeferredFaq,
 } from '@/components/home/HomeDeferredSections';
+import { ContributorTestimonials } from '@/components/home/ContributorTestimonials';
 import type { Program } from '../../types';
 
 const PROGRAM_IMAGES: Record<string, string> = {
@@ -474,75 +475,9 @@ export default async function Home() {
         </section>
         </ScrollReveal>
 
-        {/* TESTIMONIALS — static, light */}
+        {/* TESTIMONIALS — Moving Marquee */}
         <ScrollReveal animation="fade">
-        <section className="space-y-8 py-4">
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <h2 className="text-2xl sm:text-3xl font-heading font-semibold text-primary">
-              Accepted Contributors
-            </h2>
-            <p className="text-secondary text-sm sm:text-base leading-relaxed">
-              Read how developers used Contribo to land their dream open-source internships.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-surface border border-hairline rounded-2xl p-6 space-y-4 hover:border-accent/40 transition-all duration-300 flex flex-col justify-between">
-              <p className="text-secondary text-sm leading-relaxed italic">
-                &quot;Finding GSoC projects used to be overwhelming. Contribo&apos;s AI Matcher
-                instantly pointed me to organizations that matched my exact skill set. I got
-                accepted on my first try!&quot;
-              </p>
-              <div className="flex items-center gap-3 border-t border-hairline/60 pt-4 mt-auto">
-                <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center font-bold text-accent">
-                  AM
-                </div>
-                <div>
-                  <h4 className="font-heading font-semibold text-sm text-primary">Aarav Mehta</h4>
-                  <p className="text-[10px] text-muted font-mono">GSoC &apos;25 @ CNCF</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-surface border border-hairline rounded-2xl p-6 space-y-4 hover:border-accent/40 transition-all duration-300 flex flex-col justify-between">
-              <p className="text-secondary text-sm leading-relaxed italic">
-                &quot;The timeline visualization helped me balance my university exams with the
-                Outreachy application phase. The guide on writing proposal drafts was a
-                lifesaver.&quot;
-              </p>
-              <div className="flex items-center gap-3 border-t border-hairline/60 pt-4 mt-auto">
-                <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center font-bold text-accent">
-                  ED
-                </div>
-                <div>
-                  <h4 className="font-heading font-semibold text-sm text-primary">
-                    Elena Dimitrova
-                  </h4>
-                  <p className="text-[10px] text-muted font-mono">Outreachy &apos;25 @ Gnome</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-surface border border-hairline rounded-2xl p-6 space-y-4 hover:border-accent/40 transition-all duration-300 flex flex-col justify-between">
-              <p className="text-secondary text-sm leading-relaxed italic">
-                &quot;Tracking multiple proposals on different program websites was a headache. With
-                Contribo&apos;s unified dashboard, I had all my tasks and deadlines synced in one
-                place.&quot;
-              </p>
-              <div className="flex items-center gap-3 border-t border-hairline/60 pt-4 mt-auto">
-                <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center font-bold text-accent">
-                  KL
-                </div>
-                <div>
-                  <h4 className="font-heading font-semibold text-sm text-primary">Kenji Lin</h4>
-                  <p className="text-[10px] text-muted font-mono">
-                    LFX &apos;26 @ Linux Foundation
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+          <ContributorTestimonials />
         </ScrollReveal>
 
         {/* FAQs — deferred */}
