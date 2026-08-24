@@ -23,7 +23,7 @@ export function OrgCard({
   return (
     <Link
       href={`/organizations/${org.slug}`}
-      className="group relative border border-hairline rounded-none bg-surface hover:border-accent/60 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)] transition-all duration-200 flex flex-col justify-between min-h-[360px] overflow-hidden select-none cursor-pointer"
+      className="group relative border border-black/80 dark:border-white/20 hover:border-black dark:hover:border-white/40 rounded-none bg-surface hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)] transition-all duration-200 flex flex-col justify-between min-h-[360px] overflow-hidden select-none cursor-pointer"
     >
       {/* Top Brand Accent Line */}
       <div
@@ -43,14 +43,9 @@ export function OrgCard({
             />
           </div>
 
-          {/* Badges Overlaid at Top */}
-          <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
-            {org.is2026 && (
-              <span className="inline-flex items-center gap-1 text-[9px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 uppercase tracking-wider backdrop-blur-xs shadow-2xs">
-                <Sparkles size={9} /> 2026
-              </span>
-            )}
-            {showActions && orgId && (
+          {/* Action Button at Top Right */}
+          {showActions && orgId && (
+            <div className="absolute top-2.5 right-2.5 z-10">
               <div
                 onClick={(e) => {
                   e.preventDefault();
@@ -70,8 +65,8 @@ export function OrgCard({
                   initialSaved={initialSaved}
                 />
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Card Content Area */}
@@ -115,12 +110,19 @@ export function OrgCard({
             </div>
           )}
 
-          {/* Card Footer: Years count / Projects count & Hover Arrow */}
+          {/* Card Footer: Years count + 2026 Pill + Hover Arrow */}
           <div className="flex items-center justify-between text-xs font-mono text-muted pt-1">
-            <span className="text-[10px]">
-              {years.length > 0 ? `${years.length} active years` : 'Open Source'}
-            </span>
-            <span className="inline-flex items-center gap-1 font-semibold text-accent group-hover:translate-x-1 transition-transform text-[11px]">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px]">
+                {years.length > 0 ? `${years.length} active years` : 'Open Source'}
+              </span>
+              {org.is2026 && (
+                <span className="inline-flex items-center gap-1 text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 uppercase tracking-wider shadow-2xs">
+                  <Sparkles size={9} /> 2026
+                </span>
+              )}
+            </div>
+            <span className="inline-flex items-center gap-1 font-semibold text-accent group-hover:translate-x-1 transition-transform text-[11px] shrink-0">
               Explore <ArrowRight size={11} />
             </span>
           </div>
@@ -132,7 +134,7 @@ export function OrgCard({
 
 export function OrgCardSkeleton() {
   return (
-    <div className="border border-hairline rounded-none bg-surface flex flex-col justify-between min-h-[360px] animate-pulse">
+    <div className="border border-black/80 dark:border-white/20 rounded-none bg-surface flex flex-col justify-between min-h-[360px] animate-pulse">
       <div>
         <div className="w-full h-32 bg-page border-b border-hairline" />
         <div className="p-5">
@@ -148,11 +150,8 @@ export function OrgCardSkeleton() {
 
       <div className="p-5 pt-0">
         <div className="pt-3 border-t border-hairline space-y-2">
-          <div className="flex gap-1">
-            <div className="h-4 w-12 bg-page rounded-none" />
-            <div className="h-4 w-14 bg-page rounded-none" />
-          </div>
-          <div className="h-3 w-full bg-page rounded-none" />
+          <div className="h-4 w-1/2 bg-page rounded-none" />
+          <div className="h-4 w-full bg-page rounded-none" />
         </div>
       </div>
     </div>
