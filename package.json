@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.11.2",
+    "@vercel/analytics": "^2.0.1",
     "dotenv": "^16.4.7",
     "framer-motion": "^12.42.2",
     "gray-matter": "^4.0.3",

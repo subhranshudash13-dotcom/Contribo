@@ -5,6 +5,7 @@ import { Navbar } from "@/components/ui/Navbar";
 import { Footer } from "@/components/ui/Footer";
 import AuthButton from "@/components/ui/AuthButton";
 import { NetworkProvider } from "@/components/ui/NetworkProvider";
+import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
 import "./globals.css";
 
@@ -86,6 +87,7 @@ export default function RootLayout({
             <Footer />
           </NetworkProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
