@@ -60,6 +60,13 @@ Contribo generalizes open-source opportunity tracking, bringing multiple program
 
 Contribo is engineered with a modular, 6-layer resilient architecture separating client interactions, edge security, domain logic, repository abstractions, and external intelligence providers.
 
+<p align="center">
+  <img src="public/architecture.png" alt="Contribo System Architecture Diagram" width="100%" />
+</p>
+
+<details>
+<summary><b>🔍 View Mermaid Flowchart Specification</b></summary>
+
 ```mermaid
 flowchart TD
     subgraph L1["Layer 1: Presentation & Client (src/app, src/components)"]
@@ -134,6 +141,7 @@ flowchart TD
     Repos -- "primary persistence" --> MongoDB
     Repos -. "on outage or build-time access" .-> MockFallback
 ```
+</details>
 
 ### Architectural Highlights:
 1. **Layer 1 (Presentation & Client):** Unified interface leveraging Next.js 16 Server Components and Client State (including debounced 450ms proposal autosaving).
