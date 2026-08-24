@@ -41,12 +41,6 @@ export default async function ProgramsDirectory() {
           {/* Subtle background glow */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[600px] h-[300px] bg-accent/15 blur-[120px] rounded-full pointer-events-none" />
 
-          {/* Badge */}
-          <div className="relative z-10 inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-accent/30 bg-accent/10 text-accent text-xs font-mono font-bold tracking-widest uppercase shadow-[0_0_20px_rgba(241,131,89,0.15)]">
-            <Sparkles size={14} className="animate-pulse" />
-            Open Source Sprints
-          </div>
-          
           {/* Headline */}
           <h1 className="relative z-10 text-[34.75px] sm:text-[46.75px] lg:text-[70.75px] font-semibold tracking-tight text-primary leading-[1.1] font-heading drop-shadow-sm">
             Shape the Future of <br className="hidden sm:block" />

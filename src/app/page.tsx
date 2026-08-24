@@ -165,9 +165,6 @@ export default async function Home() {
         <section className="relative">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 relative z-10">
             <div className="space-y-3 max-w-2xl">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-accent font-semibold bg-accent/10 px-3 py-1.5 rounded-full border border-accent/25 inline-flex items-center shadow-sm">
-                <Sparkles size={12} className="mr-1.5" /> Curated Opportunities
-              </span>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-primary font-heading leading-tight">
                 Elite Mentorship <br />
                 <span className="text-muted">Programs</span>
@@ -277,9 +274,6 @@ export default async function Home() {
         <ScrollReveal animation="slide-up">
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center py-6">
           <div className="lg:col-span-5 space-y-6">
-            <span className="font-mono text-[10px] uppercase tracking-widest text-accent font-semibold bg-accent/10 px-3 py-1.5 rounded-full border border-accent/25 inline-flex items-center shadow-sm">
-              <Compass size={12} className="mr-1.5" /> Guide
-            </span>
             <h2 className="text-3xl sm:text-4xl font-heading font-semibold text-primary leading-tight">
               How Contribo works
             </h2>
@@ -372,10 +366,7 @@ export default async function Home() {
         <section className="space-y-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <span className="font-mono text-[10px] uppercase tracking-widest text-muted font-semibold">
-                Calendar
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-heading font-semibold text-primary mt-2">
+              <h2 className="text-2xl sm:text-3xl font-heading font-semibold text-primary">
                 Program timelines this year
               </h2>
             </div>
@@ -393,10 +384,6 @@ export default async function Home() {
         <section className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface border border-hairline text-xs font-mono font-medium text-secondary shadow-xs">
-                <Building2 size={13} className="text-brass" />
-                <span className="tracking-wide uppercase text-[11px]">Ecosystem Leaders</span>
-              </div>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-primary font-heading">
                 Popular mentoring organizations
               </h2>
@@ -491,9 +478,6 @@ export default async function Home() {
         <ScrollReveal animation="fade">
         <section className="space-y-8 py-4">
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="font-mono text-[10px] uppercase tracking-widest text-accent font-semibold bg-accent/10 px-3 py-1.5 rounded-full border border-accent/25 inline-flex items-center shadow-sm">
-              Success Stories
-            </span>
             <h2 className="text-2xl sm:text-3xl font-heading font-semibold text-primary">
               Accepted Contributors
             </h2>
@@ -565,9 +549,6 @@ export default async function Home() {
         <ScrollReveal animation="slide-up">
         <section className="space-y-8 max-w-4xl mx-auto py-4">
           <div className="text-center space-y-3">
-            <span className="font-mono text-[10px] uppercase tracking-widest text-accent font-semibold bg-accent/10 px-3 py-1.5 rounded-full border border-accent/25 inline-flex items-center shadow-sm">
-              Questions
-            </span>
             <h2 className="text-2xl sm:text-3xl font-heading font-semibold text-primary">
               Frequently Asked Questions
             </h2>

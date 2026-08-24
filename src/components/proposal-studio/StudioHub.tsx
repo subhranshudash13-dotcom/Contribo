@@ -322,7 +322,7 @@ export function StudioHub() {
         {/* 3. Capability Highlights */}
         <section className="pt-4 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {HUB_CAPABILITIES.map((cap, i) => (
+            {HUB_CAPABILITIES.map((cap: { title: string; body: string }, i: number) => (
               <div
                 key={cap.title}
                 className="space-y-2 border-l-2 border-brass/40 pl-5 transition-colors hover:border-brass"

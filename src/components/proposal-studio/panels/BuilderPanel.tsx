@@ -287,10 +287,11 @@ export function BuilderPanel() {
         ) : (
           <button
             type="button"
-            onClick={() => selectTab('review')}
+            onClick={() => selectTab('export')}
             className="inline-flex h-13 w-full sm:w-auto items-center justify-center gap-2.5 rounded-2xl bg-success px-8 font-mono text-xs sm:text-sm font-bold uppercase tracking-wide text-white hover:bg-success/90 transition-all shadow-md hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
           >
-            <span>All sections done — Run Review</span>
+            <span>All sections completed — Proceed to Export</span>
+            <ChevronRight size={18} />
           </button>
         )}
       </section>

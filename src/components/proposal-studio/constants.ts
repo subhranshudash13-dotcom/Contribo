@@ -1,20 +1,20 @@
 import {
   BookOpen,
-  CheckCircle2,
   Download,
   Edit3,
-  Layers,
-  Star,
+  FolderArchive,
   type LucideIcon,
 } from 'lucide-react';
 
 export type StudioTab =
-  | 'overview'
   | 'builder'
-  | 'examples'
+  | 'archive'
   | 'guide'
-  | 'review'
-  | 'export';
+  | 'export'
+  // Backwards-compatibility aliases
+  | 'overview'
+  | 'examples'
+  | 'review';
 
 export type StudioMode = 'hub' | 'workspace';
 
@@ -33,7 +33,7 @@ export interface BuilderSectionDef {
 export const BUILDER_SECTIONS: BuilderSectionDef[] = [
   {
     id: 'summary',
-    title: 'Summary',
+    title: 'Executive Summary & Abstract',
     shortLabel: 'Summary',
     placeholder:
       'Brief high-level summary of your project goals and expected outcomes...',
@@ -44,7 +44,7 @@ export const BUILDER_SECTIONS: BuilderSectionDef[] = [
   },
   {
     id: 'problemStatement',
-    title: 'Problem Statement',
+    title: 'Problem Statement & Motivation',
     shortLabel: 'Problem',
     placeholder:
       'Explain the current pain point or technical limitation in the project...',
@@ -55,7 +55,7 @@ export const BUILDER_SECTIONS: BuilderSectionDef[] = [
   },
   {
     id: 'architecture',
-    title: 'Architecture & Technical Design',
+    title: 'Proposed Solution & Technical Architecture',
     shortLabel: 'Architecture',
     placeholder:
       'Detail your technical approach, data flow, APIs, and components...',
@@ -65,8 +65,18 @@ export const BUILDER_SECTIONS: BuilderSectionDef[] = [
     minChars: 80,
   },
   {
+    id: 'deliverables',
+    title: 'Key Deliverables & Acceptance Criteria',
+    shortLabel: 'Deliverables',
+    placeholder: 'List explicit, verifiable outputs and testing metrics...',
+    tips: 'Mentors prefer measurable targets (coverage %, FPS, latency SLOs).',
+    acceptedSnippet:
+      '1. Reusable GeoECharts component in superset-frontend.\n2. Redis spatial cache middleware.\n3. Unit & Cypress test suites with 90%+ coverage.\n4. Official contributor documentation.',
+    minChars: 40,
+  },
+  {
     id: 'timeline',
-    title: 'Timeline & Milestones',
+    title: 'Timeline & Milestone Breakdown',
     shortLabel: 'Timeline',
     placeholder:
       'Break down work into bi-weekly milestones across the program duration...',
@@ -76,45 +86,35 @@ export const BUILDER_SECTIONS: BuilderSectionDef[] = [
     minChars: 50,
   },
   {
-    id: 'deliverables',
-    title: 'Deliverables & Acceptance Criteria',
-    shortLabel: 'Deliverables',
-    placeholder: 'List explicit, verifiable outputs and testing metrics...',
-    tips: 'Mentors prefer measurable targets (coverage %, FPS, latency SLOs).',
+    id: 'testing',
+    title: 'Testing Strategy & Quality Assurance',
+    shortLabel: 'Testing',
+    placeholder: 'Testing frameworks, coverage goals, mock strategy, and CI pipeline...',
+    tips: 'Mention PyTest, Jest, Vitest, Cypress or whatever matches the target repository.',
     acceptedSnippet:
-      '1. Reusable GeoECharts component in superset-frontend.\n2. Redis spatial cache middleware.\n3. Unit & Cypress test suites with 90%+ coverage.\n4. Official contributor documentation.',
+      'Unit tests using Jest & React Testing Library (target 90%+ branch coverage). End-to-end integration tests in Cypress for multi-layer map rendering. Automated CI checks on GitHub Actions.',
     minChars: 40,
   },
   {
-    id: 'stretchGoals',
-    title: 'Stretch Goals',
-    shortLabel: 'Stretch',
+    id: 'risks',
+    title: 'Risk Assessment & Contingency Plan',
+    shortLabel: 'Risks',
     placeholder:
-      'Optional additional features if main deliverables finish ahead of schedule...',
-    tips: 'Show ambition without risking core delivery. Keep stretch goals clearly optional.',
+      'Potential technical bottlenecks, dependency risks, and mitigation strategies...',
+    tips: 'Shows maturity and engineering foresight. Include time buffers for unexpected blockers.',
     acceptedSnippet:
-      'Support for WebGL vector tile streaming and offline map canvas exporting (PNG/SVG).',
-    minChars: 20,
-  },
-  {
-    id: 'communityContributions',
-    title: 'Community Contributions & PRs',
-    shortLabel: 'Contributions',
-    placeholder: 'List your past PRs, issues opened, or community discussions...',
-    tips: 'Even small merged docs fixes or bug reports build trust. Link PR/issue numbers.',
-    acceptedSnippet:
-      'PR #14209 (Merged): Fixed SQL Lab query execution timer bug.\nPR #14311 (In Review): Added unit test coverage for dashboard filter component.\nIssue #14102: Reported spatial layer glitch.',
+      'Risk 1: Upstream WebGL tile renderer memory leak. Mitigation: Fallback to canvas rasterizer and load-on-demand bounding box caching with 1-week buffer allocated in Phase 2.',
     minChars: 30,
   },
   {
     id: 'aboutMe',
-    title: 'About Me',
-    shortLabel: 'About',
+    title: 'Contributor Background & Past PRs',
+    shortLabel: 'About Me',
     placeholder:
-      'Your background, programming experience, and relevant work...',
-    tips: 'Highlight stack fit, education, and prior open-source collaboration style.',
+      'Your background, programming experience, merged PRs, and relevant work...',
+    tips: 'Highlight stack fit, prior merged PRs, open-source communication, and timezone availability.',
     acceptedSnippet:
-      'Final year CS student with 2 years of experience in React, TypeScript, and Python Flask. Previously contributed to Apache ECharts and active open-source enthusiast.',
+      'Final year CS student with 2 years of experience in React, TypeScript, and Python Flask. Merged PRs: #14209 (SQL Lab execution timer), #14311 (Filter component tests). Timezone: UTC+5:30 (40h/week dedicated).',
     minChars: 40,
   },
 ];
@@ -129,46 +129,32 @@ export interface StudioNavItem {
 
 export const STUDIO_NAV: StudioNavItem[] = [
   {
-    id: 'overview',
-    label: 'Overview',
-    shortLabel: 'Overview',
-    icon: Layers,
-    description: 'Draft status and next actions',
-  },
-  {
     id: 'builder',
     label: 'Builder',
-    shortLabel: 'Write',
+    shortLabel: 'Builder',
     icon: Edit3,
-    description: 'Section-by-section writing',
+    description: 'End-to-end proposal builder with 8 guided sections',
   },
   {
-    id: 'examples',
-    label: 'Library',
-    shortLabel: 'Library',
-    icon: Star,
-    description: 'Annotated accepted proposals',
+    id: 'archive',
+    label: 'Archive',
+    shortLabel: 'Archive',
+    icon: FolderArchive,
+    description: 'Real accepted proposals from past contributors',
   },
   {
     id: 'guide',
     label: 'Project Guide',
     shortLabel: 'Guide',
     icon: BookOpen,
-    description: 'Repo layout and mentor expectations',
-  },
-  {
-    id: 'review',
-    label: 'Review',
-    shortLabel: 'Review',
-    icon: CheckCircle2,
-    description: 'Readiness score and gaps',
+    description: 'Maintainer expectations, rubrics, and timeline guides',
   },
   {
     id: 'export',
     label: 'Export',
     shortLabel: 'Export',
     icon: Download,
-    description: 'Markdown and clipboard',
+    description: 'Python ReportLab PDF, Markdown, and JSON export',
   },
 ];
 

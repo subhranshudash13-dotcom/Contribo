@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Sun, Moon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { Logo } from './Logo';
@@ -27,13 +27,15 @@ const LINKS = [
 export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
   const mounted = React.useSyncExternalStore(
     () => () => {},
     () => true,
     () => false
   );
+
+  const isDark = (resolvedTheme || theme) === 'dark';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -74,42 +76,76 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
         </nav>
         
         {/* Right Controls (Theme Toggle & AuthButton) */}
-        <div className="hidden xl:flex items-center gap-4 flex-shrink-0">
-          {/* Theme Toggle */}
-          {mounted && (
-            <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="px-3 py-1.5 border border-hairline rounded-full font-mono text-[10px] uppercase text-muted hover:text-primary hover:bg-surface-raised/40 transition-all cursor-pointer shadow-sm"
-              aria-label="Toggle theme"
+        <div className="hidden xl:flex items-center gap-3.5 flex-shrink-0">
+          {/* Professional Segmented Theme Toggle */}
+          {mounted ? (
+            <div 
+              role="radiogroup" 
+              aria-label="Theme switcher"
+              className="flex items-center p-1 rounded-full border border-hairline/80 bg-surface-raised/70 shadow-2xs backdrop-blur-xs gap-0.5"
             >
-              {theme === 'dark' ? 'Light' : 'Dark'}
-            </button>
+              <button
+                onClick={() => setTheme('light')}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                  !isDark
+                    ? 'bg-surface text-amber-500 shadow-xs border border-hairline/70 scale-105'
+                    : 'text-muted hover:text-primary hover:scale-105'
+                }`}
+                aria-label="Switch to light mode"
+                title="Light mode"
+              >
+                <Sun size={16} className="transition-transform duration-200" />
+              </button>
+              <button
+                onClick={() => setTheme('dark')}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                  isDark
+                    ? 'bg-surface text-sky-400 shadow-xs border border-hairline/70 scale-105'
+                    : 'text-muted hover:text-primary hover:scale-105'
+                }`}
+                aria-label="Switch to dark mode"
+                title="Dark mode"
+              >
+                <Moon size={15} className="transition-transform duration-200" />
+              </button>
+            </div>
+          ) : (
+            <div className="w-[76px] h-9 rounded-full border border-hairline/50 bg-surface-raised/40 animate-pulse" />
           )}
           
-          {authButton && <div className="ml-2 pl-4 border-l border-hairline">{authButton}</div>}
+          {authButton && <div className="ml-1 pl-3.5 border-l border-hairline">{authButton}</div>}
         </div>
 
         {/* Global search command palette */}
         <CommandPalette hideTrigger={true} />
         
         {/* Mobile menu button & Controls */}
-        <div className="flex xl:hidden items-center gap-2.5 flex-shrink-0">
-          {mounted && (
+        <div className="flex xl:hidden items-center gap-2 flex-shrink-0">
+          {mounted ? (
             <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="w-11 h-11 flex items-center justify-center border border-hairline rounded-full font-mono text-xs uppercase text-muted hover:text-primary hover:bg-surface-raised/50 transition-all cursor-pointer shadow-sm"
+              onClick={() => setTheme(isDark ? 'light' : 'dark')}
+              className="w-11 h-11 flex items-center justify-center border border-hairline rounded-full bg-surface/70 hover:bg-surface-raised transition-all duration-200 cursor-pointer shadow-2xs text-secondary hover:text-primary active:scale-95"
               aria-label="Toggle theme"
+              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
-              {theme === 'dark' ? 'L' : 'D'}
+              {isDark ? (
+                <Sun size={19} className="text-amber-400 transition-transform duration-300" />
+              ) : (
+                <Moon size={18} className="text-secondary transition-transform duration-300" />
+              )}
             </button>
+          ) : (
+            <div className="w-11 h-11 rounded-full border border-hairline bg-surface-raised/40 animate-pulse" />
           )}
+          
           {authButton && <div>{authButton}</div>}
+          
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="w-11 h-11 flex items-center justify-center text-muted hover:text-primary hover:bg-surface-raised/50 border border-hairline rounded-full transition-all focus:outline-none cursor-pointer shadow-sm"
+            className="w-10 h-10 flex items-center justify-center text-muted hover:text-primary hover:bg-surface-raised/50 border border-hairline rounded-full transition-all focus:outline-none cursor-pointer shadow-2xs active:scale-95"
             aria-label="Toggle menu"
           >
-            {isOpen ? <X size={20} /> : <Menu size={20} />}
+            {isOpen ? <X size={19} /> : <Menu size={19} />}
           </button>
         </div>
       </div>

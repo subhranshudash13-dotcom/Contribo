@@ -358,3 +358,40 @@ test('6. GSoC Project Size & Stipend Calculation', async (t) => {
   });
 });
 
+test('7. Python Proposal PDF Engine', async (t) => {
+  const { spawnSync } = await import('child_process');
+  const path = await import('path');
+
+  await t.test('invokes Python ReportLab engine and returns valid PDF binary', () => {
+    const samplePayload = JSON.stringify({
+      title: 'Distributed Tracing Integration',
+      program: 'Google Summer of Code 2026',
+      targetOrg: 'OpenTelemetry',
+      year: 2026,
+      author: 'Test Contributor',
+      status: 'Ready for Submission',
+      sections: {
+        summary: 'A high-throughput eBPF metric collector for distributed tracing.',
+        problem: 'Standard user-space collectors introduce overhead on high-load clusters.',
+        solution: 'Kernel-level probes with ring buffer batching.',
+        deliverables: '1. eBPF C probes\n2. Go userspace daemon\n3. Integration tests',
+        timeline: 'Weeks 1-4: Kernel probes\nWeeks 5-8: Daemon\nWeeks 9-12: Docs & Polish',
+        testing: 'PyTest and Go test framework with 90%+ coverage.',
+        risks: 'Kernel compatibility differences across distributions.',
+        aboutMe: 'Computer Science undergrad with contributions to OpenTelemetry.',
+      },
+    });
+
+    const scriptPath = path.resolve(process.cwd(), 'scripts', 'proposal_pdf_engine.py');
+    const result = spawnSync('python', [scriptPath, '-'], {
+      input: Buffer.from(samplePayload, 'utf-8'),
+    });
+
+    assert.equal(result.status, 0, `Python script failed: ${result.stderr?.toString()}`);
+    assert.ok(result.stdout && result.stdout.length > 500, 'PDF output should be non-empty binary');
+    const pdfHeader = result.stdout.slice(0, 5).toString('ascii');
+    assert.equal(pdfHeader, '%PDF-', 'Output should have valid PDF magic header');
+  });
+});
+
+

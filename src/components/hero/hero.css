@@ -1,8 +1,9 @@
 .hero {
     position: relative;
     width: 100%;
-    min-height: 85vh;
-    padding-bottom: 120px;
+    min-height: auto;
+    padding-top: 16px;
+    padding-bottom: 72px;
     overflow: hidden;
     background: var(--base);
     background-image: radial-gradient(circle at 85% 30%, rgba(198, 120, 72, 0.08), transparent 55%);
@@ -15,7 +16,8 @@
 
 @media (max-width: 1023px) {
     .hero {
-        padding-bottom: 60px;
+        padding-top: 8px;
+        padding-bottom: 48px;
         min-height: auto;
     }
 }

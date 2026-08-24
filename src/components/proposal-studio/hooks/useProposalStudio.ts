@@ -26,16 +26,24 @@ import {
 } from '../constants';
 
 const VALID_TABS: StudioTab[] = [
-  'overview',
   'builder',
-  'examples',
+  'archive',
   'guide',
-  'review',
   'export',
+  'overview',
+  'examples',
+  'review',
 ];
 
 function isStudioTab(value: string | null): value is StudioTab {
   return !!value && (VALID_TABS as string[]).includes(value);
+}
+
+function normalizeTab(value: string | null): StudioTab {
+  if (value === 'archive' || value === 'examples') return 'archive';
+  if (value === 'guide') return 'guide';
+  if (value === 'export') return 'export';
+  return 'builder';
 }
 
 function sectionFilled(value: string | undefined, minChars: number) {
@@ -57,20 +65,18 @@ export function useProposalStudio() {
   const projectParam = searchParams.get('project');
   const orgParam = searchParams.get('org');
 
-  const initialTab: StudioTab = isStudioTab(tabParam) ? tabParam : 'builder';
+  const initialTab: StudioTab = normalizeTab(tabParam);
   const initialMode: StudioMode =
     draftParam || modeParam === 'workspace' || isStudioTab(tabParam)
       ? 'workspace'
-      : 'hub';
+      : 'workspace'; // Default straight to workspace for a seamless single-page experience
 
   const [mode, setMode] = useState<StudioMode>(initialMode);
   const [drafts, setDrafts] = useState<ProposalDraft[]>(DRAFT_PROPOSALS);
   const [activeDraftId, setActiveDraftId] = useState<string>(
     draftParam || DRAFT_PROPOSALS[0]?.id || ''
   );
-  const [activeTab, setActiveTab] = useState<StudioTab>(
-    initialMode === 'hub' ? 'builder' : initialTab
-  );
+  const [activeTab, setActiveTab] = useState<StudioTab>(initialTab);
   const [activeSectionId, setActiveSectionId] = useState<string>(
     BUILDER_SECTIONS[0].id
   );
@@ -477,6 +483,53 @@ export function useProposalStudio() {
     showToast('Markdown downloaded');
   }, [activeDraft, sectionsState, showToast]);
 
+  const downloadPdfFile = useCallback(async () => {
+    if (!activeDraft) return;
+    try {
+      showToast('Generating PDF via Python ReportLab engine...');
+      const payload = {
+        title: activeDraft.projectTitle || 'Open Source Project Proposal',
+        program: activeDraft.programName || 'Google Summer of Code',
+        targetOrg: activeDraft.orgName || 'Open Source Organization',
+        year: new Date().getFullYear(),
+        author: 'Contributor',
+        status: calculatedProgress >= 100 ? 'Ready for Submission' : 'Draft in Progress',
+        sections: {
+          summary: sectionsState.summary || '',
+          problem: sectionsState.problemStatement || '',
+          solution: sectionsState.architecture || '',
+          deliverables: sectionsState.deliverables || '',
+          timeline: sectionsState.timeline || '',
+          testing: sectionsState.testing || '',
+          risks: sectionsState.risks || '',
+          aboutMe: sectionsState.aboutMe || '',
+        },
+      };
+
+      const res = await fetch('/api/proposals/export-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error(`PDF generation failed: ${res.statusText}`);
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Proposal_${activeDraft.projectSlug || 'draft'}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('PDF downloaded successfully!');
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to export PDF via Python engine');
+    }
+  }, [activeDraft, sectionsState, calculatedProgress, showToast]);
+
   const createDraft = useCallback(
     async (payload?: {
       projectTitle?: string;
@@ -597,6 +650,7 @@ export function useProposalStudio() {
     cloneProposalToWorkspace,
     copyProposalToClipboard,
     downloadMarkdownFile,
+    downloadPdfFile,
     createDraft,
     deleteDraft,
     openWorkspace,

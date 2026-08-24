@@ -67,12 +67,6 @@ export function ProposalStudioSection() {
         
         {/* Top Header Group */}
         <div className="flex flex-col items-center text-center mx-auto w-full">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-accent/20 bg-accent/10 text-accent text-xs font-semibold mb-6">
-            <Sparkles size={14} />
-            <span>Interactive Proposal Studio</span>
-          </div>
-
           {/* Headline */}
           <h2 className="text-[27px] sm:text-[33px] lg:text-[45px] font-heading font-semibold text-primary leading-[1.2] tracking-tight mb-6">
             Learn from Real. Build <br className="hidden sm:block" />

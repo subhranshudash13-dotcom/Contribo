@@ -68,23 +68,18 @@ export default async function ProgramDetailPage({ params }: Props) {
       className="py-12 px-4 sm:px-6 lg:px-8 w-full max-w-[1320px] mx-auto mt-20"
       style={{ '--program-accent': accent } as React.CSSProperties}
     >
-      {/* Banner & Header */}
-      <div className="mb-8 lg:mb-10 relative overflow-hidden rounded-[32px] border border-hairline/80 bg-surface p-6 sm:p-8 md:p-10 shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
-        <div
-          className="absolute right-[-100px] top-[-100px] w-[400px] h-[400px] rounded-full blur-[120px] pointer-events-none opacity-20 dark:opacity-10"
-          style={{ backgroundColor: 'var(--program-accent)' }}
-        />
-
+      {/* Header — Direct on page (unboxed) */}
+      <div className="mb-10 pb-8 border-b border-hairline relative">
         <Link
           href="/programs"
-          className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-secondary hover:text-primary mb-6 transition-colors font-bold"
+          className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-secondary hover:text-accent mb-6 transition-colors font-bold"
         >
-          <ArrowLeft size={12} /> Back to Programs
+          <ArrowLeft size={13} /> Back to Programs
         </Link>
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6">
-            <div className="w-20 h-20 rounded-2xl flex items-center justify-center bg-page border border-hairline/80 p-3 shadow-md shrink-0">
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center bg-surface border border-hairline p-3 shadow-sm shrink-0">
               <ProgramLogo
                 slug={program.slug}
                 color={true}
@@ -97,12 +92,12 @@ export default async function ProgramDetailPage({ params }: Props) {
                   Organized by {program.organizer}
                 </span>
                 {program.difficulty && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-[10px] uppercase font-bold bg-page border border-hairline text-muted">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-[10px] uppercase font-bold bg-surface border border-hairline text-muted">
                     {program.difficulty}
                   </span>
                 )}
               </div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary leading-[1.1] mb-3">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary leading-[1.1] mb-3 font-heading">
                 {program.name}
               </h1>
               <p className="text-secondary text-base sm:text-lg max-w-2xl leading-relaxed">
@@ -129,7 +124,7 @@ export default async function ProgramDetailPage({ params }: Props) {
               href={program.officialWebsite}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 border border-hairline/80 bg-surface hover:bg-surface-raised font-bold text-sm text-primary rounded-2xl transition-all shadow-sm w-fit cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 border border-hairline bg-surface hover:bg-surface-raised font-bold text-sm text-primary rounded-xl transition-all shadow-xs w-fit cursor-pointer self-start md:self-center"
             >
               Official Website <ExternalLink size={14} className="text-secondary" />
             </a>
@@ -137,51 +132,51 @@ export default async function ProgramDetailPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Organization Explorer CTA or Coming Soon */}
+      {/* Organization Explorer Banner */}
       {explorerEnabled ? (
-        <section className="mb-8 lg:mb-10">
-          <div className="rounded-[28px] border border-hairline bg-surface p-8 sm:p-10 text-left relative overflow-hidden transition-all duration-200 hover:border-accent/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+        <section className="mb-10">
+          <div className="rounded-2xl border border-hairline bg-surface/60 p-6 sm:p-8 text-left relative overflow-hidden transition-all duration-200 hover:border-accent/30">
             <div
-              className="absolute top-0 left-0 w-full h-[3px]"
+              className="absolute top-0 left-0 w-full h-[2px]"
               style={{ backgroundColor: accent }}
             />
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-3 max-w-2xl">
+              <div className="space-y-2 max-w-2xl">
                 <div className="flex items-center gap-2">
                   <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center"
                     style={{
                       backgroundColor: `color-mix(in srgb, ${accent} 12%, transparent)`,
                       color: accent,
                     }}
                   >
-                    <Building2 size={18} />
+                    <Building2 size={16} />
                   </div>
                   <span className="text-xs font-mono uppercase tracking-widest text-muted font-bold">
                     Organization Directory
                   </span>
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-primary tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-bold text-primary tracking-tight font-heading">
                   Explore {program.name} Organizations
                 </h2>
                 <p className="text-secondary text-sm sm:text-base leading-relaxed">
-                  Browse and filter organizations participating in {program.name}. Select years to find active orgs, or use the search to find specific ones.
+                  Browse and filter organizations participating in {program.name}. Select years to find active orgs, or use search to find specific ones.
                 </p>
               </div>
               <div className="shrink-0 flex flex-col sm:flex-row gap-3">
                 <Link
                   href={`/programs/${program.slug}/organizations`}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm text-white shadow-md transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white shadow-sm transition-all hover:opacity-95 cursor-pointer"
                   style={{ backgroundColor: accent }}
                 >
                   Explore Organizations
-                  <ArrowRight size={16} />
+                  <ArrowRight size={15} />
                 </Link>
                 <Link
                   href="/matcher"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border border-brass/35 text-brass hover:bg-brass/5 font-bold text-sm transition-colors"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-brass/35 text-brass hover:bg-brass/5 font-bold text-sm transition-colors"
                 >
-                  <Sparkles size={16} />
+                  <Sparkles size={15} />
                   AI Project Matcher
                 </Link>
               </div>
@@ -189,29 +184,25 @@ export default async function ProgramDetailPage({ params }: Props) {
           </div>
         </section>
       ) : (
-        <section className="mb-8 lg:mb-10">
-          <div className="rounded-[28px] border border-hairline bg-surface p-8 sm:p-10 text-center relative overflow-hidden">
-            <div
-              className="absolute top-0 left-0 w-full h-[3px]"
-              style={{ backgroundColor: accent }}
-            />
-            <Construction size={36} className="mx-auto mb-4 text-muted" />
-            <h2 className="text-xl sm:text-2xl font-bold text-primary mb-2">
+        <section className="mb-10">
+          <div className="rounded-2xl border border-hairline bg-surface/50 p-6 sm:p-8 text-center relative overflow-hidden">
+            <Construction size={32} className="mx-auto mb-3 text-muted" />
+            <h2 className="text-lg sm:text-xl font-bold text-primary mb-1.5 font-heading">
               Organization Explorer — Coming Soon
             </h2>
-            <p className="text-secondary text-sm max-w-lg mx-auto mb-5 leading-relaxed">
+            <p className="text-secondary text-sm max-w-lg mx-auto mb-4 leading-relaxed">
               We&apos;re building a filterable directory of {program.name} organizations
               with year-wise browsing, search, and AI-powered project matching.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link
                 href={`/organizations?programId=${program._id?.toString()}`}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-hairline bg-surface-raised hover:bg-hairline/40 text-primary font-bold text-sm transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-hairline bg-surface hover:bg-surface-raised text-primary font-bold text-xs transition-colors"
               >
                 Browse all {program.name} orgs
               </Link>
-              <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-brass/20 text-brass text-xs font-bold">
-                <Bell size={14} />
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-brass/20 text-brass text-xs font-bold">
+                <Bell size={13} />
                 Notify me when ready
               </span>
             </div>
@@ -219,16 +210,12 @@ export default async function ProgramDetailPage({ params }: Props) {
         </section>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
-        {/* Left main content */}
-        <div className="lg:col-span-2 space-y-8 lg:space-y-10">
-          {/* How it works — primary educational block */}
-          <section className="bg-surface border border-hairline/80 rounded-[28px] p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.01)] relative overflow-hidden">
-            <div
-              className="absolute top-0 left-0 w-full h-[3px]"
-              style={{ backgroundColor: 'var(--program-accent)' }}
-            />
-            <div className="flex items-start gap-3 mb-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start">
+        {/* Left main content — Direct on page */}
+        <div className="lg:col-span-2 space-y-12">
+          {/* How it works */}
+          <section className="space-y-6 pb-10 border-b border-hairline/70">
+            <div className="flex items-start gap-3">
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border"
                 style={{
@@ -240,44 +227,46 @@ export default async function ProgramDetailPage({ params }: Props) {
                 <Compass size={20} />
               </div>
               <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-primary">
+                <h2 className="text-2xl sm:text-3xl font-bold text-primary font-heading">
                   How {program.name} works
                 </h2>
-                <p className="text-sm text-muted mt-1">
+                <p className="text-sm text-muted mt-0.5">
                   A plain-language guide so you know what to expect before applying.
                 </p>
               </div>
             </div>
 
-            <p className="text-secondary text-[15px] sm:text-base leading-relaxed mb-8 max-w-3xl">
+            <p className="text-secondary text-[15px] sm:text-base leading-relaxed max-w-3xl">
               {guide.overview}
             </p>
 
-            <h3 className="font-mono text-[11px] font-bold uppercase tracking-widest text-muted mb-4 flex items-center gap-2">
-              <ListChecks size={14} style={{ color: accent }} />
-              The path
-            </h3>
-            <ol className="space-y-3 mb-8">
-              {guide.howItWorks.map((step, idx) => (
-                <li
-                  key={idx}
-                  className="flex gap-3 sm:gap-4 items-start rounded-2xl border border-hairline bg-page/40 px-4 py-3.5"
-                >
-                  <span
-                    className="w-7 h-7 rounded-lg flex items-center justify-center font-mono text-xs font-bold shrink-0 mt-0.5 text-white"
-                    style={{ backgroundColor: accent }}
+            <div>
+              <h3 className="font-mono text-[11px] font-bold uppercase tracking-widest text-muted mb-4 flex items-center gap-2">
+                <ListChecks size={14} style={{ color: accent }} />
+                The path
+              </h3>
+              <ol className="space-y-3">
+                {guide.howItWorks.map((step, idx) => (
+                  <li
+                    key={idx}
+                    className="flex gap-3 sm:gap-4 items-start rounded-xl border border-hairline bg-surface/40 px-4 py-3.5"
                   >
-                    {idx + 1}
-                  </span>
-                  <p className="text-secondary text-sm sm:text-[15px] leading-relaxed font-medium">
-                    {step}
-                  </p>
-                </li>
-              ))}
-            </ol>
+                    <span
+                      className="w-6 h-6 rounded-md flex items-center justify-center font-mono text-xs font-bold shrink-0 mt-0.5 text-white"
+                      style={{ backgroundColor: accent }}
+                    >
+                      {idx + 1}
+                    </span>
+                    <p className="text-secondary text-sm sm:text-[15px] leading-relaxed font-medium">
+                      {step}
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="rounded-2xl border border-hairline bg-page/30 p-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div className="rounded-xl border border-hairline bg-surface/30 p-5">
                 <h3 className="font-bold text-primary text-sm mb-3 flex items-center gap-2">
                   <Users size={16} style={{ color: accent }} />
                   Who it&apos;s for
@@ -285,13 +274,13 @@ export default async function ProgramDetailPage({ params }: Props) {
                 <ul className="space-y-2">
                   {guide.whoItsFor.map((item, i) => (
                     <li key={i} className="flex gap-2 text-sm text-secondary leading-relaxed">
-                      <CheckCircle2 size={14} className="shrink-0 mt-0.5 text-merge" />
+                      <CheckCircle2 size={14} className="shrink-0 mt-0.5 text-emerald-500" />
                       {item}
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="rounded-2xl border border-hairline bg-page/30 p-5">
+              <div className="rounded-xl border border-hairline bg-surface/30 p-5">
                 <h3 className="font-bold text-primary text-sm mb-3 flex items-center gap-2">
                   <Target size={16} style={{ color: accent }} />
                   What you walk away with
@@ -308,7 +297,7 @@ export default async function ProgramDetailPage({ params }: Props) {
             </div>
 
             {guide.tips.length > 0 && (
-              <div className="mt-6 rounded-2xl border border-brass/20 bg-brass/5 p-5">
+              <div className="rounded-xl border border-brass/20 bg-brass/5 p-5">
                 <h3 className="font-bold text-primary text-sm mb-3 flex items-center gap-2">
                   <Lightbulb size={16} className="text-brass" />
                   Tips from Contribo
@@ -327,25 +316,23 @@ export default async function ProgramDetailPage({ params }: Props) {
 
           {/* Official eligibility summary */}
           {program.eligibilitySummary && (
-            <section className="bg-surface border border-hairline/80 rounded-[28px] p-6 sm:p-8 shadow-sm">
-              <h2 className="text-lg font-bold text-primary mb-3">Eligibility (official summary)</h2>
+            <section className="space-y-3 pb-10 border-b border-hairline/70">
+              <h2 className="text-xl sm:text-2xl font-bold text-primary font-heading">
+                Eligibility (Official Summary)
+              </h2>
               <p className="text-secondary text-sm sm:text-base leading-relaxed">
                 {program.eligibilitySummary}
               </p>
-              <p className="text-xs text-muted mt-3 font-mono">
+              <p className="text-xs text-muted font-mono">
                 Always confirm full rules on the official website before applying.
               </p>
             </section>
           )}
 
           {/* Timeline */}
-          <section className="bg-surface border border-hairline/80 rounded-[28px] p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.01)] relative overflow-hidden">
-            <div
-              className="absolute top-0 left-0 w-full h-[3px]"
-              style={{ backgroundColor: 'var(--program-accent)' }}
-            />
-            <h2 className="text-xl sm:text-2xl font-bold mb-6 flex items-center gap-2 text-primary">
-              <Calendar size={20} className="text-accent" /> Program Timeline
+          <section className="space-y-6 pb-10 border-b border-hairline/70">
+            <h2 className="text-2xl sm:text-3xl font-bold flex items-center gap-2.5 text-primary font-heading">
+              <Calendar size={22} className="text-accent" /> Program Timeline
             </h2>
             {program.timeline && program.timeline.length > 0 ? (
               <div className="relative pl-6 sm:pl-8 border-l-2 border-hairline ml-3 sm:ml-4 space-y-8 py-2">
@@ -359,11 +346,11 @@ export default async function ProgramDetailPage({ params }: Props) {
                   return (
                     <div key={idx} className="relative group">
                       <span
-                        className={`absolute -left-[35px] sm:-left-[43px] top-1 w-6 h-6 rounded-full border-4 border-surface z-10 flex items-center justify-center transition-all ${
+                        className={`absolute -left-[35px] sm:-left-[43px] top-1 w-6 h-6 rounded-full border-4 border-page z-10 flex items-center justify-center transition-all ${
                           isCurrent
                             ? 'bg-accent border-accent/20 ring-4 ring-accent/15'
                             : isPast
-                              ? 'bg-accent/40 border-surface'
+                              ? 'bg-accent/40 border-page'
                               : 'bg-surface-raised border-hairline/60'
                         }`}
                       >
@@ -399,18 +386,14 @@ export default async function ProgramDetailPage({ params }: Props) {
 
           {/* Application Steps */}
           {program.applicationSteps && program.applicationSteps.length > 0 && (
-            <section className="bg-surface border border-hairline/80 rounded-[28px] p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.01)] relative overflow-hidden">
-              <div
-                className="absolute top-0 left-0 w-full h-[3px]"
-                style={{ backgroundColor: 'var(--program-accent)' }}
-              />
-              <h2 className="text-xl sm:text-2xl font-bold mb-6 flex items-center gap-2 text-primary">
-                <ListChecks size={20} className="text-accent" /> Official application steps
+            <section className="space-y-6 pb-10 border-b border-hairline/70">
+              <h2 className="text-2xl sm:text-3xl font-bold flex items-center gap-2.5 text-primary font-heading">
+                <ListChecks size={22} className="text-accent" /> Official Application Steps
               </h2>
               <ol className="space-y-4">
                 {program.applicationSteps.map((step, idx) => (
                   <li key={idx} className="flex gap-4 items-start">
-                    <span className="w-7 h-7 rounded-xl bg-surface-raised border border-hairline flex items-center justify-center font-mono text-xs font-bold text-accent shrink-0 mt-0.5 shadow-sm">
+                    <span className="w-7 h-7 rounded-xl bg-surface border border-hairline flex items-center justify-center font-mono text-xs font-bold text-accent shrink-0 mt-0.5 shadow-xs">
                       {idx + 1}
                     </span>
                     <p className="text-secondary text-[14px] sm:text-base font-semibold leading-relaxed mt-0.5">
@@ -424,18 +407,14 @@ export default async function ProgramDetailPage({ params }: Props) {
 
           {/* Past Statistics */}
           {program.pastStats && program.pastStats.length > 0 && (
-            <section className="bg-surface border border-hairline/80 rounded-[28px] p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.01)] relative overflow-hidden">
-              <div
-                className="absolute top-0 left-0 w-full h-[3px]"
-                style={{ backgroundColor: 'var(--program-accent)' }}
-              />
-              <h2 className="text-xl sm:text-2xl font-bold mb-6 flex items-center gap-2 text-primary">
-                <BarChart3 size={20} className="text-accent" /> Past Statistics
+            <section className="space-y-6 pb-10 border-b border-hairline/70">
+              <h2 className="text-2xl sm:text-3xl font-bold flex items-center gap-2.5 text-primary font-heading">
+                <BarChart3 size={22} className="text-accent" /> Past Statistics
               </h2>
-              <div className="border border-hairline rounded-2xl overflow-hidden bg-page/10 shadow-inner overflow-x-auto">
+              <div className="border border-hairline rounded-2xl overflow-hidden bg-surface/40 shadow-xs overflow-x-auto">
                 <table className="w-full text-left font-mono text-xs sm:text-sm border-collapse min-w-[480px]">
                   <thead>
-                    <tr className="border-b border-hairline bg-surface-raised/40 text-muted uppercase text-[10px] sm:text-xs tracking-wider">
+                    <tr className="border-b border-hairline bg-surface text-muted uppercase text-[10px] sm:text-xs tracking-wider">
                       <th className="py-4 px-6 font-bold">Year</th>
                       <th className="py-4 px-6 font-bold">Accepted Contributors</th>
                       <th className="py-4 px-6 font-bold">Organizations</th>
@@ -446,7 +425,7 @@ export default async function ProgramDetailPage({ params }: Props) {
                     {program.pastStats.map((stat, idx) => (
                       <tr
                         key={idx}
-                        className="border-b border-hairline/40 last:border-0 hover:bg-surface-raised/20 transition-colors"
+                        className="border-b border-hairline/40 last:border-0 hover:bg-surface/60 transition-colors"
                       >
                         <td className="py-4 px-6 text-primary font-bold">{stat.year}</td>
                         <td className="py-4 px-6 text-accent font-bold">
@@ -466,15 +445,11 @@ export default async function ProgramDetailPage({ params }: Props) {
             </section>
           )}
 
-          {/* Resources */}
+          {/* Resources & Guides */}
           {program.resources && program.resources.length > 0 && (
-            <section className="bg-surface border border-hairline/80 rounded-[28px] p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.01)] relative overflow-hidden">
-              <div
-                className="absolute top-0 left-0 w-full h-[3px]"
-                style={{ backgroundColor: 'var(--program-accent)' }}
-              />
-              <h2 className="text-xl sm:text-2xl font-bold mb-6 flex items-center gap-2 text-primary">
-                <BookOpen size={20} className="text-accent" /> Resources & Guides
+            <section className="space-y-6">
+              <h2 className="text-2xl sm:text-3xl font-bold flex items-center gap-2.5 text-primary font-heading">
+                <BookOpen size={22} className="text-accent" /> Resources & Guides
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {program.resources.map((res, idx) => (
@@ -483,14 +458,14 @@ export default async function ProgramDetailPage({ params }: Props) {
                     href={res.url}
                     target={res.url.startsWith('http') ? '_blank' : undefined}
                     rel={res.url.startsWith('http') ? 'noopener noreferrer' : undefined}
-                    className="flex items-center justify-between p-5 bg-surface border border-hairline rounded-2xl hover:bg-surface-raised/40 transition-colors group shadow-sm"
+                    className="flex items-center justify-between p-5 bg-surface border border-hairline rounded-xl hover:border-accent/40 hover:bg-surface-raised/40 transition-colors group shadow-xs"
                   >
                     <span className="font-semibold text-sm text-primary group-hover:text-accent transition-colors">
                       {res.title}
                     </span>
                     <ArrowUpRight
                       size={16}
-                      className="text-muted group-hover:text-accent transition-colors"
+                      className="text-muted group-hover:text-accent transition-colors shrink-0 ml-2"
                     />
                   </a>
                 ))}
@@ -499,13 +474,13 @@ export default async function ProgramDetailPage({ params }: Props) {
           )}
         </div>
 
-        {/* Right sidebar */}
-        <div className="space-y-6">
-          <div className="bg-surface border border-hairline/80 rounded-[28px] p-6 sm:p-8 shadow-sm lg:sticky lg:top-28 relative overflow-hidden">
-            <h3 className="font-bold text-lg font-mono uppercase tracking-wider mb-6 text-primary border-b border-hairline pb-4 flex items-center gap-2">
+        {/* Right Sidebar */}
+        <div className="space-y-6 lg:sticky lg:top-28">
+          <div className="bg-surface/80 border border-hairline rounded-2xl p-6 sm:p-7 shadow-xs">
+            <h3 className="font-bold text-base font-mono uppercase tracking-wider mb-6 text-primary border-b border-hairline pb-4 flex items-center gap-2">
               <Award size={18} className="text-accent" /> Program Meta
             </h3>
-            <ul className="space-y-6">
+            <ul className="space-y-5">
               <li>
                 <div className="text-xs text-muted font-mono uppercase tracking-wider mb-2 font-bold">
                   Stipend Range
@@ -516,7 +491,7 @@ export default async function ProgramDetailPage({ params }: Props) {
                 <div className="text-xs text-muted font-mono uppercase tracking-wider mb-2 font-bold">
                   Duration
                 </div>
-                <div className="font-semibold text-[15px] sm:text-base text-primary font-mono bg-page/50 px-3 py-1.5 border border-hairline rounded-xl w-fit">
+                <div className="font-semibold text-[15px] sm:text-base text-primary font-mono bg-page px-3 py-1.5 border border-hairline rounded-xl w-fit">
                   {program.durationWeeks} Weeks
                 </div>
               </li>
@@ -542,7 +517,7 @@ export default async function ProgramDetailPage({ params }: Props) {
                   <div className="text-xs text-muted font-mono uppercase tracking-wider mb-2 font-bold">
                     Difficulty
                   </div>
-                  <div className="font-semibold text-[15px] sm:text-base text-primary bg-page/50 px-3 py-1.5 border border-hairline rounded-xl w-fit">
+                  <div className="font-semibold text-[15px] sm:text-base text-primary bg-page px-3 py-1.5 border border-hairline rounded-xl w-fit">
                     {program.difficulty}
                   </div>
                 </li>
@@ -554,21 +529,21 @@ export default async function ProgramDetailPage({ params }: Props) {
             <div className="flex flex-col gap-3">
               <Link
                 href={`/organizations?programId=${program._id?.toString()}`}
-                className="bg-accent hover:bg-accent-hover text-white py-3.5 rounded-xl font-bold transition-all text-center w-full shadow-sm text-sm cursor-pointer"
+                className="bg-accent hover:bg-accent-hover text-white py-3 rounded-xl font-bold transition-all text-center w-full shadow-xs text-sm cursor-pointer"
               >
                 View Organizations
               </Link>
               <Link
                 href={`/projects?programId=${program._id?.toString()}`}
-                className="border border-hairline bg-surface-raised hover:bg-hairline/40 text-primary py-3.5 rounded-xl font-bold transition-colors text-center w-full shadow-sm text-sm"
+                className="border border-hairline bg-surface hover:bg-surface-raised text-primary py-3 rounded-xl font-bold transition-colors text-center w-full shadow-xs text-sm"
               >
                 Browse Projects
               </Link>
               <Link
                 href="/matcher"
-                className="border border-brass/30 text-brass hover:bg-brass/10 py-3.5 rounded-xl font-bold transition-colors text-center w-full text-sm inline-flex items-center justify-center gap-2"
+                className="border border-brass/30 text-brass hover:bg-brass/10 py-3 rounded-xl font-bold transition-colors text-center w-full text-sm inline-flex items-center justify-center gap-2"
               >
-                <Sparkles size={16} />
+                <Sparkles size={15} />
                 Find matching projects
               </Link>
             </div>
@@ -579,7 +554,6 @@ export default async function ProgramDetailPage({ params }: Props) {
           </div>
         </div>
       </div>
-
     </main>
   );
 }

@@ -51,8 +51,97 @@ Contribo generalizes open-source opportunity tracking, bringing multiple program
 *   **Styling & Motion:** [Tailwind CSS v4](https://tailwindcss.com/), [Framer Motion](https://www.framer.com/motion/) (for smooth schematic/line-drawing animations)
 *   **Database:** [MongoDB](https://www.mongodb.com/) (with text search and compound indexing)
 *   **Authentication:** [NextAuth.js Beta 5](https://next-auth.js.org/) (GitHub & Google OAuth)
-*   **AI Integration:** [OpenAI SDK](https://github.com/openai/openai-node) (for generating embeddings and matcher logic)
+*   **AI Integration:** [Google Gemini Flash](https://ai.google.dev/) (Primary) & [OpenAI GPT-4o-mini](https://openai.com/) (Fallback)
 *   **Content Delivery:** [next-mdx-remote](https://github.com/hashicorp/next-mdx-remote) (for guidelines and roadmaps)
+
+---
+
+## 🏛️ System Architecture
+
+Contribo is engineered with a modular, 6-layer resilient architecture separating client interactions, edge security, domain logic, repository abstractions, and external intelligence providers.
+
+```mermaid
+flowchart TD
+    subgraph L1["Layer 1: Presentation & Client (src/app, src/components)"]
+        NextApp["Next.js 16 App Router<br/>Server and Client Components"]
+        Studio["Proposal Studio<br/>/proposal-studio"]
+        StudioCtx["ProposalStudioContext<br/>Edits, reviews, snapshots"]
+        Debounce["450ms Debounced Autosave"]
+        MatcherUI["AI Matcher UI<br/>/matcher"]
+        Dirs["Program and Organization Directories<br/>/programs, /organizations/[slug]"]
+        
+        NextApp --> Studio
+        NextApp --> MatcherUI
+        NextApp --> Dirs
+        Studio --> StudioCtx
+        StudioCtx --> Debounce
+    end
+
+    subgraph L2["Layer 2: Edge Security & Middleware (src/proxy.ts, src/auth.ts)"]
+        CSP["Dynamic CSP and Security Headers"]
+        RateLimiter["Sliding Window Rate Limiter<br/>LRU cap: 10,000 IP windows"]
+        AuthGate["NextAuth.js v5<br/>Authentication Gate"]
+        OAuth["GitHub OAuth and Google OAuth"]
+        
+        CSP --> RateLimiter
+        RateLimiter --> AuthGate
+        AuthGate <--> OAuth
+    end
+
+    subgraph L3["Layer 3: API & Controllers (src/app/api)"]
+        PropCtrl["Proposals Controller<br/>Create, autosave, AI improve"]
+        MatchCtrl["Matching Controller<br/>Candidate queries and scoring"]
+        CatalogAPI["Catalog and Data APIs<br/>Projects, organizations, programs, stats, search"]
+    end
+
+    subgraph L4["Layer 4: Domain & Business Logic (src/lib)"]
+        Rubric["Proposal Rubric Engine<br/>Eight open-source proposal criteria"]
+        MatchPipeline["AI Matcher Pipeline<br/>Token expansion and normalization"]
+        Heuristic["Heuristic Filtering<br/>Tech 50% · Difficulty 20% · History 15% · Topic 15%"]
+        Rerank["AI Re-ranking Fallback<br/>Semantic explanation and fit percentage"]
+    end
+
+    subgraph L5["Layer 5: Repositories & Resilient Storage (src/lib/repositories)"]
+        Repos["Typed Repository Abstractions<br/>Proposals, projects, organizations, programs, users"]
+        MockFallback["In-Memory Mock and Cache Fallback<br/>Build-safe and outage-resilient"]
+    end
+
+    subgraph L6["Layer 6: Persistence & External Infrastructure"]
+        Gemini["Google Gemini Flash<br/>Primary AI models"]
+        OpenAI["OpenAI GPT-4o-mini<br/>Fallback AI model"]
+        MongoDB["MongoDB Atlas<br/>Projects, organizations, programs, proposals, users, feedback"]
+    end
+
+    %% Cross-layer interactions
+    Debounce -- "autosave delta" --> PropCtrl
+    AuthGate -- "authenticated mutation" --> PropCtrl
+    AuthGate -- "authenticated matching request" --> MatchCtrl
+    OAuth -- "session validation" --> AuthGate
+
+    PropCtrl -- "proposal validation" --> Rubric
+    MatchCtrl -- "matching pipeline" --> MatchPipeline
+    MatchPipeline --> Heuristic
+    Heuristic --> Rerank
+
+    Rubric -- "proposal data" --> Repos
+    Heuristic -- "candidate data" --> Repos
+    CatalogAPI -- "catalog queries" --> Repos
+
+    Rerank -- "primary inference" --> Gemini
+    Gemini -. "provider failure" .-> OpenAI
+    Rerank -. "AI fallback" .-> OpenAI
+
+    Repos -- "primary persistence" --> MongoDB
+    Repos -. "on outage or build-time access" .-> MockFallback
+```
+
+### Architectural Highlights:
+1. **Layer 1 (Presentation & Client):** Unified interface leveraging Next.js 16 Server Components and Client State (including debounced 450ms proposal autosaving).
+2. **Layer 2 (Edge Security & Middleware):** Strict Content Security Policy (CSP), sliding-window rate limiting with an LRU cap of 10,000 IP windows, and NextAuth v5 session authentication.
+3. **Layer 3 (API & Controllers):** Isolated REST endpoints handling CRUD, background validation, AI enhancement, and candidate matching pipelines.
+4. **Layer 4 (Domain & Business Logic):** Specialized rubric engines evaluating proposals across 8 open-source criteria, paired with multi-variable candidate scoring (50% Tech, 20% Difficulty, 15% History, 15% Topic).
+5. **Layer 5 (Repositories & Resilient Storage):** Typed repository abstraction layer with in-memory caching and mock fallbacks ensuring build stability and zero-downtime tolerance.
+6. **Layer 6 (Persistence & Infrastructure):** MongoDB Atlas document store with multi-tier LLM execution (Google Gemini Flash with automatic fallback to OpenAI GPT-4o-mini).
 
 ---
 

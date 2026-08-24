@@ -261,10 +261,6 @@ export default function RoadmapsClient() {
 
       {/* Hero */}
       <header className="mb-10 max-w-3xl">
-        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-accent font-semibold bg-accent/10 px-3 py-1.5 rounded-full border border-accent/25 mb-4">
-          <Compass size={12} aria-hidden />
-          Prepare · Guided paths
-        </span>
         <h1 className="text-4xl sm:text-5xl font-heading font-bold tracking-tight text-primary leading-tight">
           Contributor roadmaps
         </h1>

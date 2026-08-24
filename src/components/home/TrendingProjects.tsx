@@ -255,10 +255,6 @@ export function TrendingProjects({
       {/* Header with High-Contrast Action Buttons */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 mb-8 pb-6 border-b border-hairline">
         <div className="space-y-2.5 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface border border-hairline text-xs font-mono font-medium text-secondary shadow-xs">
-            <Sparkles size={13} className="text-brass" />
-            <span className="tracking-wide uppercase text-[11px] font-semibold">High-Signal Opportunities</span>
-          </div>
           <h2
             id="trending-heading"
             className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-primary font-heading"

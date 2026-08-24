@@ -78,7 +78,7 @@ export function DeferredOpenSourceExplainer() {
 
 export function DeferredHeroStats({ stats }: { stats: Record<string, number> }) {
   return (
-    <section >
+    <section className="hidden sm:block">
       <HeroStats stats={stats} />
     </section>
   );

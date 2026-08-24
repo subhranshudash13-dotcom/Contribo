@@ -185,9 +185,6 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
         <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
         
         <div className="space-y-2 max-w-3xl relative z-10">
-          <span className="font-mono text-[9px] uppercase tracking-widest text-accent font-bold bg-accent/10 px-3 py-1 rounded-full border border-accent/25 inline-flex items-center gap-1.5">
-            <Sparkles size={12} className="text-accent animate-pulse" /> Orbit AI Recommendation
-          </span>
           <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-primary font-heading leading-tight">
             Confused which project to choose or don&apos;t know which one you are most suitable to work on?
           </h2>
@@ -427,9 +424,6 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
           
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
             <div>
-              <span className="font-mono text-[10px] uppercase font-bold text-accent px-3 py-1 bg-accent/10 rounded-full border border-accent/20 inline-block mb-2">
-                Proposal Studio Integration
-              </span>
               <h2 className="text-2xl sm:text-3xl font-heading font-extrabold text-primary tracking-tight">
                 Ready to Apply?
               </h2>

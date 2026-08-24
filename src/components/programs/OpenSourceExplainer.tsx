@@ -83,11 +83,6 @@ export function OpenSourceExplainer({ className = '', showCta = true }: { classN
       {/* Header Banner (No heavy card boxes) */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
         <div className="space-y-3 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-accent/20 bg-accent/5 text-accent text-xs font-mono font-bold tracking-wider uppercase">
-            <Sparkles size={13} className="animate-pulse" />
-            <span>Interactive Contributor Breakdown</span>
-          </div>
-
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-primary font-heading leading-tight">
             What is an <br className="hidden sm:block" />
             <span className="text-accent">Open Source Program?</span>
