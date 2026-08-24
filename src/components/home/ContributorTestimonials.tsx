@@ -121,7 +121,9 @@ export function ContributorTestimonials() {
                     <h4 className="font-heading font-bold text-sm text-primary truncate">
                       {item.name}
                     </h4>
-                    <CheckCircle2 size={13} className="text-emerald-500 shrink-0" title="Verified Contributor" />
+                    <span title="Verified Contributor" className="inline-flex shrink-0">
+                      <CheckCircle2 size={13} className="text-emerald-500" />
+                    </span>
                   </div>
                   <p className="text-xs text-muted font-mono truncate mt-0.5">
                     {item.program} @ {item.organization}
