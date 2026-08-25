@@ -45,7 +45,7 @@ async function getOrganizationsPage(programId?: string, search?: string, categor
       name: p.name as string,
       slug: p.slug as string,
     })),
-    categories: (facets.orgCategories || []).slice(0, 16),
+    categories: facets.orgCategories || [],
   };
 }
 
@@ -102,85 +102,79 @@ export default async function OrganizationsDirectory({ searchParams }: Props) {
         </p>
       </div>
 
-      {/* Quick filters from meta facets */}
+      {/* Quick filters toolbar */}
       <div className="mb-6 flex flex-col lg:flex-row gap-4 lg:items-center justify-between">
         <OrgSearch />
-        <form method="GET" action="/organizations" className="flex flex-wrap gap-2 items-center">
+        <form method="GET" action="/organizations" className="flex flex-wrap gap-2.5 items-center">
           {searchQuery && <input type="hidden" name="q" value={searchQuery} />}
-          {category && <input type="hidden" name="category" value={category} />}
+          
           <select
             name="programId"
             defaultValue={programId || 'all'}
-            className="bg-page border border-hairline rounded-xl px-3 py-2 text-sm text-primary"
+            className="bg-page border border-hairline rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-primary font-medium focus:outline-none focus:ring-1 focus:ring-accent cursor-pointer"
           >
-            <option value="all">All programs</option>
+            <option value="all">All Programs</option>
             {programs.map((p) => (
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </select>
+
+          <select
+            name="category"
+            defaultValue={category || ''}
+            className="bg-page border border-hairline rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-primary font-medium focus:outline-none focus:ring-1 focus:ring-accent cursor-pointer max-w-[210px] truncate"
+          >
+            <option value="">All Domains / Sectors</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+
           <button
             type="submit"
-            className="px-4 py-2 rounded-xl bg-accent text-white text-xs font-mono uppercase tracking-wider font-bold cursor-pointer hover:bg-accent-hover transition-colors"
+            className="px-4.5 py-2.5 rounded-xl bg-accent text-white text-xs font-mono uppercase tracking-wider font-bold cursor-pointer hover:bg-accent-hover transition-colors shadow-xs"
           >
             Filter
           </button>
           {(programId || searchQuery || category) && (
-            <Link href="/organizations" className="text-xs font-mono text-accent inline-flex items-center gap-1 hover:underline">
+            <Link href="/organizations" className="text-xs font-mono text-accent inline-flex items-center gap-1 hover:underline ml-1">
               <FilterX size={12} /> Clear all
             </Link>
           )}
         </form>
       </div>
 
-      {/* Interactive Category Selector Ribbon */}
-      {categories.length > 0 && (
-        <div className="mb-8 p-4 rounded-2xl border border-hairline bg-surface/50">
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-muted font-bold">
-              <Layers size={13} className="text-accent" />
-              <span>Filter by Domain / Sector</span>
-            </div>
-            {category && (
-              <Link
-                href={buildFilterUrl({ programId, q: searchQuery })}
-                className="text-xs font-mono text-accent hover:underline inline-flex items-center gap-1"
-              >
-                <X size={12} /> Reset category
-              </Link>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2 items-center">
+      {/* Active Filter Chips (Ultra-compact) */}
+      {(category || programId || searchQuery) && (
+        <div className="mb-6 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-mono text-muted uppercase tracking-wider font-bold mr-1">Active:</span>
+          {category && (
             <Link
               href={buildFilterUrl({ programId, q: searchQuery })}
-              className={`text-xs font-medium px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
-                !category
-                  ? 'bg-accent text-white border-accent shadow-xs font-semibold'
-                  : 'bg-surface border-hairline text-secondary hover:text-primary hover:border-accent/40'
-              }`}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-accent/10 border border-accent/30 text-accent hover:bg-accent/20 transition-colors"
             >
-              All Categories
+              <span>Domain: {category}</span>
+              <X size={12} />
             </Link>
-            {categories.map((c) => {
-              const isActive = category?.toLowerCase() === c.toLowerCase();
-              return (
-                <Link
-                  key={c}
-                  href={buildFilterUrl({
-                    programId,
-                    q: searchQuery,
-                    category: isActive ? undefined : c,
-                  })}
-                  className={`text-xs font-medium px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
-                    isActive
-                      ? 'bg-accent text-white border-accent shadow-xs font-semibold'
-                      : 'bg-surface border-hairline text-secondary hover:text-primary hover:border-accent/40'
-                  }`}
-                >
-                  {c}
-                </Link>
-              );
-            })}
-          </div>
+          )}
+          {programId && (
+            <Link
+              href={buildFilterUrl({ category, q: searchQuery })}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-accent/10 border border-accent/30 text-accent hover:bg-accent/20 transition-colors"
+            >
+              <span>Program: {programs.find((p) => p.id === programId)?.name || programId}</span>
+              <X size={12} />
+            </Link>
+          )}
+          {searchQuery && (
+            <Link
+              href={buildFilterUrl({ programId, category })}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-accent/10 border border-accent/30 text-accent hover:bg-accent/20 transition-colors"
+            >
+              <span>Search: &ldquo;{searchQuery}&rdquo;</span>
+              <X size={12} />
+            </Link>
+          )}
         </div>
       )}
 
