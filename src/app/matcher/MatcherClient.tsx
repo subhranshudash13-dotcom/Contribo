@@ -318,7 +318,7 @@ export default function MatcherClient() {
                   type="button"
                   onClick={() => setStep(2)}
                   disabled={selectedSkills.length === 0}
-                  className="bg-primary text-base px-6 py-2.5 rounded-sm font-bold hover:bg-muted transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="bg-accent hover:bg-accent-hover text-white px-6 py-2.5 rounded-xl font-bold transition-all disabled:opacity-50 flex items-center gap-2 shadow-xs cursor-pointer"
                 >
                   Next <ArrowRight size={16} />
                 </button>
@@ -377,7 +377,7 @@ export default function MatcherClient() {
                   type="button"
                   onClick={() => setStep(3)}
                   disabled={!experience}
-                  className="bg-primary text-base px-6 py-2.5 rounded-sm font-bold hover:bg-muted transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="bg-accent hover:bg-accent-hover text-white px-6 py-2.5 rounded-xl font-bold transition-all disabled:opacity-50 flex items-center gap-2 shadow-xs cursor-pointer"
                 >
                   Next <ArrowRight size={16} />
                 </button>
@@ -448,7 +448,7 @@ export default function MatcherClient() {
                 <button
                   type="button"
                   onClick={() => setStep(4)}
-                  className="bg-primary text-base px-6 py-2.5 rounded-sm font-bold hover:bg-muted transition-colors flex items-center gap-2"
+                  className="bg-accent hover:bg-accent-hover text-white px-6 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
                 >
                   Next <ArrowRight size={16} />
                 </button>
@@ -836,16 +836,6 @@ export default function MatcherClient() {
                                   </div>
                                 </div>
 
-                                {/* Why it matches - Clean minimalist callout */}
-                                <div className="bg-page border-l-2 border-l-brass border-y border-r border-hairline p-3.5 rounded-r-lg">
-                                  <p className="text-xs sm:text-sm text-primary flex items-start gap-2.5 leading-relaxed">
-                                    <Sparkles size={15} className="text-brass shrink-0 mt-0.5" />
-                                    <span>
-                                      <strong className="text-brass font-semibold">Why this matches:</strong>{' '}
-                                      {match.reasoning}
-                                    </span>
-                                  </p>
-                                </div>
 
                                 {/* Tech Stack Pills */}
                                 <div className="flex items-center gap-2 text-xs font-mono text-muted flex-wrap">

@@ -177,7 +177,7 @@ export function OfflineState({
           type="button"
           onClick={() => void onRetry()}
           disabled={retrying}
-          className="relative inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-base shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          className="relative inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-page shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {retrying ? (
             <Loader2 size={16} className="animate-spin" />

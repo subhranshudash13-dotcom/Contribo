@@ -60,6 +60,7 @@
   --color-hairline: var(--hairline);
   
   --color-primary: var(--primary);
+  --color-primary-foreground: var(--base);
   --color-secondary: var(--secondary);
   --color-muted: var(--muted);
   

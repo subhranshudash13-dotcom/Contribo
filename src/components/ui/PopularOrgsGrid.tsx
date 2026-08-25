@@ -356,7 +356,7 @@ export function PopularOrgsGrid() {
 
         <Link
           href="/organizations"
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-all shadow-xs shrink-0"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary text-page text-xs font-semibold hover:opacity-90 transition-all shadow-xs shrink-0"
         >
           Browse All (1.2k+)
           <ArrowRight size={12} />

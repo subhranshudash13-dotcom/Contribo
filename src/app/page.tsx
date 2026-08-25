@@ -179,7 +179,7 @@ export default async function Home() {
             <div className="shrink-0 pb-2">
               <Link
                 href="/programs"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-base font-semibold rounded-2xl hover:bg-primary/90 transition-all shadow-[0_4px_14px_rgba(0,0,0,0.1)] dark:bg-white dark:text-black dark:hover:bg-gray-100"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-surface border border-hairline hover:bg-surface-raised text-primary text-sm font-semibold rounded-xl hover:border-accent/40 transition-all shadow-xs"
               >
                 All Programs <ArrowRight size={16} />
               </Link>

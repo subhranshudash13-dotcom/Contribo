@@ -8,6 +8,7 @@ export interface OrgListQuery {
   programSlug?: string | null;
   search?: string | null;
   tag?: string | null;
+  category?: string | null;
   years?: number[] | null;
   yearMode?: 'and' | 'or' | null;
   limit: number;
@@ -55,6 +56,11 @@ export async function listOrganizations(query: OrgListQuery) {
   if (query.tag?.trim()) {
     const escaped = query.tag.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     filter.technologies = { $regex: new RegExp(`^${escaped}$`, 'i') };
+  }
+
+  if (query.category?.trim()) {
+    const escapedCat = query.category.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    filter.category = { $regex: new RegExp(`^${escapedCat}$`, 'i') };
   }
 
   if (query.years && query.years.length > 0) {

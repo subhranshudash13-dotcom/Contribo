@@ -290,7 +290,7 @@ export function DashboardClient({
           </Link>
           <Link
             href="/proposal-studio"
-            className="flex items-center gap-1.5 h-8 px-4 rounded-full bg-primary text-base-color text-xs font-bold hover:opacity-90 transition-opacity"
+            className="flex items-center gap-1.5 h-8 px-4 rounded-full bg-primary text-page text-xs font-bold hover:opacity-90 transition-opacity"
           >
             <FileText size={14} /> Proposal Studio
           </Link>
