@@ -64,6 +64,16 @@ const TESTIMONIALS: Testimonial[] = [
       "Tracking multiple proposals and deadlines across different program portals was a headache. With Contribo's unified dashboard, I had all my tasks synced in one place.",
     accentColor: '#10B981',
   },
+  {
+    name: 'Arnab Khare',
+    initials: 'AK',
+    role: 'Software Engineering Fellow',
+    program: "MLH '25",
+    organization: 'Major League Hacking',
+    quote:
+      "The project matching and mentorship roadmaps on Contribo gave me the exact clarity I needed during the MLH Fellowship selection process. It helped me stand out and land the fellowship with confidence!",
+    accentColor: '#E73427',
+  },
 ];
 
 const FEEDBACK_CATEGORIES = [
