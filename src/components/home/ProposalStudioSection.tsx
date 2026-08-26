@@ -58,6 +58,15 @@ const ACCEPTED_PROPOSALS = [
 export function ProposalStudioSection() {
   return (
     <section className="relative py-24 sm:py-32 overflow-hidden bg-background">
+      {/* Subtle Premium Drafting Grid Background */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+        {/* Fine Architectural Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--hairline)_1px,transparent_1px),linear-gradient(to_bottom,var(--hairline)_1px,transparent_1px)] bg-[size:36px_36px] opacity-70 dark:opacity-40 [mask-image:radial-gradient(ellipse_75%_60%_at_50%_40%,#000_40%,transparent_100%)]" />
+        
+        {/* Subtle Ambient Radial Glow */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-accent/[0.04] dark:bg-[#f18359]/[0.05] rounded-full blur-[120px]" />
+      </div>
+
       {/* Background accents */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent/5 dark:bg-[#f18359]/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-accent/5 dark:bg-[#f18359]/5 rounded-full blur-[100px] pointer-events-none" />
