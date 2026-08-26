@@ -27,6 +27,7 @@ import {
   DeferredFaq,
 } from '@/components/home/HomeDeferredSections';
 import { ContributorTestimonials } from '@/components/home/ContributorTestimonials';
+import { ContributorRoadmapBento } from '@/components/home/ContributorRoadmapBento';
 import type { Program } from '../../types';
 
 const PROGRAM_IMAGES: Record<string, string> = {
@@ -68,57 +69,6 @@ export default async function Home() {
   const featuredPrograms = (allPrograms || [])
     .filter((p) => p && p.slug && targetSlugs.includes(p.slug))
     .sort((a, b) => targetSlugs.indexOf(a.slug) - targetSlugs.indexOf(b.slug));
-
-  const roadmaps = [
-    {
-      step: '1',
-      title: 'I am a Beginner',
-      desc: 'Learn code basics and find interests.',
-      stage: 'Foundation',
-      color: 'border-slate',
-      icon: Compass,
-    },
-    {
-      step: '2',
-      title: 'Learn Git',
-      desc: 'Learn commits, branches, and merges.',
-      stage: 'Foundation',
-      color: 'border-slate',
-      icon: GitFork,
-    },
-    {
-      step: '3',
-      title: 'First PR',
-      desc: 'Contribute documentation or simple typos.',
-      stage: 'Contribution',
-      color: 'border-brass',
-      icon: GitPullRequest,
-    },
-    {
-      step: '4',
-      title: 'Hacktoberfest',
-      desc: 'Join your first global open-source event.',
-      stage: 'Contribution',
-      color: 'border-brass',
-      icon: Sparkles,
-    },
-    {
-      step: '5',
-      title: 'GSoC / ESoC',
-      desc: 'Engage in full-time summer mentorship.',
-      stage: 'Impact',
-      color: 'border-merge',
-      icon: Calendar,
-    },
-    {
-      step: '6',
-      title: 'Become Maintainer',
-      desc: 'Take ownership of projects and mentor others.',
-      stage: 'Impact',
-      color: 'border-merge',
-      icon: UserCheck,
-    },
-  ];
 
   const currentMonthIndex = new Date().getMonth();
 
@@ -403,43 +353,9 @@ export default async function Home() {
           <DeferredPopularOrgs />
         </section>
 
-        {/* ROADMAP — static, light */}
+        {/* ROADMAP — Bento Grid UI */}
         <ScrollReveal animation="slide-up">
-        <section className="space-y-8">
-          <div>
-            <span className="font-mono text-[10px] uppercase tracking-widest text-muted font-semibold flex items-center gap-2">
-              <Compass size={12} /> Path
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-heading font-semibold text-primary mt-2">
-              Contributor roadmap
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {roadmaps.map((r) => {
-              const Icon = r.icon;
-              return (
-                <div
-                  key={r.step}
-                  className={`rounded-2xl border border-hairline bg-surface p-5 border-l-4 ${r.color}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="font-mono text-xs text-muted">0{r.step}</span>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Icon size={16} className="text-accent" />
-                        <h3 className="font-heading font-semibold text-primary">{r.title}</h3>
-                      </div>
-                      <p className="text-sm text-secondary">{r.desc}</p>
-                      <span className="inline-block mt-2 text-[10px] font-mono uppercase tracking-wider text-muted">
-                        {r.stage}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+          <ContributorRoadmapBento />
         </ScrollReveal>
 
         {/* RESOURCES — static */}
