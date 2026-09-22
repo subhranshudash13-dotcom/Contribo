@@ -2,6 +2,7 @@ import type { Organization } from '@/../types';
 import { COLLECTIONS, getCollection } from '@/lib/db';
 import { serializeDocs, serializeDoc } from '@/lib/serialize';
 import { resolveProgramFilter } from '@/lib/repositories/programs';
+import { ORGANIZATION_DOMAIN_GROUPS } from '@/lib/repositories/filters';
 
 export interface OrgListQuery {
   programId?: string | null;
@@ -14,6 +15,29 @@ export interface OrgListQuery {
   limit: number;
   skip: number;
   lean?: boolean;
+}
+
+export interface OrganizationSuggestion {
+  name: string;
+  slug: string;
+  logoUrl?: string | null;
+  category?: string | null;
+}
+
+function levenshteinDistance(left: string, right: string): number {
+  const previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  for (let row = 1; row <= left.length; row += 1) {
+    const current = [row];
+    for (let column = 1; column <= right.length; column += 1) {
+      current[column] = Math.min(
+        current[column - 1] + 1,
+        previous[column] + 1,
+        previous[column - 1] + (left[row - 1] === right[column - 1] ? 0 : 1)
+      );
+    }
+    for (let column = 0; column <= right.length; column += 1) previous[column] = current[column];
+  }
+  return previous[right.length];
 }
 
 const LEAN_ORG_PROJECTION = {
@@ -59,8 +83,17 @@ export async function listOrganizations(query: OrgListQuery) {
   }
 
   if (query.category?.trim()) {
-    const escapedCat = query.category.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    filter.category = { $regex: new RegExp(`^${escapedCat}$`, 'i') };
+    const selected = query.category.trim();
+    const domain = ORGANIZATION_DOMAIN_GROUPS.find(({ label }) => label === selected);
+    const patterns = domain?.keywords.length
+      ? domain.keywords.map((keyword) => new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'))
+      : [new RegExp(`^${selected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')];
+    const knownDomainPatterns = ORGANIZATION_DOMAIN_GROUPS
+      .filter(({ label }) => label !== 'Other')
+      .flatMap(({ keywords }) =>
+        keywords.map((keyword) => new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'))
+      );
+    filter.category = domain?.label === 'Other' ? { $nin: knownDomainPatterns } : { $in: patterns };
   }
 
   if (query.years && query.years.length > 0) {
@@ -149,6 +182,55 @@ export async function listOrganizations(query: OrgListQuery) {
     organizations: serializeDocs(organizations),
     total,
   };
+}
+
+export async function suggestOrganizations(
+  query: string,
+  limit = 8
+): Promise<OrganizationSuggestion[]> {
+  const normalizedQuery = query.trim().toLowerCase().slice(0, 80);
+  if (normalizedQuery.length < 2) return [];
+
+  const collection = await getCollection<Organization>(COLLECTIONS.organizations);
+  const candidates = await collection
+    .find({}, { projection: { name: 1, slug: 1, logoUrl: 1, category: 1 } })
+    .limit(5000)
+    .toArray();
+
+  return candidates
+    .map((organization) => {
+      const name = String(organization.name || '');
+      const normalizedName = name.toLowerCase();
+      const words = normalizedName.split(/[^a-z0-9]+/).filter(Boolean);
+      const acronym = words.map((word) => word[0]).join('');
+      const overlap = new Set(normalizedQuery).size
+        ? [...new Set(normalizedQuery)].filter((character) => normalizedName.includes(character)).length
+        : 0;
+      const distance = Math.min(
+        levenshteinDistance(normalizedQuery, normalizedName),
+        ...words.map((word) => levenshteinDistance(normalizedQuery, word))
+      );
+      const startsWith = normalizedName.startsWith(normalizedQuery);
+      const contains = normalizedName.includes(normalizedQuery);
+      const acronymMatch = acronym.includes(normalizedQuery);
+      return {
+        organization,
+        score: (startsWith ? 100 : 0)
+          + (contains ? 40 : 0)
+          + (acronymMatch ? 80 : 0)
+          + (overlap * 12)
+          - distance,
+      };
+    })
+    .filter(({ score }) => score >= -Math.max(3, Math.floor(normalizedQuery.length / 2)))
+    .sort((a, b) => b.score - a.score || String(a.organization.name).localeCompare(String(b.organization.name)))
+    .slice(0, limit)
+    .map(({ organization }) => ({
+      name: String(organization.name),
+      slug: String(organization.slug),
+      logoUrl: organization.logoUrl,
+      category: organization.category,
+    }));
 }
 
 export async function getOrganizationBySlug(
