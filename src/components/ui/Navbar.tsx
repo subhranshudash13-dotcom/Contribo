@@ -45,10 +45,12 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Auto-close menu on navigation
-  useEffect(() => {
+  // Auto-close menu on navigation without cascading effect renders
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
     setIsOpen(false);
-  }, [pathname]);
+  }
 
   return (
     <header className="fixed top-2 left-0 right-0 z-50 px-3 sm:px-4 pointer-events-none flex justify-center">
