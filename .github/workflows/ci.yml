@@ -1,0 +1,47 @@
+name: Contribo CI
+
+on:
+  push:
+    branches: [main, master, dev]
+  pull_request:
+    branches: [main, master, dev]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint, Test & Typecheck
+    runs-on: ubuntu-latest
+    env:
+      AUTH_SECRET: ci_dummy_auth_secret_minimum_16_chars
+      NEXTAUTH_SECRET: ci_dummy_auth_secret_minimum_16_chars
+      MONGODB_URI: mongodb://localhost:27017/contribo_ci
+      AI_PROVIDER: gemini
+      NEXT_FONT_GOOGLE_MOCK: 1
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run TypeScript Typecheck
+        run: npx tsc --noEmit
+
+      - name: Run Unit Tests
+        run: npm test
+
+      - name: Build Next.js Application
+        run: npm run build
