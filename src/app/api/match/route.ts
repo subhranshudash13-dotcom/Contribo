@@ -9,7 +9,6 @@ import {
 import { findProjectsBySkills, expandSkillTokens } from '@/lib/repositories/projects';
 import { getCollection, COLLECTIONS } from '@/lib/db';
 import { MAX_AI_BODY_BYTES, safeLogError } from '@/lib/security';
-import { rankProjectsWithGemini } from '@/lib/ai/gemini';
 import type { Program, Project } from '@/../types';
 
 const MAX_SKILLS = 40;
@@ -568,107 +567,35 @@ export async function POST(req: Request) {
 
     let finalMatches: MatchResult[] = heuristic;
     let mode: 'openai' | 'gemini' | 'heuristic' = 'heuristic';
+    const openai = getOpenAIClient();
 
-    // Candidate pool for AI ranking
-    const pool = candidates
-      .map((p, index) => ({ p, index }))
-      .sort((a, b) => {
-        const ha = heuristic.find((h) => h.projectId === String(a.p._id));
-        const hb = heuristic.find((h) => h.projectId === String(b.p._id));
-        return (hb?.matchPercentage || 0) - (ha?.matchPercentage || 0);
-      })
-      .slice(0, 36);
-
-    const projectsContext = pool.map(({ p, index }) => {
-      const { matched } = skillOverlap(p, skills);
-      return {
-        id: index,
-        title: p.title,
-        org: p.org,
-        difficulty: p.difficulty || 'Intermediate',
-        year: p.year,
-        techStack: (p.techStack || []).slice(0, 12).join(', '),
-        matchedSkills: matched.slice(0, 6).join(', '),
-        description: (p.description || '').substring(0, 240),
-        programName: p.programName,
-      };
-    });
-
-    const hasGeminiKey = !!process.env.GEMINI_API_KEY?.trim();
-    const preferredProvider = (process.env.AI_PROVIDER || 'gemini').toLowerCase().trim();
-
-    // 1. Try Google Gemini (Primary or when configured)
-    if (hasGeminiKey && preferredProvider !== 'openai' && pool.length > 0) {
+    if (openai && candidates.length > 0) {
       try {
-        const geminiMatches = await rankProjectsWithGemini({
-          skills,
-          experience: exp,
-          location: locStr,
-          availability: availNum,
-          candidates: projectsContext,
-          topLimit: TOP_RESULTS,
+        // Pass top candidate pool by heuristic to keep tokens small & ranking grounded
+        const pool = candidates
+          .map((p, index) => ({ p, index }))
+          .sort((a, b) => {
+            const ha = heuristic.find((h) => h.projectId === String(a.p._id));
+            const hb = heuristic.find((h) => h.projectId === String(b.p._id));
+            return (hb?.matchPercentage || 0) - (ha?.matchPercentage || 0);
+          })
+          .slice(0, 36);
+
+        const projectsContext = pool.map(({ p, index }) => {
+          const { matched } = skillOverlap(p, skills);
+          return {
+            id: index,
+            title: p.title,
+            org: p.org,
+            difficulty: p.difficulty || 'unknown',
+            year: p.year,
+            techStack: (p.techStack || []).slice(0, 12).join(', '),
+            matchedSkills: matched.slice(0, 6).join(', '),
+            description: (p.description || '').substring(0, 220),
+            programName: p.programName,
+          };
         });
 
-        if (geminiMatches && geminiMatches.length > 0) {
-          const mapped = geminiMatches
-            .map((match) => {
-              const entry = pool.find((x) => x.index === match.id);
-              const dbProject = entry?.p;
-              if (!dbProject) return null;
-              const { matched } = skillOverlap(dbProject, skills);
-              const base = heuristic.find((h) => h.projectId === String(dbProject._id));
-              const heuristicPct = base?.matchPercentage ?? 55;
-              const aiPct = clampMatchPercentage(match.matchPercentage, heuristicPct);
-              const blended = Math.round(aiPct * 0.60 + heuristicPct * 0.40);
-
-              return {
-                id: dbProject._id?.toString(),
-                projectId: dbProject._id?.toString(),
-                title: dbProject.title,
-                orgName: dbProject.org,
-                orgSlug: dbProject.orgSlug,
-                techStack: dbProject.techStack || [],
-                description: dbProject.description,
-                matchPercentage: clampMatchPercentage(blended, heuristicPct),
-                reasoning:
-                  typeof match.reasoning === 'string' && match.reasoning.trim()
-                    ? match.reasoning.trim().slice(0, 600)
-                    : base?.reasoning || 'Strong skill and domain alignment with your profile.',
-                programName: dbProject.programName || 'Open Source Program',
-                programColor: dbProject.programColor || '#4285F4',
-                programSlug: dbProject.programSlug,
-                difficulty: dbProject.difficulty,
-                year: dbProject.year,
-                matchedSkills: matched.slice(0, 8),
-                githubUrl: dbProject.githubUrl,
-                orgLogoUrl: dbProject.orgLogoUrl,
-                orgWebsiteUrl: dbProject.orgWebsiteUrl,
-                orgGithubUrl: dbProject.orgGithubUrl,
-                orgCategory: dbProject.orgCategory,
-                orgDescription: dbProject.orgDescription,
-                orgIdeasUrl: dbProject.orgIdeasUrl,
-                orgTopics: dbProject.orgTopics,
-                yearlyStats: dbProject.yearlyStats,
-                stars: dbProject.stars,
-                mentors: dbProject.mentors,
-              } as MatchResult;
-            })
-            .filter(Boolean) as MatchResult[];
-
-          if (mapped.length > 0) {
-            finalMatches = enforceOrgDiversity(mapped, 2, TOP_RESULTS);
-            mode = 'gemini';
-          }
-        }
-      } catch (geminiErr) {
-        console.warn('Gemini matcher encountered error, checking fallback:', geminiErr);
-      }
-    }
-
-    // 2. Try OpenAI (Fallback or if AI_PROVIDER=openai)
-    const openai = getOpenAIClient();
-    if (mode === 'heuristic' && openai && pool.length > 0) {
-      try {
         const systemPrompt = `You are an expert open-source mentorship matchmaker.
 Rank ONLY from the candidate list. Never invent projects, orgs, or technologies.
 
@@ -685,7 +612,9 @@ Rules:
 1. Return up to ${TOP_RESULTS} best fits ordered best-first.
 2. Prefer higher matchedSkills count and recent year.
 3. Prefer difficulty aligned with experience (${exp}).
-4. Align weekly availability (${availNum}h/week) with expected workload.
+4. Align weekly availability (${availNum}h/week) with expected workload:
+   - If availability is low (< 20 hours/week), favor "Beginner" difficulty projects or programs like Hacktoberfest, NSoC, GSSoC.
+   - If availability is high (>= 20 hours/week), intermediate and advanced projects or programs like GSoC, Outreachy, LFX, MLH Fellowship are highly suitable.
 5. matchPercentage must reflect real overlap (weak overlap ≤55; strong multi-skill ≥75; never 100).
 6. reasoning: 1–2 sentences, concrete, mention matched skills and how they fit user experience/availability.
 7. Return ONLY JSON: { "matches": [ { "id": number, "matchPercentage": number, "reasoning": string } ] }
@@ -766,6 +695,8 @@ Rules:
         } else {
           console.warn('OpenAI matcher failed, using heuristic:', apiErr);
         }
+        finalMatches = heuristic;
+        mode = 'heuristic';
       }
     }
 

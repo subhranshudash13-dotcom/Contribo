@@ -10,94 +10,7 @@ export type GeminiImproveResult = {
   rationale: string;
 };
 
-const GEMINI_MODELS = [
-  'gemini-2.5-flash',
-  'gemini-2.0-flash',
-  'gemini-1.5-flash',
-  'gemini-1.5-pro',
-] as const;
-
-export interface GeminiMatchItem {
-  id: number;
-  matchPercentage: number;
-  reasoning: string;
-}
-
-export async function rankProjectsWithGemini(params: {
-  skills: string[];
-  experience: 'beginner' | 'intermediate' | 'advanced';
-  location: string;
-  availability: number;
-  candidates: Array<{
-    id: number;
-    title: string;
-    org: string;
-    difficulty: string;
-    year?: number;
-    techStack: string;
-    matchedSkills: string;
-    description: string;
-    programName?: string;
-  }>;
-  topLimit?: number;
-}): Promise<GeminiMatchItem[] | null> {
-  const topLimit = params.topLimit || 30;
-  const systemInstruction = `You are Orbit AI, an expert open-source mentorship matchmaker and technical advisor.
-Your mission is to evaluate and rank open-source projects and organizations for a contributor based on their skills, experience level, and weekly availability.
-
-Evaluation criteria:
-1. Technical & Practical Alignment: Match projects whose tech stack and ecosystem strongly align with user skills.
-2. Experience Level Suitability: Align project difficulty (${params.experience}) so beginners get high-quality approachable projects and advanced contributors get complex architecture/systems projects.
-3. Realistic Match Percentage: Produce a realistic match score from 40 to 98 (never 100). Higher scores for direct multi-skill synergy.
-4. Personalized Rationale: 1–2 sentences explaining why this organization/project fits their skill set and experience. Mention specific matched technologies.
-
-Output Format:
-Return ONLY a valid JSON object matching this schema:
-{
-  "matches": [
-    {
-      "id": 0,
-      "matchPercentage": 88,
-      "reasoning": "Strong alignment with your React and TypeScript background for building modern frontend components."
-    }
-  ]
-}`;
-
-  const prompt = `User Profile:
-- Skills: ${params.skills.join(', ')}
-- Experience Level: ${params.experience}
-- Weekly Availability: ${params.availability} hours/week
-- Location: ${params.location}
-
-Candidate Pool (JSON):
-${JSON.stringify(params.candidates)}
-
-Rank the top candidate projects (up to ${topLimit}) ordered best match first. Return ONLY raw JSON.`;
-
-  try {
-    const rawResponse = await generateGeminiContent(prompt, systemInstruction);
-    if (!rawResponse) return null;
-
-    let jsonStr = rawResponse.trim();
-    // Strip markdown code block if present
-    const codeBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (codeBlockMatch) {
-      jsonStr = codeBlockMatch[1];
-    } else {
-      const match = jsonStr.match(/\{[\s\S]*\}/);
-      if (match) jsonStr = match[0];
-    }
-
-    const parsed = JSON.parse(jsonStr) as { matches?: GeminiMatchItem[] };
-    if (Array.isArray(parsed?.matches)) {
-      return parsed.matches;
-    }
-  } catch (err) {
-    safeLogError('Gemini candidate ranking failed:', err);
-  }
-
-  return null;
-}
+const GEMINI_MODELS = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'] as const;
 
 export async function generateGeminiContent(
   prompt: string,
@@ -105,6 +18,7 @@ export async function generateGeminiContent(
 ): Promise<string | null> {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey) {
+    console.warn('GEMINI_API_KEY missing in environment.');
     return null;
   }
 
@@ -126,9 +40,8 @@ export async function generateGeminiContent(
       },
     ],
     generationConfig: {
-      temperature: 0.3,
-      maxOutputTokens: 2048,
-      responseMimeType: 'application/json',
+      temperature: 0.7,
+      maxOutputTokens: 1024,
     },
   };
 
@@ -142,7 +55,7 @@ export async function generateGeminiContent(
           'x-goog-api-key': apiKey,
         },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(9000),
+        signal: AbortSignal.timeout(7000),
       });
 
       if (res.ok) {
