@@ -1,329 +1,228 @@
 <p align="center">
-  <img src="public/icon.svg" alt="Contribo Logo" width="120" height="120" />
+  <img src="public/icon.svg" alt="Contribo Logo" width="100" height="100" />
 </p>
 
-# 🌐 Contribo — Universal Open Source Programs Hub
+<h1 align="center">Contribo</h1>
 
-> **Contribo** is an enterprise-grade, data-first platform designed to aggregate, explore, and track applications across all major open-source mentorship programs. It serves as a unified command center where contributors can find projects, understand eligibility/stipends, prepare proposals, and track their application progress.
+<p align="center">
+  <strong>The Universal Open Source Mentorship & Programs Hub</strong><br>
+  Discover 12,000+ projects, explore 600+ organizations, match your skills with Orbit AI, and craft winning proposals.
+</p>
 
----
+<p align="center">
+  <a href="https://contribo-one.vercel.app"><img src="https://img.shields.io/badge/Live_Demo-contribo--one.vercel.app-10B981?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" /></a>
+  <a href="https://github.com/subhranshudash13-dotcom/Contribo/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License" /></a>
+  <a href="https://github.com/subhranshudash13-dotcom/Contribo/pulls"><img src="https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=for-the-badge" alt="PRs Welcome" /></a>
+  <a href="https://github.com/subhranshudash13-dotcom/Contribo/issues"><img src="https://img.shields.io/github/issues/subhranshudash13-dotcom/Contribo?style=for-the-badge&color=orange" alt="Open Issues" /></a>
+</p>
 
-## 🚀 Supported Programs
-
-Contribo generalizes open-source opportunity tracking, bringing multiple programs under one standard schema:
-*   **Google Summer of Code (GSoC)**
-*   **LFX Mentorship (Linux Foundation)**
-*   **European Summer of Code (ESoC)**
-*   **Outreachy**
-*   **Summer of Bitcoin (SOB)**
-*   **MLH Fellowship**
-*   **Hacktoberfest**
-*   **GirlScript Summer of Code (GSSoC)**
-*   **Nexus Spring of Code (NSoC)**
-
----
-
-## ✨ Key Features & Pillars
-
-### 1. Discover
-*   **Unified Search & Directory:** Search and filter over **12,000+ projects** and **600+ organizations** across all open-source programs.
-*   **Command Palette (`Cmd/Ctrl + K`):** Instantly navigate the application, search projects/orgs/guides, and trigger actions using a keyboard-driven palette.
-*   **Granular Filtering:** Filter organizations and project ideas by tech stack, difficulty, program, and year.
-
-### 2. Understand
-*   **Structured Metadata:** Compare stipends (utility mono numerals), timelines, difficulty levels, and eligibility criteria side-by-side.
-*   **Unified Deadline Calendar:** A visual calendar mapping key milestones and application timelines for all programs.
-*   **Guidelines Hub:** A comprehensive library of markdown/MDX guides on writing proposals, Git basics, and community communication.
-
-### 3. Prepare
-*   **AI Semantic Matcher:** An embeddings-based matching engine. Input your skills and interests, and Contribo generates ranked project recommendations based on cosine similarity against project descriptions.
-*   **Pre-application Checklists:** Checklist tools customized for each program to ensure you're application-ready.
-
-### 4. Track (Personal Dashboard)
-*   **GitHub-meets-Linear Interface:** Save organizations, track application proposal drafts, set milestones, and get countdown reminders for upcoming deadlines.
-*   **Testimonials & Roadmaps:** Real contributor roadmaps and historical data charts.
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js_16-black?style=flat-square&logo=next.js&logoColor=white" alt="Next.js 16" />
+  <img src="https://img.shields.io/badge/React_19-20232A?style=flat-square&logo=react&logoColor=61DAFB" alt="React 19" />
+  <img src="https://img.shields.io/badge/TypeScript_5-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS_v4-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/MongoDB_Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/Google_Gemini-4285F4?style=flat-square&logo=google&logoColor=white" alt="Google Gemini" />
+  <img src="https://img.shields.io/badge/CodeRabbit-Reviewed-FF6B6B?style=flat-square" alt="CodeRabbit" />
+</p>
 
 ---
 
-## 🛠️ Technology Stack
+## 🌟 Vision & Mission
 
-*   **Frontend:** [Next.js 16](https://nextjs.org/) (App Router, Server-side Rendering & Static Site Generation), [React 19](https://react.dev/), [TypeScript](https://www.typescriptlang.org/)
-*   **Styling & Motion:** [Tailwind CSS v4](https://tailwindcss.com/), [Framer Motion](https://www.framer.com/motion/) (for smooth schematic/line-drawing animations)
-*   **Database:** [MongoDB](https://www.mongodb.com/) (with text search and compound indexing)
-*   **Authentication:** [NextAuth.js Beta 5](https://next-auth.js.org/) (GitHub & Google OAuth)
-*   **AI Integration:** [Google Gemini Flash](https://ai.google.dev/) (Primary) & [OpenAI GPT-4o-mini](https://openai.com/) (Fallback)
-*   **Content Delivery:** [next-mdx-remote](https://github.com/hashicorp/next-mdx-remote) (for guidelines and roadmaps)
+**Contribo** is built on a simple belief: *open-source contribution should be accessible, transparent, and structured for everyone.* 
+
+Navigating dozens of mentorship programs across isolated websites, buried issue trackers, and complex stipend tables creates friction. Contribo unifies everything under an intuitive, high-performance command center — empowering students, developers, and maintainers worldwide to connect, collaborate, and build impactful software together.
+
+---
+
+## 🚀 Supported Open Source Programs
+
+Contribo aggregates, categorizes, and standardizes opportunities across all major global initiatives:
+
+| Program | Organizing Body | Focus Area | Standard Stipend |
+| :--- | :--- | :--- | :--- |
+| **Google Summer of Code (GSoC)** | Google Open Source | Broad OSS Software Engineering | $1,500 – $6,600 USD (PPP) |
+| **LFX Mentorship** | Linux Foundation | Cloud Native, Kernel, Systems | $3,000 – $6,600 USD |
+| **European Summer of Code (ESoC)** | Free & Open Source EU | European Digital Sovereignty | €3,000 – €6,000 EUR |
+| **Outreachy** | Software Freedom Conservancy | Diversity & Underrepresented Tech | $7,000 USD + $500 Travel |
+| **Summer of Bitcoin (SOB)** | Bitcoin Open Source Community | Cryptography, Layer-2, Rust | Stipend in BTC / USD |
+| **MLH Fellowship** | Major League Hacking | Real-world Production Engineering | Educational Stipend |
+| **Hacktoberfest** | DigitalOcean & Partners | First-time & Community Contributions | Badges & Tree Planting |
+| **GirlScript Summer of Code (GSSoC)** | GirlScript Foundation | Beginner-friendly Mentorship | Swag, Certificates & Perks |
+| **Nexus Spring of Code (NSoC)** | Nexus Foundation | Emerging Tech & Tooling | Performance Stipends |
+
+---
+
+## ✨ Core Pillars
+
+### 1. 🔍 Universal Directory & Granular Search
+- **12,000+ Projects & 600+ Organizations:** Unified dataset with historical acceptance rates and tech stacks.
+- **Command Palette (`Cmd/Ctrl + K`):** Lightning-fast keyboard navigation across projects, guides, and actions.
+- **Multi-Facet Filtering:** Filter by difficulty (Beginner, Intermediate, Advanced), domain, and active program year.
+
+### 2. 🤖 Orbit AI Semantic Matcher
+- **Intelligent Profile Matching:** Powered by **Google Gemini AI** and semantic token expansion.
+- **Personalized Recommendations:** Evaluates your technical skills, experience level, and weekly availability to recommend the best matching organizations with custom rationale.
+
+### 3. 📝 Proposal Studio
+- **Guided Proposal Editor:** Draft mentorship proposals with real-time word/character count and milestone breakdown.
+- **Maintainer Rubric Engine:** Evaluates draft quality across 8 criteria (architecture, timeline realism, risk mitigation, test coverage).
+- **Export Ready:** Generate publication-ready proposal files formatted for GSoC/LFX submission.
+
+### 4. 📊 Personal Command Center & Deadlines
+- **Application Tracking:** Track application stages (Drafting, Submitted, Accepted, Milestone Review).
+- **Countdown Timelines:** Visual calendar of upcoming application windows and proposal deadlines.
 
 ---
 
 ## 🏛️ System Architecture
 
-Contribo is engineered with a modular, 6-layer resilient architecture separating client interactions, edge security, domain logic, repository abstractions, and external intelligence providers.
-
-<p align="center">
-  <img src="public/architecture.png" alt="Contribo System Architecture Diagram" width="100%" />
-</p>
-
-<details>
-<summary><b>🔍 View Mermaid Flowchart Specification</b></summary>
-
 ```mermaid
 flowchart TD
-    subgraph L1["Layer 1: Presentation & Client (src/app, src/components)"]
-        NextApp["Next.js 16 App Router<br/>Server and Client Components"]
-        Studio["Proposal Studio<br/>/proposal-studio"]
-        StudioCtx["ProposalStudioContext<br/>Edits, reviews, snapshots"]
-        Debounce["450ms Debounced Autosave"]
-        MatcherUI["AI Matcher UI<br/>/matcher"]
-        Dirs["Program and Organization Directories<br/>/programs, /organizations/[slug]"]
-        
-        NextApp --> Studio
-        NextApp --> MatcherUI
-        NextApp --> Dirs
-        Studio --> StudioCtx
-        StudioCtx --> Debounce
+    subgraph Client["Presentation Layer (Next.js 16 App Router)"]
+        UI["React 19 UI & Tailwind v4"]
+        Studio["Proposal Studio (/proposal-studio)"]
+        Matcher["Orbit AI Matcher (/matcher)"]
+        Explorer["Organizations & Programs Directory"]
     end
 
-    subgraph L2["Layer 2: Edge Security & Middleware (src/proxy.ts, src/auth.ts)"]
-        CSP["Dynamic CSP and Security Headers"]
-        RateLimiter["Sliding Window Rate Limiter<br/>LRU cap: 10,000 IP windows"]
-        AuthGate["NextAuth.js v5<br/>Authentication Gate"]
-        OAuth["GitHub OAuth and Google OAuth"]
-        
-        CSP --> RateLimiter
-        RateLimiter --> AuthGate
-        AuthGate <--> OAuth
+    subgraph Security["Edge Security & Middleware"]
+        Gate["Session Auth Gate (NextAuth.js v5)"]
+        RateLimit["Rate Limiter (LRU Window Map)"]
+        CSP["Dynamic CSP & Security Headers"]
     end
 
-    subgraph L3["Layer 3: API & Controllers (src/app/api)"]
-        PropCtrl["Proposals Controller<br/>Create, autosave, AI improve"]
-        MatchCtrl["Matching Controller<br/>Candidate queries and scoring"]
-        CatalogAPI["Catalog and Data APIs<br/>Projects, organizations, programs, stats, search"]
+    subgraph Core["Domain & Intelligence Engine"]
+        MatchEngine["Semantic Matcher Pipeline"]
+        RubricEngine["8-Pillar Proposal Rubric Engine"]
+        GeminiAI["Google Gemini AI Flash (Primary)"]
+        OpenAI["OpenAI GPT-4o-mini (Fallback)"]
     end
 
-    subgraph L4["Layer 4: Domain & Business Logic (src/lib)"]
-        Rubric["Proposal Rubric Engine<br/>Eight open-source proposal criteria"]
-        MatchPipeline["AI Matcher Pipeline<br/>Token expansion and normalization"]
-        Heuristic["Heuristic Filtering<br/>Tech 50% · Difficulty 20% · History 15% · Topic 15%"]
-        Rerank["AI Re-ranking Fallback<br/>Semantic explanation and fit percentage"]
+    subgraph Data["Persistence & Repositories"]
+        Mongo["MongoDB Atlas (Aggregations & Compound Indexes)"]
+        Cache["Next.js Cache & Resilient Mock Fallbacks"]
     end
 
-    subgraph L5["Layer 5: Repositories & Resilient Storage (src/lib/repositories)"]
-        Repos["Typed Repository Abstractions<br/>Proposals, projects, organizations, programs, users"]
-        MockFallback["In-Memory Mock and Cache Fallback<br/>Build-safe and outage-resilient"]
-    end
-
-    subgraph L6["Layer 6: Persistence & External Infrastructure"]
-        Gemini["Google Gemini Flash<br/>Primary AI models"]
-        OpenAI["OpenAI GPT-4o-mini<br/>Fallback AI model"]
-        MongoDB["MongoDB Atlas<br/>Projects, organizations, programs, proposals, users, feedback"]
-    end
-
-    %% Cross-layer interactions
-    Debounce -- "autosave delta" --> PropCtrl
-    AuthGate -- "authenticated mutation" --> PropCtrl
-    AuthGate -- "authenticated matching request" --> MatchCtrl
-    OAuth -- "session validation" --> AuthGate
-
-    PropCtrl -- "proposal validation" --> Rubric
-    MatchCtrl -- "matching pipeline" --> MatchPipeline
-    MatchPipeline --> Heuristic
-    Heuristic --> Rerank
-
-    Rubric -- "proposal data" --> Repos
-    Heuristic -- "candidate data" --> Repos
-    CatalogAPI -- "catalog queries" --> Repos
-
-    Rerank -- "primary inference" --> Gemini
-    Gemini -. "provider failure" .-> OpenAI
-    Rerank -. "AI fallback" .-> OpenAI
-
-    Repos -- "primary persistence" --> MongoDB
-    Repos -. "on outage or build-time access" .-> MockFallback
+    Client --> Security
+    Security --> Core
+    Core --> GeminiAI
+    GeminiAI -. Fallback .-> OpenAI
+    Core --> Data
 ```
-</details>
-
-### Architectural Highlights:
-1. **Layer 1 (Presentation & Client):** Unified interface leveraging Next.js 16 Server Components and Client State (including debounced 450ms proposal autosaving).
-2. **Layer 2 (Edge Security & Middleware):** Strict Content Security Policy (CSP), sliding-window rate limiting with an LRU cap of 10,000 IP windows, and NextAuth v5 session authentication.
-3. **Layer 3 (API & Controllers):** Isolated REST endpoints handling CRUD, background validation, AI enhancement, and candidate matching pipelines.
-4. **Layer 4 (Domain & Business Logic):** Specialized rubric engines evaluating proposals across 8 open-source criteria, paired with multi-variable candidate scoring (50% Tech, 20% Difficulty, 15% History, 15% Topic).
-5. **Layer 5 (Repositories & Resilient Storage):** Typed repository abstraction layer with in-memory caching and mock fallbacks ensuring build stability and zero-downtime tolerance.
-6. **Layer 6 (Persistence & Infrastructure):** MongoDB Atlas document store with multi-tier LLM execution (Google Gemini Flash with automatic fallback to OpenAI GPT-4o-mini).
 
 ---
 
-## 🎨 Visual Identity & Aesthetic ("Ledger")
+## ⚡ Quickstart & Local Development
 
-Contribo follows a strict, premium instrument-panel design system:
-*   **Color System (Dark & Light modes):**
-    *   `bg-base`: Graphite-black (`#0D1013`) in dark mode, cool paper (`#F6F6F4`) in light mode.
-    *   `accent-brass`: Muted gold/brass (`#C9A24B` / `#9C7A2E`) used as a premium signal color for stipend highlights and primary CTAs.
-    *   `accent-slate`: Slate blue (`#5B7C99` / `#365974`) for informational tags and secondary actions.
-    *   `accent-merge`: Forest green (`#3E8863` / `#276B49`) for git-style accepted states.
-    *   `accent-alert`: Burnt copper (`#C77B3B` / `#A85A22`) for deadlines and closing states.
-*   **Typography:**
-    *   *Display:* Neue Haas Grotesk or Söhne for weights at large heading sizes.
-    *   *Body:* Inter or IBM Plex Sans for legible copy.
-    *   *Utility:* IBM Plex Mono or JetBrains Mono for numbers, dates, tech-tags, stipend amounts, and metadata.
+### Prerequisites
+- **Node.js:** `v20.x` or later
+- **npm:** `v10.x` or later
+- **MongoDB:** Local instance or free [MongoDB Atlas Cluster](https://www.mongodb.com/atlas)
 
----
-
-## 📂 Project Structure
-
+### 1. Clone Repository
 ```bash
-Contribo/
-├── .agents/                    # Custom agent instructions and workflows
-├── public/                     # Static assets, SVG logos, and icons
-├── scripts/                    # Database seeding and migration scripts
-│   ├── templates/              # Ingestion templates (e.g., CSV formats)
-│   ├── ingest-csv.js           # CLI tool to ingest orgs/projects from CSV
-│   ├── migrate-gsoc.js         # GSoC specific migration scripts
-│   ├── seed-programs.js        # Program-level data seeder
-│   └── setup-indexes.js        # MongoDB index configuration
-├── src/
-│   ├── app/                    # Next.js App Router (Layouts, Pages, APIs)
-│   │   ├── api/                # API routes (matcher, programs, auth)
-│   │   ├── dashboard/          # Contributor application workspace
-│   │   ├── guidelines/         # MDX-based guide pages
-│   │   ├── matcher/            # AI Matcher frontend
-│   │   ├── organizations/      # Organizations directory
-│   │   ├── projects/           # Projects directory
-│   │   └── globals.css         # Tailwind v4 configuration and design system tokens
-│   ├── components/             # Reusable React components
-│   │   ├── hero/               # Hero sections (Schematic hero animation, search, stats)
-│   │   └── ui/                 # Command Palette, Cards, Badges, Buttons, etc.
-│   ├── lib/                    # Shared library files (Database connection, Hash utilities)
-│   ├── auth.ts                 # NextAuth configuration
-│   └── proxy.ts                # Dev proxy helper
-├── types/                      # TypeScript definitions
-├── package.json                # Project dependencies and script runner
-└── tsconfig.json               # TypeScript compiler config
+git clone https://github.com/subhranshudash13-dotcom/Contribo.git
+cd Contribo
 ```
 
----
-
-## 🗄️ Database Schema & Collections
-
-Contribo relies on a MongoDB cluster structured with the following collections:
-
-1.  **`programs`**:
-    Tracks core mentorship programs. Key fields: `slug`, `name`, `organizer`, `stipendRange`, `durationWeeks`, `tier`, `accentColor`, `eligibilitySummary`, `timeline` (array of events/dates), `applicationSteps`.
-2.  **`organizations`**:
-    Contains organizations participating in the programs. Key fields: `name`, `slug`, `logoUrl`, `techTags`, `description`, `programId` (Foreign key linking to `programs`).
-3.  **`projects`**:
-    Contains specific project ideas. Key fields: `title`, `description`, `orgSlug`, `programId` (Foreign key linking to `programs`), `techStack`, `year`, `difficulty`.
-4.  **`users` / `accounts` / `sessions`**:
-    NextAuth-managed tables for contributor authentication and dashboard persistence.
-
----
-
-## ⚙️ Local Setup & Installation
-
-### 1. Prerequisites
-*   Node.js (v18 or higher recommended)
-*   MongoDB Instance (local or Atlas URI)
-*   OpenAI API Key (needed for AI matcher embeddings)
-*   GitHub Developer App client credentials (for authentication)
-
-### 2. Environment Configuration
-Create a `.env` file in the root directory:
-
-```env
-# Database Configuration
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/contribo-db
-
-# NextAuth Configuration
-AUTH_SECRET=your-next-auth-secret
-NEXTAUTH_SECRET=your-next-auth-secret
-AUTH_URL=http://localhost:3000
-
-# GitHub OAuth Credentials
-AUTH_GITHUB_ID=your-github-client-id
-AUTH_GITHUB_SECRET=your-github-client-secret
-
-# Google OAuth Credentials (Optional)
-AUTH_GOOGLE_ID=your-google-client-id
-AUTH_GOOGLE_SECRET=your-google-client-secret
-
-# AI Matcher Configuration
-OPENAI_API_KEY=your-openai-api-key
-AI_PROVIDER=openai
-
-# Application Config
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_GSOC_YEAR=2026
-
-# Offline settings (optional - set to 1 if building without internet to mock Google Fonts)
-NEXT_FONT_GOOGLE_MOCK=0
-```
-
-### 3. Install Dependencies
+### 2. Install Dependencies
 ```bash
 npm install
 ```
 
-### 4. Database Initialization & Seeding
-To populate your MongoDB cluster with core data and indexes:
-
+### 3. Setup Environment Variables
+Copy the example environment template:
 ```bash
-# 1. Seed the core open-source programs (GSoC, Outreachy, LFX, MLH)
-node scripts/seed-programs.js
+cp .env.example .env
+```
+Open `.env` and fill in your values:
+```ini
+# Database
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/contribo
+MONGODB_DB=contribo
 
-# 2. Configure MongoDB search indexes and compound keys
-node scripts/setup-indexes.js
+# Authentication
+AUTH_SECRET=your_auth_secret_minimum_16_characters
+AUTH_URL=http://localhost:3000
+
+# OAuth Providers (Optional for local testing)
+AUTH_GITHUB_ID=your_github_oauth_client_id
+AUTH_GITHUB_SECRET=your_github_oauth_client_secret
+
+# AI Matcher (Google Gemini recommended)
+GEMINI_API_KEY=your_gemini_api_key_here
+AI_PROVIDER=gemini
+```
+> **Security Note:** Never commit `.env` or real API keys to version control. All secrets are strictly ignored by `.gitignore`.
+
+### 4. Seed Database (Optional)
+Seed default open-source programs and sample projects:
+```bash
+npm run db:setup
 ```
 
-### 5. Ingesting Organization and Project Data
-You can import organizations and projects from CSV files using the CLI ingester script:
-
-```bash
-# Ingest Organizations
-node scripts/ingest-csv.js --type org --program gsoc --file scripts/templates/organization_template.csv
-
-# Ingest Projects
-node scripts/ingest-csv.js --type project --program gsoc --file path/to/your/projects.csv
-
-# Dry-run mode (validates CSV without inserting to the database)
-node scripts/ingest-csv.js --type org --program gsoc --file path/to/file.csv --dry-run
-```
-
----
-
-## 🖥️ Development & Building
-
-### Run Development Server
+### 5. Run Development Server
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Build and Run for Production
+---
+
+## 🧪 Testing & Validation
+
 ```bash
-# Compile and build the Next.js production bundle
-npm run build
-
-# Start the built production server
-npm run start
-```
-
-### Linting
-```bash
+# Run ESLint validation
 npm run lint
+
+# Run TypeScript type safety check
+npx tsc --noEmit
+
+# Run unit test suite
+npm test
+
+# Build production bundle
+npm run build
 ```
 
 ---
 
-## 🛡️ Guardrails & Core Policies
+## 🤝 Contributing to Contribo
 
-*   **Additive Schema Only:** Never modify or drop existing shared database fields in the `organizations` or `projects` collections. Only add new fields (e.g., `programId`) to preserve backward compatibility.
-*   **Information Integrity:** No placeholder icons, mock names, or `lorem ipsum` in production. Always show clean empty states rather than fallback mock/random data when queries return empty.
-*   **Accessibility (WCAG AA):** Entire application must support keyboard navigation (Tab/Shift+Tab), high-contrast focus rings, and proper ARIA semantic structure.
+We welcome contributions of **all kinds** from developers around the globe — whether you're fixing bugs, adding new mentorship programs, enhancing UI/UX, optimizing algorithms, or sharing feature ideas!
+
+### How to Get Started:
+1. 🔎 **Find an Issue:** Browse open issues tagged with [`good first issue`](https://github.com/subhranshudash13-dotcom/Contribo/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) or [`help wanted`](https://github.com/subhranshudash13-dotcom/Contribo/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22).
+2. 💬 **Discuss / Claim:** Comment on the issue you'd like to work on so we can assign it to you.
+3. 🍴 **Fork & Branch:** Create a feature branch (`git checkout -b feat/your-feature-name`).
+4. 🛠️ **Implement & Test:** Write clean code, adhere to TypeScript standards, and run `npm test`.
+5. 🚀 **Submit PR:** Open a Pull Request referencing the issue (e.g., `Closes #12`). Our **CodeRabbit AI** and GitHub Actions CI will automatically review and validate your code!
+
+### 💡 Have an Idea or Feature Request?
+We'd love to hear it! Open a [New Feature Proposal](https://github.com/subhranshudash13-dotcom/Contribo/issues/new) or start a discussion in our community.
 
 ---
 
-## 🛡️ Security Notice
+## 🛡️ Security & Responsible Disclosure
 
-> [!WARNING]
-> **Git History Secret Rotation:** If any database connection strings, OAuth client secrets, Auth secrets, or OpenAI API keys were previously hardcoded or committed to git history, those credentials are still retrievable in the git logs. **Rotate any previously exposed credentials immediately** before deploying this application to production.
+Security is a top priority for Contribo:
+- Passwords are encrypted using constant-time `scrypt` hashing.
+- API inputs are sanitized with sliding-window rate limiting.
+- Strict Content Security Policies (CSP) and security headers are enforced across all routes.
 
+If you discover a security vulnerability, please report it privately to the maintainers rather than opening a public issue.
+
+---
+
+## 📄 License
+
+Contribo is open-source software licensed under the [MIT License](LICENSE).
+
+---
+
+<p align="center">
+  Built with ❤️ for the global open-source contributor community.<br>
+  <strong>Star ⭐ this repository if you find Contribo helpful!</strong>
+</p>
