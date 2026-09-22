@@ -1,7 +1,8 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 # CodeRabbit Configuration File
 # Documentation: https://docs.coderabbit.ai/guides/configure-coderabbit
 
-version: "2"
+version: 2
 language: "en-US"
 early_access: false
 
