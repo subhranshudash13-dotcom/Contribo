@@ -9,6 +9,46 @@ export interface FilterFacets {
   orgCategories: string[];
 }
 
+export const ORGANIZATION_DOMAIN_GROUPS = [
+  {
+    label: 'AI & Machine Learning',
+    keywords: ['ai', 'artificial intelligence', 'machine learning', 'deep learning', 'data science'],
+  },
+  {
+    label: 'Cloud, DevOps & Infrastructure',
+    keywords: ['cloud', 'devops', 'infrastructure', 'kubernetes', 'distributed systems'],
+  },
+  {
+    label: 'Developer Tools & Compilers',
+    keywords: ['developer tool', 'developer tooling', 'compiler', 'ide', 'cli', 'debugger'],
+  },
+  {
+    label: 'Databases & Data Engineering',
+    keywords: ['database', 'sql', 'nosql', 'storage', 'big data', 'data engineering'],
+  },
+  {
+    label: 'Web, Mobile & Fullstack',
+    keywords: ['web', 'frontend', 'backend', 'fullstack', 'full stack', 'mobile', 'api', 'framework'],
+  },
+  {
+    label: 'Security, Cryptography & Blockchain',
+    keywords: ['security', 'cryptograph', 'blockchain', 'ledger', 'web3', 'zero knowledge', 'zk'],
+  },
+  {
+    label: 'Science, Aerospace & Simulation',
+    keywords: ['science', 'aerospace', 'astronomy', 'bioinformatics', 'physics', 'simulation'],
+  },
+  { label: 'Other', keywords: [] },
+] as const;
+
+export function normalizeOrganizationCategory(category: string): string {
+  const value = category.toLowerCase();
+  const group = ORGANIZATION_DOMAIN_GROUPS.find(({ keywords }) =>
+    keywords.some((keyword) => value.includes(keyword))
+  );
+  return group?.label || 'Other';
+}
+
 function cleanStringList(values: unknown[], max = 80): string[] {
   const seen = new Map<string, string>();
   for (const v of values) {
@@ -21,6 +61,17 @@ function cleanStringList(values: unknown[], max = 80): string[] {
   return Array.from(seen.values())
     .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
     .slice(0, max);
+}
+
+function cleanOrganizationCategories(values: unknown[]): string[] {
+  const normalized = new Set(
+    values
+      .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+      .map(normalizeOrganizationCategory)
+  );
+  return ORGANIZATION_DOMAIN_GROUPS
+    .map(({ label }) => label)
+    .filter((label) => normalized.has(label));
 }
 
 function cleanYears(values: unknown[]): number[] {
@@ -76,7 +127,7 @@ export async function getFilterFacets(options?: {
     difficulties: cleanStringList(difficulties as unknown[], 20),
     years: cleanYears(years as unknown[]),
     topics: cleanStringList(topics as unknown[], 80),
-    orgCategories: cleanStringList(categories as unknown[], 40),
+    orgCategories: cleanOrganizationCategories(categories as unknown[]),
   };
 }
 
@@ -129,4 +180,3 @@ export async function getOrgTechnologiesForProgram(options: {
   const tech = await organizations.distinct('technologies', orgFilter);
   return cleanStringList(tech as unknown[], 120);
 }
-
