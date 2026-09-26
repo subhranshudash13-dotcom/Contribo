@@ -13,6 +13,7 @@ import {
   type TrackApplicationPayload,
 } from '@/lib/client/api';
 import { useNetwork } from '@/components/ui/NetworkProvider';
+export { ShareButton } from './ShareButton';
 
 type SavePayload = SaveItemPayload;
 type TrackPayload = TrackApplicationPayload;

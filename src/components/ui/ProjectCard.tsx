@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { ExternalLink, Code2, Users, Banknote, Clock } from 'lucide-react';
 import { Project } from '../../../types';
-import { SaveButton, TrackApplicationButton } from './SaveTrackActions';
+import { SaveButton, TrackApplicationButton, ShareButton } from './SaveTrackActions';
 import { getProjectScopeAndStipend } from '@/lib/project-utils';
 
 export function ProjectCard({
@@ -141,10 +141,14 @@ export function ProjectCard({
               }}
               initialTracked={initialTracked}
             />
+            <ShareButton
+              url={`/projects?q=${encodeURIComponent(project.title)}`}
+              title={project.title}
+            />
 
             <Link
               href={`/proposal-studio?project=${encodeURIComponent(project.title)}&org=${encodeURIComponent(project.org)}`}
-              className="inline-flex items-center gap-1 h-8 px-3 rounded-md border border-hairline bg-surface-raised hover:bg-surface text-primary text-xs font-mono font-bold uppercase transition-all"
+              className="inline-flex items-center gap-1 h-8 px-3 rounded-md border border-hairline bg-surface-raised hover:bg-surface text-primary text-xs font-mono font-bold uppercase transition-all ml-auto"
             >
               <span>Proposal</span>
             </Link>
@@ -188,7 +192,8 @@ export function ProjectCardSkeleton() {
         </div>
         <div className="flex gap-2 mt-4 pt-3 border-t border-hairline/80">
           <div className="h-8 w-16 bg-page rounded-lg" />
-          <div className="h-8 w-28 bg-page rounded-lg" />
+          <div className="h-8 w-24 bg-page rounded-lg" />
+          <div className="h-8 w-16 bg-page rounded-lg" />
         </div>
       </div>
     </div>

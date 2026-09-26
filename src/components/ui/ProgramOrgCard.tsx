@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Code2, ArrowRight, FolderOpen } from 'lucide-react';
 import { Organization } from '../../../types';
 import { Button } from './Button';
-import { SaveButton } from './SaveTrackActions';
+import { SaveButton, ShareButton } from './SaveTrackActions';
 import { OrgLogo } from './OrgLogo';
 
 export function ProgramOrgCard({
@@ -135,18 +135,26 @@ export function ProgramOrgCard({
             </span>
           </Button>
           {showActions && orgId && (
-            <SaveButton
-              className="w-full [&>button]:w-full [&>button]:justify-center"
-              payload={{
-                type: 'organization',
-                targetId: orgId,
-                title: org.name,
-                subtitle: org.category || 'Organization',
-                slug: org.slug,
-                techStack: techs.slice(0, 12),
-              }}
-              initialSaved={initialSaved}
-            />
+            <div className="flex items-center gap-2">
+              <SaveButton
+                className="flex-1 [&>button]:w-full [&>button]:justify-center"
+                payload={{
+                  type: 'organization',
+                  targetId: orgId,
+                  title: org.name,
+                  subtitle: org.category || 'Organization',
+                  slug: org.slug,
+                  techStack: techs.slice(0, 12),
+                }}
+                initialSaved={initialSaved}
+              />
+              <ShareButton
+                url={`/organizations/${org.slug}`}
+                title={org.name}
+                variant="icon"
+                size="sm"
+              />
+            </div>
           )}
         </div>
       </div>

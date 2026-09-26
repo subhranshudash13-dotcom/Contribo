@@ -17,7 +17,7 @@ import {
   Banknote,
   Clock,
 } from 'lucide-react';
-import { SaveButton, TrackApplicationButton } from '@/components/ui/SaveTrackActions';
+import { SaveButton, TrackApplicationButton, ShareButton } from '@/components/ui/SaveTrackActions';
 import { getProjectScopeAndStipend } from '@/lib/project-utils';
 
 export type TrendingProject = {
@@ -470,6 +470,11 @@ export function TrendingProjects({
                             status: 'researching',
                           }}
                           initialTracked={trackedProjects.includes(proj.id)}
+                        />
+                        <ShareButton
+                          url={projectLink}
+                          title={proj.title}
+                          variant="compact"
                         />
                       </div>
 
