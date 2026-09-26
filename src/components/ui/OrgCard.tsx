@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Organization } from '../../../types';
-import { SaveButton } from './SaveTrackActions';
+import { SaveButton, ShareButton } from './SaveTrackActions';
 import { OrgLogo } from './OrgLogo';
 
 export function OrgCard({
@@ -43,15 +43,28 @@ export function OrgCard({
             />
           </div>
 
-          {/* Action Button at Top Right */}
+          {/* Action Buttons at Top Right */}
           {showActions && orgId && (
-            <div className="absolute top-2.5 right-2.5 z-10">
+            <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5">
               <div
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                 }}
-                className="opacity-90 hover:opacity-100 transition-opacity rounded-full"
+                className="opacity-90 hover:opacity-100 transition-opacity"
+              >
+                <ShareButton
+                  url={`/organizations/${org.slug}`}
+                  title={org.name}
+                  variant="compact"
+                />
+              </div>
+              <div
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className="opacity-90 hover:opacity-100 transition-opacity"
               >
                 <SaveButton
                   payload={{
