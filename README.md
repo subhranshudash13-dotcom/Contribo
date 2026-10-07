@@ -48,7 +48,7 @@ Contribo aggregates, categorizes, and standardizes opportunities across all majo
 | **Outreachy** | Software Freedom Conservancy | Diversity & Underrepresented Tech | $7,000 USD + $500 Travel |
 | **Summer of Bitcoin (SOB)** | Bitcoin Open Source Community | Cryptography, Layer-2, Rust | Stipend in BTC / USD |
 | **MLH Fellowship** | Major League Hacking | Real-world Production Engineering | Educational Stipend |
-| **Hacktoberfest** | DigitalOcean & Partners | First-time & Community Contributions | Badges & Tree Planting |
+| **Hacktoberfest** | MLH & DEV (presented by DigitalOcean) | AI & Community Hack Days, DEV Challenges | Digital Badges & Sticker Packs |
 | **GirlScript Summer of Code (GSSoC)** | GirlScript Foundation | Beginner-friendly Mentorship | Swag, Certificates & Perks |
 | **Nexus Spring of Code (NSoC)** | Nexus Foundation | Emerging Tech & Tooling | Performance Stipends |
 

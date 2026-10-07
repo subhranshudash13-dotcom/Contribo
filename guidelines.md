@@ -43,7 +43,7 @@ Tier 2 — solid stipend, active:
 Linux Kernel Mentorship, LFN (Linux Foundation Networking) Mentorship, CNCF Mentoring, Open Mainframe Project Mentorship, Summer of Bitcoin, Hyperledger Mentorship, C4GT (Code for GovTech), FOSSEE Summer Fellowship
 
 Tier 3 — swag/recognition-based or contest-style (great for beginners, no stipend):
-Hacktoberfest, GirlScript Summer of Code (GSSoC), 24 Pull Requests, FOSSASIA Codeheat, Julia Seasons of Contributions
+Hacktoberfest (MLH & DEV Hack Days, DEV Challenges, sticker packs), GirlScript Summer of Code (GSSoC), 24 Pull Requests, FOSSASIA Codeheat, Julia Seasons of Contributions
 
 
 Note: exact dates/stipends shift yearly — build the schema so these are data fields, not hardcoded copy, and mark each program with a "last verified" date so you're never accidentally showing stale deadlines.

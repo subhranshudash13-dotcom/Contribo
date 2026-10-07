@@ -107,17 +107,18 @@ const PROGRAMS_DATA = [
   {
     slug: "hacktoberfest",
     name: "Hacktoberfest",
-    organizer: "DigitalOcean",
-    stipendRange: "Swag & Digital Badge",
+    organizer: "MLH & DEV (presented by DigitalOcean)",
+    stipendRange: "Digital Badges & Sticker Packs",
     durationWeeks: 4,
     tier: 3,
     accentColor: "#FF7A00",
-    eligibilitySummary: "Open to anyone worldwide, no experience required",
+    eligibilitySummary: "Open to all worldwide, no student requirement, MyMLH account required",
     officialWebsite: "https://hacktoberfest.com",
     applicationSteps: [
-      "Register on the Hacktoberfest official site during October.",
-      "Find repositories participating in Hacktoberfest (labeled with 'hacktoberfest').",
-      "Make 4 valid pull requests to opt-in projects between Oct 1 and Oct 31."
+      "Create or link your MyMLH account on the official Hacktoberfest portal.",
+      "RSVP and attend local in-person or virtual community Fests (Hack Days).",
+      "Build open-source AI projects, author a skills.md, or submit to weekly DEV Challenges.",
+      "Collect virtual stickers to unlock digital badges and physical sticker pack rewards."
     ],
     difficulty: "Beginner Friendly",
     pastStats: [
@@ -125,9 +126,11 @@ const PROGRAMS_DATA = [
       { year: "2024", contributors: 153000, orgs: 9100, projects: 28000 }
     ],
     resources: [
-      { title: "Hacktoberfest Participant Guide", url: "https://hacktoberfest.com/participation/" },
-      { title: "Git Guide", url: "/resources#git-guide" },
-      { title: "First PR Guide", url: "/resources#first-pr" }
+      { title: "Hacktoberfest Official Site", url: "https://hacktoberfest.com" },
+      { title: "Fests Directory", url: "https://hacktoberfest.com/fests/" },
+      { title: "DEV Challenges", url: "https://dev.to/challenges" },
+      { title: "GHW Open Source Events", url: "https://ghw.mlh.com/events/open-source" },
+      { title: "LLM / Agent Manifest", url: "https://hacktoberfest.com/llms.txt" }
     ],
     timeline: [
       { event: "Registration Opens", date: "2026-09-26" },

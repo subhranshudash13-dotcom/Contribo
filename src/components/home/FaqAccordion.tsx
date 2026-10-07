@@ -28,7 +28,11 @@ export function FaqAccordion() {
     },
     {
       question: "Can I participate if I am not a student?",
-      answer: "Yes! Many programs like Outreachy, LFX Mentorship, and Hacktoberfest do not require student status. They are open to anyone who meets their specific eligibility criteria."
+      answer: "Yes! Many programs like Outreachy, LFX Mentorship, and Hacktoberfest do not require student status. They are open to anyone who meets their specific eligibility criteria — Hacktoberfest, for example, is open to all via community Hack Days, meetups, and DEV Challenges rather than traditional PR-only quotas."
+    },
+    {
+      question: "Do I need to submit 4 pull requests for Hacktoberfest?",
+      answer: "No. The traditional 4-PR quota has been retired to eliminate low-effort spam. Hacktoberfest is now stewarded by MLH & DEV around the theme \"AI belongs to everyone\". You earn rewards by attending local or virtual Fests, completing DEV AI challenges, and collecting virtual stickers via MyMLH."
     },
     {
       question: "How do I start contributing to a project?",
