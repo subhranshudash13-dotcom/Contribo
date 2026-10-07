@@ -19,8 +19,6 @@ import {
   ChevronDown,
   ChevronUp,
   FolderGit2,
-  Star,
-  Users,
 } from 'lucide-react';
 import { SaveButton, TrackApplicationButton } from '@/components/ui/SaveTrackActions';
 import { OfflineState } from '@/components/ui/OfflineState';
@@ -751,34 +749,29 @@ export default function MatcherClient() {
                                   </div>
                                 </div>
 
-                                {/* Match Percentage Pill */}
+                                {/* Activity History Toggle */}
                                 <div className="flex items-center sm:flex-col sm:items-end gap-2 shrink-0">
-                                  <span className="font-mono text-xs sm:text-sm font-bold text-brass bg-brass/10 border border-brass/30 px-3 py-1.5 rounded-xl shadow-xs flex items-center gap-1.5">
-                                    <Sparkles size={14} className="text-brass" />
-                                    <span>{match.matchPercentage}% Match</span>
-                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleOrgStats(cardKey)}
+                                    className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-mono font-medium transition-all ${
+                                      isStatsOpen
+                                        ? 'bg-brass text-white shadow-xs'
+                                        : 'bg-page hover:bg-surface-raised border border-hairline text-muted hover:text-primary'
+                                    }`}
+                                    title="Inspect annual project volume from 2017 to 2026"
+                                  >
+                                    <BarChart3 size={13} className="shrink-0" />
+                                    <span>{isStatsOpen ? 'Hide History' : 'Activity History'}</span>
+                                    {isStatsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                                  </button>
                                   <span className="text-[11px] font-mono text-muted">
                                     {match.programName || 'Open Source'}
                                   </span>
                                 </div>
                               </div>
 
-                              {/* ── 2. ORBIT AI REASONING CALLOUT ── */}
-                              {match.reasoning && (
-                                <div className="flex items-start gap-3 p-3.5 sm:p-4 rounded-xl bg-accent/5 border border-accent/20 text-xs sm:text-sm text-primary leading-relaxed shadow-xs">
-                                  <Sparkles size={16} className="text-accent shrink-0 mt-0.5" />
-                                  <div className="space-y-1">
-                                    <span className="font-bold text-[11px] font-mono uppercase tracking-wider text-accent block">
-                                      Orbit AI Evaluation:
-                                    </span>
-                                    <p className="text-secondary font-normal">
-                                      {match.reasoning}
-                                    </p>
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* ── 3. TECH STACK & MATCHED SKILLS BADGES ── */}
+                              {/* ── 2. TECH STACK & MATCHED SKILLS BADGES ── */}
                               <div className="space-y-2 pt-1">
                                 <div className="flex items-center gap-2 text-xs font-mono text-muted flex-wrap">
                                   <Code2 size={14} className="shrink-0 text-muted" />
@@ -816,9 +809,9 @@ export default function MatcherClient() {
                                 </motion.div>
                               )}
 
-                              {/* ── 4. ACTION FOOTER WITH EXPLORE PROJECTS CTA ── */}
+                              {/* ── 3. ACTION FOOTER WITH EXPLORE PROJECTS CTA ── */}
                               <div className="pt-4 border-t border-hairline/70 flex flex-wrap items-center justify-between gap-3">
-                                {/* Left: Direct External Links & Org Stats */}
+                                {/* Left: Direct External Links */}
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <a
                                     href={orgDirectWebsite}
@@ -856,22 +849,6 @@ export default function MatcherClient() {
                                       <ExternalLink size={11} className="text-muted" />
                                     </a>
                                   )}
-
-                                  {/* Org Stats Toggle */}
-                                  <button
-                                    type="button"
-                                    onClick={() => toggleOrgStats(cardKey)}
-                                    className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-mono font-medium transition-all ${
-                                      isStatsOpen
-                                        ? 'bg-brass text-white shadow-xs'
-                                        : 'bg-page hover:bg-surface-raised border border-hairline text-muted hover:text-primary'
-                                    }`}
-                                    title="Inspect annual project volume from 2017 to 2026"
-                                  >
-                                    <BarChart3 size={13} className="shrink-0" />
-                                    <span>{isStatsOpen ? 'Hide History' : 'Activity History'}</span>
-                                    {isStatsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                                  </button>
                                 </div>
 
                                 {/* Right: Save Org + Explore Projects Primary Action */}
