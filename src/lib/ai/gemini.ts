@@ -23,6 +23,87 @@ export interface GeminiMatchItem {
   reasoning: string;
 }
 
+export interface GeminiOrgCandidate {
+  id: number;
+  name: string;
+  category?: string;
+  technologies: string;
+  matchedSkills: string;
+  description: string;
+  years?: string;
+  projectCount?: number;
+  programName?: string;
+}
+
+export async function rankOrganizationsWithGemini(params: {
+  skills: string[];
+  experience: 'beginner' | 'intermediate' | 'advanced';
+  location: string;
+  availability: number;
+  candidates: GeminiOrgCandidate[];
+  topLimit?: number;
+}): Promise<GeminiMatchItem[] | null> {
+  const topLimit = params.topLimit || 24;
+  const systemInstruction = `You are Orbit AI, an expert open-source mentorship matchmaker and organization recommendation engine.
+Your mission is to evaluate, rank, and recommend open-source organizations to contributors based on their skills (${params.skills.join(', ')}), experience level (${params.experience}), and weekly availability (${params.availability}h/week).
+
+Evaluation Criteria:
+1. Technical & Practical Alignment: Recommend organizations whose tech stack, topics, and active project ecosystem strongly match user skills.
+2. Experience Level Suitability: For beginners, highlight supportive organizations with broad introductory subprojects and established mentorship. For advanced contributors, highlight deep-architecture and specialized domain organizations.
+3. Realistic Match Percentage: Produce a realistic match score from 45 to 98 (never 100). Higher scores for high direct skill overlap and active recent participation.
+4. Personalized Rationale: 1–2 sentences explaining specifically why this Organization is an ideal match for their skill profile and what domains/tech they would work on. Mention specific matched skills.
+
+Output Format:
+Return ONLY a valid JSON object matching this schema:
+{
+  "matches": [
+    {
+      "id": 0,
+      "matchPercentage": 92,
+      "reasoning": "Excellent match for your React and TypeScript background. Rocket.Chat has active frontend repositories, rich community mentorship, and consistent program participation."
+    }
+  ]
+}`;
+
+  const prompt = `User Profile:
+- Skills: ${params.skills.join(', ')}
+- Experience Level: ${params.experience}
+- Weekly Availability: ${params.availability} hours/week
+- Location: ${params.location}
+
+Candidate Organizations (JSON):
+${JSON.stringify(params.candidates)}
+
+Rank the top candidate organizations (up to ${topLimit}) ordered best match first. Return ONLY raw JSON.`;
+
+  try {
+    const rawResponse = await generateGeminiContent(prompt, systemInstruction, {
+      responseMimeType: 'application/json',
+      temperature: 0.2,
+      maxTokens: 2500,
+    });
+    if (!rawResponse) return null;
+
+    let jsonStr = rawResponse.trim();
+    const codeBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (codeBlockMatch) {
+      jsonStr = codeBlockMatch[1];
+    } else {
+      const match = jsonStr.match(/\{[\s\S]*\}/);
+      if (match) jsonStr = match[0];
+    }
+
+    const parsed = JSON.parse(jsonStr) as { matches?: GeminiMatchItem[] };
+    if (Array.isArray(parsed?.matches)) {
+      return parsed.matches;
+    }
+  } catch (err) {
+    safeLogError('Gemini org candidate ranking failed:', err);
+  }
+
+  return null;
+}
+
 export async function rankProjectsWithGemini(params: {
   skills: string[];
   experience: 'beginner' | 'intermediate' | 'advanced';

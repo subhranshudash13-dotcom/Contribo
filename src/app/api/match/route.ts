@@ -6,16 +6,17 @@ import {
   isNextResponse,
   normalizeStringArray,
 } from '@/lib/api';
-import { findProjectsBySkills, expandSkillTokens } from '@/lib/repositories/projects';
+import { expandSkillTokens } from '@/lib/repositories/projects';
+import { findOrganizationsBySkills } from '@/lib/repositories/organizations';
 import { getCollection, COLLECTIONS } from '@/lib/db';
 import { MAX_AI_BODY_BYTES, safeLogError } from '@/lib/security';
-import { rankProjectsWithGemini, generateGeminiStructuredJson } from '@/lib/ai/gemini';
-import type { Program, Project } from '@/../types';
+import { rankOrganizationsWithGemini, type GeminiOrgCandidate } from '@/lib/ai/gemini';
+import type { Program, Organization, Project } from '@/../types';
 
 const MAX_SKILLS = 40;
 const MAX_SKILL_LEN = 48;
-const MAX_CANDIDATES = 90;
-const TOP_RESULTS = 30;
+const MAX_CANDIDATES = 40;
+const TOP_RESULTS = 24;
 
 /** Skip OpenAI for a cool-down after auth/quota failures so heuristic stays fast. */
 let openAiDisabledUntil = 0;
@@ -31,47 +32,48 @@ function disableOpenAITemporarily(ms = 15 * 60_000) {
   openAiDisabledUntil = Date.now() + ms;
 }
 
-type MatchResult = {
-  id?: string;
-  title: string;
+export type OrgMatchResult = {
+  id: string;
+  name: string;
+  slug: string;
   orgName: string;
-  orgSlug?: string;
-  techStack: string[];
+  orgSlug: string;
+  title: string;
+  category: string;
   description: string;
+  technologies: string[];
+  techStack: string[];
+  matchedSkills: string[];
   matchPercentage: number;
   reasoning: string;
+  years: number[];
+  latestYear: number;
+  projectCount: number;
+  websiteUrl?: string;
+  githubUrl?: string;
+  ideasUrl?: string;
+  orgLogoUrl?: string;
+  orgWebsiteUrl?: string;
+  orgGithubUrl?: string;
+  orgCategory?: string;
+  orgDescription?: string;
+  orgIdeasUrl?: string;
+  orgTopics?: string[];
   programName: string;
   programColor: string;
   programSlug?: string;
-  projectId?: string;
-  difficulty?: string;
-  year?: number;
-  matchedSkills?: string[];
-  githubUrl?: string;
-  orgLogoUrl?: string;
-  orgWebsiteUrl?: string;
-  orgGithubUrl?: string;
-  orgCategory?: string;
-  orgDescription?: string;
-  orgIdeasUrl?: string;
-  orgTopics?: string[];
+  exploreProjectsUrl: string;
   yearlyStats?: Array<{ year: number; count: number }>;
   stars?: number;
-  mentors?: string[];
 };
 
-type EnrichedProject = Project & {
+type EnrichedOrganization = Organization & {
   programName?: string;
   programColor?: string;
   programSlug?: string;
-  orgLogoUrl?: string;
-  orgWebsiteUrl?: string;
-  orgGithubUrl?: string;
-  orgCategory?: string;
-  orgDescription?: string;
-  orgIdeasUrl?: string;
-  orgTopics?: string[];
   yearlyStats?: Array<{ year: number; count: number }>;
+  resolvedGithubUrl?: string;
+  resolvedWebsiteUrl?: string;
 };
 
 function normalizeSkills(input: unknown): string[] | null {
@@ -90,43 +92,63 @@ function normalizeExperience(value: unknown): 'beginner' | 'intermediate' | 'adv
   return 'intermediate';
 }
 
-async function enrichCandidates(candidates: Project[]): Promise<EnrichedProject[]> {
+const KNOWN_ORG_WEBSITES: Record<string, string> = {
+  'rocket-chat': 'https://rocket.chat',
+  'rocketchat': 'https://rocket.chat',
+  'apache': 'https://apache.org',
+  'python': 'https://python.org',
+  'kde': 'https://kde.org',
+  'gnome': 'https://gnome.org',
+  'mozilla': 'https://mozilla.org',
+  'wikimedia': 'https://wikimediafoundation.org',
+  'tor': 'https://torproject.org',
+  'homebrew': 'https://brew.sh',
+  'bioconductor': 'https://bioconductor.org',
+  'creative-commons': 'https://creativecommons.org',
+  'debian': 'https://debian.org',
+  'rust': 'https://www.rust-lang.org',
+  'cncf': 'https://cncf.io',
+  'open-robotics': 'https://www.openrobotics.org',
+  'opencv': 'https://opencv.org',
+  'numfocus': 'https://numfocus.org',
+  'jupyter': 'https://jupyter.org',
+  'videolan': 'https://videolan.org',
+  'hyperledger': 'https://hyperledger.org',
+  'huggingface': 'https://huggingface.co',
+  'appwrite': 'https://appwrite.io',
+  'novu': 'https://novu.co',
+  'supabase': 'https://supabase.com',
+  'cal.com': 'https://cal.com',
+  'strapi': 'https://strapi.io',
+  'posthog': 'https://posthog.com',
+  'hoppscotch': 'https://hoppscotch.io',
+  'girlscript': 'https://girlscript.tech',
+  'nsoc': 'https://nsoc.in',
+  '52north': 'https://52north.org',
+  'joplin': 'https://joplinapp.org',
+};
+
+async function enrichOrganizations(orgs: Organization[]): Promise<EnrichedOrganization[]> {
   const programIds = [
     ...new Set(
-      candidates
-        .map((p) => (p.programId != null ? String(p.programId) : null))
+      orgs
+        .map((o) => (o.programId != null ? String(o.programId) : null))
         .filter(Boolean) as string[]
     ),
   ];
-  const orgSlugs = [
-    ...new Set(candidates.map((p) => p.orgSlug?.trim()).filter(Boolean) as string[]),
-  ];
-  const orgNames = [
-    ...new Set(candidates.map((p) => p.org?.trim()).filter(Boolean) as string[]),
-  ];
+  const orgSlugs = orgs.map((o) => o.slug).filter(Boolean);
 
   const { ObjectId } = await import('mongodb');
   const programsCol = await getCollection<Program>(COLLECTIONS.programs);
-  const orgsCol = await getCollection(COLLECTIONS.organizations);
   const projectsCol = await getCollection<Project>(COLLECTIONS.projects);
 
   const oids = programIds
     .filter((id) => ObjectId.isValid(id))
     .map((id) => new ObjectId(id));
 
-  const [programs, orgs, yearlyAgg] = await Promise.all([
+  const [programs, yearlyAgg] = await Promise.all([
     oids.length > 0
       ? programsCol.find({ _id: { $in: oids } } as never).toArray()
-      : [],
-    orgSlugs.length > 0 || orgNames.length > 0
-      ? orgsCol
-          .find({
-            $or: [
-              ...(orgSlugs.length > 0 ? [{ slug: { $in: orgSlugs } }] : []),
-              ...(orgNames.length > 0 ? [{ name: { $in: orgNames } }] : []),
-            ],
-          } as never)
-          .toArray()
       : [],
     orgSlugs.length > 0
       ? projectsCol
@@ -139,19 +161,8 @@ async function enrichCandidates(candidates: Project[]): Promise<EnrichedProject[
   ]);
 
   const progById = new Map(programs.map((p) => [String(p._id), p]));
-  const orgBySlug = new Map<string, Record<string, unknown>>();
-  const orgByName = new Map<string, Record<string, unknown>>();
-
-  for (const org of orgs as Record<string, unknown>[]) {
-    if (org.slug && typeof org.slug === 'string') {
-      orgBySlug.set(org.slug.toLowerCase(), org);
-    }
-    if (org.name && typeof org.name === 'string') {
-      orgByName.set(org.name.toLowerCase(), org);
-    }
-  }
-
   const countByOrgAndYear = new Map<string, Map<number, number>>();
+
   for (const row of yearlyAgg) {
     if (row._id?.orgSlug && row._id.year) {
       const slug = row._id.orgSlug.toLowerCase();
@@ -162,91 +173,36 @@ async function enrichCandidates(candidates: Project[]): Promise<EnrichedProject[
     }
   }
 
-  return candidates.map((p) => {
-    const prog = p.programId ? progById.get(String(p.programId)) : undefined;
-    const org =
-      (p.orgSlug ? orgBySlug.get(p.orgSlug.toLowerCase()) : undefined) ||
-      (p.org ? orgByName.get(p.org.toLowerCase()) : undefined);
+  return orgs.map((org) => {
+    const prog = org.programId ? progById.get(String(org.programId)) : undefined;
+    const slugKey = (org.slug || org.name || '').toLowerCase().trim();
 
-    const KNOWN_ORG_WEBSITES: Record<string, string> = {
-      'rocket-chat': 'https://rocket.chat',
-      'rocketchat': 'https://rocket.chat',
-      'rocket.chat': 'https://rocket.chat',
-      'apache': 'https://apache.org',
-      'python': 'https://python.org',
-      'kde': 'https://kde.org',
-      'gnome': 'https://gnome.org',
-      'mozilla': 'https://mozilla.org',
-      'wikimedia': 'https://wikimediafoundation.org',
-      'tor': 'https://torproject.org',
-      'tor-project': 'https://torproject.org',
-      'homebrew': 'https://brew.sh',
-      'bioconductor': 'https://bioconductor.org',
-      'creative-commons': 'https://creativecommons.org',
-      'debian': 'https://debian.org',
-      'rust': 'https://www.rust-lang.org',
-      'cncf': 'https://cncf.io',
-      'open-robotics': 'https://www.openrobotics.org',
-      'ros': 'https://www.openrobotics.org',
-      'opencv': 'https://opencv.org',
-      'numfocus': 'https://numfocus.org',
-      'jupyter': 'https://jupyter.org',
-      'videolan': 'https://videolan.org',
-      'vlc': 'https://videolan.org',
-      'hyperledger': 'https://hyperledger.org',
-      'huggingface': 'https://huggingface.co',
-      'appwrite': 'https://appwrite.io',
-      'novu': 'https://novu.co',
-      'supabase': 'https://supabase.com',
-      'cal.com': 'https://cal.com',
-      'calcom': 'https://cal.com',
-      'strapi': 'https://strapi.io',
-      'posthog': 'https://posthog.com',
-      'hoppscotch': 'https://hoppscotch.io',
-      'girlscript': 'https://girlscript.tech',
-      'nsoc': 'https://nsoc.in',
-      '52north': 'https://52north.org',
-      '3dtk': 'http://slam6d.sourceforge.net',
-      'aflplusplus': 'https://aflplus.plus',
-      'joplin': 'https://joplinapp.org',
-    };
-
-    let orgWebsiteUrl = typeof org?.websiteUrl === 'string' && org.websiteUrl.trim().length > 0
+    let websiteUrl = typeof org.websiteUrl === 'string' && org.websiteUrl.trim().length > 0
       ? org.websiteUrl.trim()
       : undefined;
 
-    const slugKey = (p.orgSlug || p.org || '').toLowerCase().trim();
-    if (!orgWebsiteUrl) {
-      orgWebsiteUrl = KNOWN_ORG_WEBSITES[slugKey] || KNOWN_ORG_WEBSITES[slugKey.replace(/[\s\-_.]/g, '')];
+    if (!websiteUrl) {
+      websiteUrl = KNOWN_ORG_WEBSITES[slugKey] || KNOWN_ORG_WEBSITES[slugKey.replace(/[\s\-_.]/g, '')];
     }
 
-    let orgGithubUrl = '';
-    if (orgWebsiteUrl && /github\.com\/[a-zA-Z0-9_.-]+\/?$/i.test(orgWebsiteUrl)) {
-      orgGithubUrl = orgWebsiteUrl;
-    } else if (p.githubUrl && p.githubUrl.includes('github.com/')) {
-      const match = p.githubUrl.match(/https?:\/\/github\.com\/([^/]+)/i);
-      if (match?.[1]) {
-        orgGithubUrl = `https://github.com/${match[1]}`;
-      }
-    }
-    if (!orgGithubUrl && (p.orgSlug || p.org)) {
-      const slugCandidate = (p.orgSlug || p.org || '').toLowerCase().replace(/[^a-z0-9_-]/g, '');
-      if (slugCandidate) {
-        orgGithubUrl = `https://github.com/${slugCandidate}`;
-      }
+    let resolvedGithubUrl = '';
+    if (websiteUrl && /github\.com\/[a-zA-Z0-9_.-]+\/?$/i.test(websiteUrl)) {
+      resolvedGithubUrl = websiteUrl;
+    } else if (org.slug) {
+      const slugCandidate = org.slug.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+      resolvedGithubUrl = `https://github.com/${slugCandidate}`;
     }
 
-    if (!orgWebsiteUrl) {
-      orgWebsiteUrl = orgGithubUrl || `https://${slugKey.replace(/[^a-z0-9]/g, '')}.org`;
+    if (!websiteUrl) {
+      websiteUrl = resolvedGithubUrl || `https://${slugKey.replace(/[^a-z0-9]/g, '')}.org`;
     }
 
     const orgCounts = countByOrgAndYear.get(slugKey) || new Map<number, number>();
-    const orgYears = Array.isArray(org?.years) ? (org.years as number[]) : [];
-    
+    const orgYears = Array.isArray(org.years) ? (org.years as number[]) : [];
+
     const yearSet = new Set<number>([
       ...orgYears,
       ...Array.from(orgCounts.keys()),
-      ...(typeof p.year === 'number' ? [p.year] : []),
     ]);
 
     const sortedYears = Array.from(yearSet).filter((y) => y >= 2017 && y <= 2026).sort((a, b) => a - b);
@@ -259,56 +215,50 @@ async function enrichCandidates(candidates: Project[]): Promise<EnrichedProject[
           yearlyStats.push({ year: y, count: directCount });
         } else {
           const seed = (slugKey.charCodeAt(0) || 10) + y * 7;
-          const pseudoCount = Math.max(3, (seed % 14) + 4);
+          const pseudoCount = Math.max(2, (seed % 12) + 3);
           yearlyStats.push({ year: y, count: pseudoCount });
         }
       }
     } else {
-      const defaultRange = [2021, 2022, 2023, 2024, 2025, 2026];
+      const defaultRange = [2022, 2023, 2024, 2025, 2026];
       for (const y of defaultRange) {
         const directCount = orgCounts.get(y);
-        yearlyStats.push({ year: y, count: directCount || Math.max(3, (y % 6) * 2 + 5) });
+        yearlyStats.push({ year: y, count: directCount || Math.max(3, (y % 6) * 2 + 4) });
       }
     }
 
     return {
-      ...p,
-      programName: prog?.name || p.programName || 'Open Source Program',
-      programColor: prog?.accentColor || p.programColor || '#4285F4',
-      programSlug: prog?.slug,
-      orgLogoUrl: typeof org?.logoUrl === 'string' ? org.logoUrl : undefined,
-      orgWebsiteUrl: typeof org?.websiteUrl === 'string' ? org.websiteUrl : undefined,
-      orgGithubUrl,
-      orgCategory: typeof org?.category === 'string' ? org.category : undefined,
-      orgDescription: typeof org?.description === 'string' ? org.description : undefined,
-      orgIdeasUrl: typeof org?.ideasUrl === 'string' ? org.ideasUrl : undefined,
-      orgTopics: Array.isArray(org?.topics) ? (org.topics as string[]) : undefined,
+      ...org,
+      programName: prog?.name || 'Google Summer of Code',
+      programColor: prog?.accentColor || '#4285F4',
+      programSlug: prog?.slug || 'gsoc',
+      resolvedWebsiteUrl: websiteUrl,
+      resolvedGithubUrl,
       yearlyStats,
     };
   });
 }
 
-function skillOverlap(
-  project: { techStack?: string[]; topics?: string[]; title?: string; description?: string },
+function orgSkillOverlap(
+  org: EnrichedOrganization,
   userSkills: string[]
 ) {
   const { direct, expanded, requirements } = expandSkillTokens(userSkills);
-  const projectTech = (project.techStack || []).map((t) => t.toLowerCase().trim());
-  const projectTopics = (project.topics || []).map((t) => t.toLowerCase().trim());
-  const textBody = `${project.title || ''} ${project.description || ''}`.toLowerCase();
+  const orgTech = (org.technologies || []).map((t) => t.toLowerCase().trim());
+  const orgTopics = (org.topics || []).map((t) => t.toLowerCase().trim());
+  const textBody = `${org.name || ''} ${org.description || ''} ${org.category || ''}`.toLowerCase();
 
   const matchedTech = new Set<string>();
-  const missingTech = new Set<string>();
   let satisfiedReqCount = 0;
 
   for (const req of requirements) {
     let reqHit = false;
     for (const token of req.tokens) {
-      if (projectTech.includes(token)) {
+      if (orgTech.includes(token)) {
         reqHit = true;
         matchedTech.add(token);
       }
-      if (projectTopics.includes(token)) {
+      if (orgTopics.includes(token)) {
         reqHit = true;
         matchedTech.add(token);
       }
@@ -322,158 +272,100 @@ function skillOverlap(
     }
   }
 
-  for (const pt of project.techStack || []) {
-    const lower = pt.toLowerCase().trim();
+  for (const ot of org.technologies || []) {
+    const lower = ot.toLowerCase().trim();
     if (expanded.includes(lower) || direct.includes(lower)) {
-      matchedTech.add(pt);
-    } else {
-      missingTech.add(pt);
+      matchedTech.add(ot);
     }
   }
 
   return {
     matched: Array.from(matchedTech),
-    missing: Array.from(missingTech),
     matchedUserSkillCount: satisfiedReqCount,
     totalUserSkills: userSkills.length,
   };
 }
 
-function difficultyFit(
-  projectDifficulty: string | undefined,
-  experience: 'beginner' | 'intermediate' | 'advanced'
-): number {
-  const d = (projectDifficulty || '').toLowerCase();
-  if (!d) return 0.6;
-  const isBeginner = d.includes('begin');
-  const isAdvanced = d.includes('adv') || d.includes('hard') || d.includes('expert');
-  const isIntermediate = !isBeginner && !isAdvanced;
-
-  if (experience === 'beginner') {
-    if (isBeginner) return 1;
-    if (isIntermediate) return 0.70;
-    return 0.35;
-  }
-  if (experience === 'advanced') {
-    if (isAdvanced) return 1;
-    if (isIntermediate) return 0.80;
-    return 0.50;
-  }
-  if (isIntermediate) return 1;
-  if (isBeginner) return 0.8;
-  return 0.65;
-}
-
-function enforceOrgDiversity<T extends { orgName?: string; orgSlug?: string; org?: string }>(
-  items: T[],
-  maxPerOrg = 2,
-  totalLimit = TOP_RESULTS
-): T[] {
-  const result: T[] = [];
-  const orgCounts = new Map<string, number>();
-  const overflow: T[] = [];
-
-  for (const item of items) {
-    const key = (item.orgSlug || item.orgName || (item as unknown as { org?: string }).org || 'unknown')
-      .toLowerCase()
-      .trim();
-    const count = orgCounts.get(key) || 0;
-    if (count < maxPerOrg) {
-      result.push(item);
-      orgCounts.set(key, count + 1);
-    } else {
-      overflow.push(item);
-    }
-    if (result.length >= totalLimit) break;
-  }
-
-  if (result.length < totalLimit && overflow.length > 0) {
-    for (const item of overflow) {
-      result.push(item);
-      if (result.length >= totalLimit) break;
-    }
-  }
-
-  return result.slice(0, totalLimit);
-}
-
-function heuristicRank(
-  candidates: EnrichedProject[],
+function heuristicRankOrganizations(
+  candidates: EnrichedOrganization[],
   skills: string[],
   exp: 'beginner' | 'intermediate' | 'advanced',
   availNum: number
-): MatchResult[] {
-  const scored = candidates.map((p) => {
-    const projectSkills = p.techStack || [];
-    const { matched, missing, matchedUserSkillCount, totalUserSkills } = skillOverlap(p, skills);
+): OrgMatchResult[] {
+  const scored = candidates.map((org) => {
+    const orgTech = org.technologies || [];
+    const { matched, matchedUserSkillCount, totalUserSkills } = orgSkillOverlap(org, skills);
 
     const userCoverage = totalUserSkills > 0 ? matchedUserSkillCount / totalUserSkills : 0.5;
-    const projectRatio = projectSkills.length > 0 ? matched.length / projectSkills.length : 0.4;
-    const diffScore = difficultyFit(p.difficulty, exp);
-    const yearScore =
-      typeof p.year === 'number'
-        ? p.year >= 2024
-          ? 1.0
-          : Math.min(0.85, Math.max(0.3, (p.year - 2018) / 8))
-        : 0.6;
+    const orgRatio = orgTech.length > 0 ? matched.length / Math.max(orgTech.length, 3) : 0.4;
 
-    const availScore = availNum >= 20 ? 0.75 : availNum >= 15 ? 0.60 : 0.50;
+    const years = Array.isArray(org.years) ? org.years : [2026];
+    const latestYear = years.length > 0 ? Math.max(...years) : 2026;
+    const isRecent = latestYear >= 2025 ? 1.0 : latestYear >= 2024 ? 0.85 : 0.65;
+
+    const expScore = exp === 'beginner' ? 0.9 : exp === 'advanced' ? 0.95 : 1.0;
+    const availScore = availNum >= 20 ? 0.85 : 0.65;
 
     const raw =
-      userCoverage * 0.50 +
-      projectRatio * 0.15 +
-      diffScore * 0.15 +
-      yearScore * 0.12 +
-      availScore * 0.08;
+      userCoverage * 0.52 +
+      orgRatio * 0.20 +
+      isRecent * 0.15 +
+      expScore * 0.08 +
+      availScore * 0.05;
 
-    const bonus = Math.min(matched.length, 6) * 2.0 + (p.year && p.year >= 2024 ? 2 : 0);
+    const bonus = Math.min(matched.length, 6) * 2.5 + (org.is2026 ? 3 : 0);
     const matchPercentage = Math.round(
-      Math.min(97, Math.max(40, 38 + raw * 54 + bonus))
+      Math.min(98, Math.max(45, 42 + raw * 52 + bonus))
     );
 
     let reasoning = '';
     if (matched.length > 0) {
-      reasoning += `Strong alignment with ${matched.length} skill${matched.length === 1 ? '' : 's'}: ${matched
-        .slice(0, 5)
-        .join(', ')}. `;
+      reasoning += `Outstanding stack alignment with ${matched.slice(0, 4).join(', ')}. `;
     } else {
-      reasoning += `Aligned with related ecosystem technologies. `;
+      reasoning += `Aligned with related technologies and domain ecosystem. `;
     }
-    if (p.difficulty) {
-      reasoning += `Difficulty (${p.difficulty}) is well-suited for a ${exp} contributor profile (${availNum}h/week). `;
+    if (org.category) {
+      reasoning += `Specializes in ${org.category}. `;
     }
-    if (p.year) {
-      reasoning += `Active for ${p.year}.`;
+    if (latestYear >= 2025) {
+      reasoning += `Active participant for ${latestYear}.`;
     }
 
+    const exploreProjectsUrl = `/organizations/${org.slug || encodeURIComponent(org.name)}`;
+
     return {
-      id: p._id?.toString(),
-      projectId: p._id?.toString(),
-      title: p.title,
-      orgName: p.org,
-      orgSlug: p.orgSlug,
-      techStack: projectSkills,
-      description: p.description,
+      id: String(org._id || org.slug),
+      name: org.name,
+      slug: org.slug,
+      orgName: org.name,
+      orgSlug: org.slug,
+      title: org.name,
+      category: org.category || 'Open Source',
+      description: org.description || `Leading open-source organization in ${org.category || 'technology'}.`,
+      technologies: orgTech,
+      techStack: orgTech,
+      matchedSkills: matched.slice(0, 8),
       matchPercentage,
       reasoning: reasoning.trim(),
-      programName: p.programName || 'Open Source Program',
-      programColor: p.programColor || '#4285F4',
-      programSlug: p.programSlug,
-      difficulty: p.difficulty,
-      year: p.year,
-      matchedSkills: matched.slice(0, 8),
-      githubUrl: p.githubUrl,
-      orgLogoUrl: p.orgLogoUrl,
-      orgWebsiteUrl: p.orgWebsiteUrl,
-      orgGithubUrl: p.orgGithubUrl,
-      orgCategory: p.orgCategory,
-      orgDescription: p.orgDescription,
-      orgIdeasUrl: p.orgIdeasUrl,
-      orgTopics: p.orgTopics,
-      yearlyStats: p.yearlyStats,
-      stars: p.stars,
-      mentors: p.mentors,
-      _score: raw * 100 + matchedUserSkillCount * 10 + matched.length * 4 + (p.year || 0) * 0.05,
+      years,
+      latestYear,
+      projectCount: org.projectCount || (org.yearlyStats?.reduce((acc, s) => acc + s.count, 0) || 8),
+      websiteUrl: org.resolvedWebsiteUrl,
+      githubUrl: org.resolvedGithubUrl,
+      ideasUrl: org.ideasUrl,
+      orgLogoUrl: org.logoUrl,
+      orgWebsiteUrl: org.resolvedWebsiteUrl,
+      orgGithubUrl: org.resolvedGithubUrl,
+      orgCategory: org.category,
+      orgDescription: org.description,
+      orgIdeasUrl: org.ideasUrl,
+      orgTopics: org.topics,
+      programName: org.programName || 'Google Summer of Code',
+      programColor: org.programColor || '#4285F4',
+      programSlug: org.programSlug || 'gsoc',
+      exploreProjectsUrl,
+      yearlyStats: org.yearlyStats,
+      _score: raw * 100 + matchedUserSkillCount * 12 + matched.length * 4 + (latestYear >= 2025 ? 5 : 0),
     };
   });
 
@@ -481,13 +373,13 @@ function heuristicRank(
     .sort((a, b) => b._score - a._score || b.matchPercentage - a.matchPercentage)
     .map(({ _score: _s, ...rest }) => rest);
 
-  return enforceOrgDiversity(sorted, 2, TOP_RESULTS);
+  return sorted.slice(0, TOP_RESULTS);
 }
 
 function clampMatchPercentage(n: unknown, fallback: number): number {
   const v = typeof n === 'number' ? n : parseInt(String(n), 10);
   if (Number.isNaN(v)) return fallback;
-  return Math.min(97, Math.max(25, Math.round(v)));
+  return Math.min(98, Math.max(45, Math.round(v)));
 }
 
 export async function POST(req: Request) {
@@ -513,9 +405,6 @@ export async function POST(req: Request) {
       )
     );
 
-    const difficulty =
-      typeof body.difficulty === 'string' ? body.difficulty.trim().slice(0, 40) : null;
-
     const rawProgramSlugs = normalizeStringArray(body.programSlugs || body.programs, {
       maxItems: 12,
       maxItemLen: 48,
@@ -525,57 +414,57 @@ export async function POST(req: Request) {
         ? rawProgramSlugs.filter((s) => s.toLowerCase() !== 'all')
         : null;
 
-    const rawCandidates = await findProjectsBySkills(skills, MAX_CANDIDATES, {
-      preferRecentYears: true,
-      difficulty,
+    const rawCandidates = await findOrganizationsBySkills(skills, MAX_CANDIDATES, {
       programSlugs: programSlugs && programSlugs.length > 0 ? programSlugs : undefined,
     });
+
     if (rawCandidates.length === 0) {
       return apiOk({ matches: [], meta: { candidateCount: 0, mode: 'none', requestedProgramSlugs: programSlugs || [] } });
     }
 
-    const candidates = await enrichCandidates(rawCandidates);
-    const heuristic = heuristicRank(candidates, skills, exp, availNum);
+    const candidates = await enrichOrganizations(rawCandidates);
+    const heuristic = heuristicRankOrganizations(candidates, skills, exp, availNum);
 
-    let finalMatches: MatchResult[] = heuristic;
+    let finalMatches: OrgMatchResult[] = heuristic;
     let mode: 'openai' | 'gemini' | 'heuristic' = 'heuristic';
 
     const pool = candidates
-      .map((p, index) => ({ p, index }))
+      .map((org, index) => ({ org, index }))
       .sort((a, b) => {
-        const ha = heuristic.find((h) => h.projectId === String(a.p._id));
-        const hb = heuristic.find((h) => h.projectId === String(b.p._id));
+        const ha = heuristic.find((h) => h.slug === a.org.slug);
+        const hb = heuristic.find((h) => h.slug === b.org.slug);
         return (hb?.matchPercentage || 0) - (ha?.matchPercentage || 0);
       })
-      .slice(0, 36);
+      .slice(0, 24);
 
-    const projectsContext = pool.map(({ p, index }) => {
-      const { matched } = skillOverlap(p, skills);
+    const orgsContext: GeminiOrgCandidate[] = pool.map(({ org, index }) => {
+      const { matched } = orgSkillOverlap(org, skills);
+      const years = Array.isArray(org.years) ? org.years.join(', ') : '2026';
       return {
         id: index,
-        title: p.title,
-        org: p.org,
-        difficulty: p.difficulty || 'Intermediate',
-        year: p.year,
-        techStack: (p.techStack || []).slice(0, 12).join(', '),
+        name: org.name,
+        category: org.category,
+        technologies: (org.technologies || []).slice(0, 12).join(', '),
         matchedSkills: matched.slice(0, 6).join(', '),
-        description: (p.description || '').substring(0, 240),
-        programName: p.programName,
+        description: (org.description || '').substring(0, 220),
+        years,
+        projectCount: org.projectCount,
+        programName: org.programName,
       };
     });
 
     const activeProvider = (process.env.AI_PROVIDER || 'gemini').toLowerCase().trim();
     let aiSuccess = false;
 
-    // 1. Try Google Gemini (Primary)
+    // 1. Try Google Gemini (Primary Orbit AI Recommendation Engine)
     if (activeProvider !== 'openai' && process.env.GEMINI_API_KEY && pool.length > 0) {
       try {
-        const geminiMatches = await rankProjectsWithGemini({
+        const geminiMatches = await rankOrganizationsWithGemini({
           skills,
           experience: exp,
           location: locStr,
           availability: availNum,
-          candidates: projectsContext,
+          candidates: orgsContext,
           topLimit: TOP_RESULTS,
         });
 
@@ -583,50 +472,55 @@ export async function POST(req: Request) {
           const mapped = geminiMatches
             .map((match) => {
               const entry = pool.find((x) => x.index === match.id);
-              const dbProject = entry?.p;
-              if (!dbProject) return null;
-              const { matched } = skillOverlap(dbProject, skills);
-              const base = heuristic.find((h) => h.projectId === String(dbProject._id));
+              const dbOrg = entry?.org;
+              if (!dbOrg) return null;
+              const { matched } = orgSkillOverlap(dbOrg, skills);
+              const base = heuristic.find((h) => h.slug === dbOrg.slug);
               const heuristicPct = base?.matchPercentage ?? 55;
               const aiPct = clampMatchPercentage(match.matchPercentage, heuristicPct);
               const blended = Math.round(aiPct * 0.60 + heuristicPct * 0.40);
 
               return {
-                id: dbProject._id?.toString(),
-                projectId: dbProject._id?.toString(),
-                title: dbProject.title,
-                orgName: dbProject.org,
-                orgSlug: dbProject.orgSlug,
-                techStack: dbProject.techStack || [],
-                description: dbProject.description,
+                id: String(dbOrg._id || dbOrg.slug),
+                name: dbOrg.name,
+                slug: dbOrg.slug,
+                orgName: dbOrg.name,
+                orgSlug: dbOrg.slug,
+                title: dbOrg.name,
+                category: dbOrg.category || 'Open Source',
+                description: dbOrg.description || `Leading open-source organization in ${dbOrg.category || 'technology'}.`,
+                technologies: dbOrg.technologies || [],
+                techStack: dbOrg.technologies || [],
+                matchedSkills: matched.slice(0, 8),
                 matchPercentage: clampMatchPercentage(blended, heuristicPct),
                 reasoning:
                   typeof match.reasoning === 'string' && match.reasoning.trim()
                     ? match.reasoning.trim().slice(0, 600)
-                    : base?.reasoning || `Direct skill match for ${skills.join(', ')} with ${dbProject.org}.`,
-                programName: dbProject.programName || 'Open Source Program',
-                programColor: dbProject.programColor || '#4285F4',
-                programSlug: dbProject.programSlug,
-                difficulty: dbProject.difficulty,
-                year: dbProject.year,
-                matchedSkills: matched.slice(0, 8),
-                githubUrl: dbProject.githubUrl,
-                orgLogoUrl: dbProject.orgLogoUrl,
-                orgWebsiteUrl: dbProject.orgWebsiteUrl,
-                orgGithubUrl: dbProject.orgGithubUrl,
-                orgCategory: dbProject.orgCategory,
-                orgDescription: dbProject.orgDescription,
-                orgIdeasUrl: dbProject.orgIdeasUrl,
-                orgTopics: dbProject.orgTopics,
-                yearlyStats: dbProject.yearlyStats,
-                stars: dbProject.stars,
-                mentors: dbProject.mentors,
-              } as MatchResult;
+                    : base?.reasoning || `Ideal skill match for ${skills.join(', ')} with ${dbOrg.name}.`,
+                years: Array.isArray(dbOrg.years) ? dbOrg.years : [2026],
+                latestYear: dbOrg.years?.length ? Math.max(...dbOrg.years) : 2026,
+                projectCount: dbOrg.projectCount || 8,
+                websiteUrl: dbOrg.resolvedWebsiteUrl,
+                githubUrl: dbOrg.resolvedGithubUrl,
+                ideasUrl: dbOrg.ideasUrl,
+                orgLogoUrl: dbOrg.logoUrl,
+                orgWebsiteUrl: dbOrg.resolvedWebsiteUrl,
+                orgGithubUrl: dbOrg.resolvedGithubUrl,
+                orgCategory: dbOrg.category,
+                orgDescription: dbOrg.description,
+                orgIdeasUrl: dbOrg.ideasUrl,
+                orgTopics: dbOrg.topics,
+                programName: dbOrg.programName || 'Google Summer of Code',
+                programColor: dbOrg.programColor || '#4285F4',
+                programSlug: dbOrg.programSlug || 'gsoc',
+                exploreProjectsUrl: `/organizations/${dbOrg.slug || encodeURIComponent(dbOrg.name)}`,
+                yearlyStats: dbOrg.yearlyStats,
+              } as OrgMatchResult;
             })
-            .filter(Boolean) as MatchResult[];
+            .filter(Boolean) as OrgMatchResult[];
 
           if (mapped.length > 0) {
-            finalMatches = enforceOrgDiversity(mapped, 2, TOP_RESULTS);
+            finalMatches = mapped;
             mode = 'gemini';
             aiSuccess = true;
           }
@@ -641,8 +535,8 @@ export async function POST(req: Request) {
       const openai = getOpenAIClient();
       if (openai) {
         try {
-          const systemPrompt = `You are an expert open-source mentorship matchmaker.
-Rank ONLY from the candidate list. Never invent projects, orgs, or technologies.
+          const systemPrompt = `You are Orbit AI, an expert open-source mentorship matchmaker and organization recommendation engine.
+Rank ONLY from the candidate organizations list. Never invent organizations or technologies.
 
 User Profile:
 - Skills: ${skills.join(', ')}
@@ -651,16 +545,14 @@ User Profile:
 - Availability: ${availNum} hours/week
 
 Candidates (JSON):
-${JSON.stringify(projectsContext)}
+${JSON.stringify(orgsContext)}
 
 Rules:
 1. Return up to ${TOP_RESULTS} best fits ordered best-first.
-2. Strictly prioritize candidates where the user's requested skills (${skills.join(', ')}) are central.
-3. Prefer difficulty aligned with experience (${exp}).
-4. Align weekly availability (${availNum}h/week) with expected workload.
-5. matchPercentage must reflect real overlap (weak overlap ≤55; strong multi-skill ≥75; never 100).
-6. reasoning: 1–2 sentences, concrete, mention matched skills and how they fit user experience/availability.
-7. Return ONLY JSON: { "matches": [ { "id": number, "matchPercentage": number, "reasoning": string } ] }
+2. Strictly prioritize organizations where the user's requested skills (${skills.join(', ')}) are central to their ecosystem.
+3. matchPercentage must reflect real overlap (weak overlap ≤55; strong multi-skill ≥75; never 100).
+4. reasoning: 1–2 sentences, concrete, mention matched skills and how this org fits the contributor profile.
+5. Return ONLY JSON: { "matches": [ { "id": number, "matchPercentage": number, "reasoning": string } ] }
 `;
 
           const completion = await openai.chat.completions.create({
@@ -679,50 +571,55 @@ Rules:
           const aiMapped = (parsedAI.matches || [])
             .map((match) => {
               const entry = pool.find((x) => x.index === match.id);
-              const dbProject = entry?.p;
-              if (!dbProject) return null;
-              const { matched } = skillOverlap(dbProject, skills);
-              const base = heuristic.find((h) => h.projectId === String(dbProject._id));
+              const dbOrg = entry?.org;
+              if (!dbOrg) return null;
+              const { matched } = orgSkillOverlap(dbOrg, skills);
+              const base = heuristic.find((h) => h.slug === dbOrg.slug);
               const heuristicPct = base?.matchPercentage ?? 50;
               const aiPct = clampMatchPercentage(match.matchPercentage, heuristicPct);
               const blended = Math.round(aiPct * 0.55 + heuristicPct * 0.45);
 
               return {
-                id: dbProject._id?.toString(),
-                projectId: dbProject._id?.toString(),
-                title: dbProject.title,
-                orgName: dbProject.org,
-                orgSlug: dbProject.orgSlug,
-                techStack: dbProject.techStack || [],
-                description: dbProject.description,
+                id: String(dbOrg._id || dbOrg.slug),
+                name: dbOrg.name,
+                slug: dbOrg.slug,
+                orgName: dbOrg.name,
+                orgSlug: dbOrg.slug,
+                title: dbOrg.name,
+                category: dbOrg.category || 'Open Source',
+                description: dbOrg.description || `Leading open-source organization in ${dbOrg.category || 'technology'}.`,
+                technologies: dbOrg.technologies || [],
+                techStack: dbOrg.technologies || [],
+                matchedSkills: matched.slice(0, 8),
                 matchPercentage: clampMatchPercentage(blended, heuristicPct),
                 reasoning:
                   typeof match.reasoning === 'string' && match.reasoning.trim()
                     ? match.reasoning.trim().slice(0, 600)
-                    : base?.reasoning || 'Strong skill alignment with your profile.',
-                programName: dbProject.programName || 'Open Source Program',
-                programColor: dbProject.programColor || '#4285F4',
-                programSlug: dbProject.programSlug,
-                difficulty: dbProject.difficulty,
-                year: dbProject.year,
-                matchedSkills: matched.slice(0, 8),
-                githubUrl: dbProject.githubUrl,
-                orgLogoUrl: dbProject.orgLogoUrl,
-                orgWebsiteUrl: dbProject.orgWebsiteUrl,
-                orgGithubUrl: dbProject.orgGithubUrl,
-                orgCategory: dbProject.orgCategory,
-                orgDescription: dbProject.orgDescription,
-                orgIdeasUrl: dbProject.orgIdeasUrl,
-                orgTopics: dbProject.orgTopics,
-                yearlyStats: dbProject.yearlyStats,
-                stars: dbProject.stars,
-                mentors: dbProject.mentors,
-              } as MatchResult;
+                    : base?.reasoning || 'Strong stack alignment with your developer profile.',
+                years: Array.isArray(dbOrg.years) ? dbOrg.years : [2026],
+                latestYear: dbOrg.years?.length ? Math.max(...dbOrg.years) : 2026,
+                projectCount: dbOrg.projectCount || 8,
+                websiteUrl: dbOrg.resolvedWebsiteUrl,
+                githubUrl: dbOrg.resolvedGithubUrl,
+                ideasUrl: dbOrg.ideasUrl,
+                orgLogoUrl: dbOrg.logoUrl,
+                orgWebsiteUrl: dbOrg.resolvedWebsiteUrl,
+                orgGithubUrl: dbOrg.resolvedGithubUrl,
+                orgCategory: dbOrg.category,
+                orgDescription: dbOrg.description,
+                orgIdeasUrl: dbOrg.ideasUrl,
+                orgTopics: dbOrg.topics,
+                programName: dbOrg.programName || 'Google Summer of Code',
+                programColor: dbOrg.programColor || '#4285F4',
+                programSlug: dbOrg.programSlug || 'gsoc',
+                exploreProjectsUrl: `/organizations/${dbOrg.slug || encodeURIComponent(dbOrg.name)}`,
+                yearlyStats: dbOrg.yearlyStats,
+              } as OrgMatchResult;
             })
-            .filter(Boolean) as MatchResult[];
+            .filter(Boolean) as OrgMatchResult[];
 
           if (aiMapped.length > 0) {
-            finalMatches = enforceOrgDiversity(aiMapped, 2, TOP_RESULTS);
+            finalMatches = aiMapped;
             mode = 'openai';
             aiSuccess = true;
           }
