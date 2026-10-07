@@ -327,3 +327,92 @@ export async function getSimilarOrganizations(
     return [];
   }
 }
+
+export async function findOrganizationsBySkills(
+  skills: string[],
+  limit = 40,
+  options?: {
+    programSlugs?: string[];
+  }
+): Promise<Organization[]> {
+  const { expandSkillTokens } = await import('@/lib/repositories/projects');
+  const { direct, expanded } = expandSkillTokens(skills);
+  const collection = await getCollection<Organization>(COLLECTIONS.organizations);
+  const projectsCol = await getCollection(COLLECTIONS.projects);
+
+  const filter: Record<string, unknown> = {};
+
+  if (options?.programSlugs && options.programSlugs.length > 0) {
+    const programsCol = await getCollection(COLLECTIONS.programs);
+    const matchedPrograms = await programsCol
+      .find({ slug: { $in: options.programSlugs } })
+      .toArray();
+    const programIds = matchedPrograms.map((p) => p._id);
+    if (programIds.length > 0) {
+      filter.programId = { $in: programIds };
+    }
+  }
+
+  // 1. Find organizations with matching technologies or topics
+  const tokens = Array.from(new Set([...direct, ...expanded]));
+  const regexPatterns = tokens.slice(0, 30).map((t) => new RegExp(`^${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'));
+
+  const techOrgs = await collection
+    .find({
+      ...filter,
+      $or: [
+        { technologies: { $in: regexPatterns } },
+        { topics: { $in: regexPatterns } },
+      ],
+    })
+    .limit(limit * 2)
+    .toArray();
+
+  // 2. Also find organizations through their associated projects
+  const orgSlugsFromTech = new Set(techOrgs.map((o) => o.slug));
+  const projectCandidates = await projectsCol
+    .find(
+      { techStack: { $in: regexPatterns } },
+      { projection: { orgSlug: 1, org: 1 } }
+    )
+    .limit(100)
+    .toArray();
+
+  const additionalSlugs = Array.from(
+    new Set(
+      projectCandidates
+        .map((p) => p.orgSlug || (typeof p.org === 'string' ? p.org.toLowerCase().replace(/[^a-z0-9_-]/g, '-') : null))
+        .filter((s): s is string => Boolean(s) && !orgSlugsFromTech.has(s))
+    )
+  );
+
+  let extraOrgs: Organization[] = [];
+  if (additionalSlugs.length > 0) {
+    extraOrgs = await collection
+      .find({
+        ...filter,
+        slug: { $in: additionalSlugs.slice(0, 30) },
+      })
+      .limit(limit)
+      .toArray();
+  }
+
+  const allFound = [...techOrgs, ...extraOrgs];
+
+  // Backfill with top active organizations if pool is small
+  if (allFound.length < 15) {
+    const fallbackOrgs = await collection
+      .find(filter)
+      .sort({ is2026: -1, projectCount: -1 })
+      .limit(20)
+      .toArray();
+    for (const fo of fallbackOrgs) {
+      if (!allFound.some((o) => o.slug === fo.slug)) {
+        allFound.push(fo);
+      }
+    }
+  }
+
+  return serializeDocs(allFound as unknown as Record<string, unknown>[]) as unknown as Organization[];
+}
+

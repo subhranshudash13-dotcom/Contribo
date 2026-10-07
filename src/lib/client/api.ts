@@ -63,17 +63,27 @@ export type MatchRequest = {
 
 export type MatchResult = {
   id?: string;
+  name?: string;
+  slug?: string;
   projectId?: string;
   title: string;
   orgName: string;
   orgSlug?: string;
+  category?: string;
+  technologies?: string[];
   techStack: string[];
   description: string;
   matchPercentage: number;
   reasoning: string;
+  years?: number[];
+  latestYear?: number;
+  projectCount?: number;
+  websiteUrl?: string;
+  ideasUrl?: string;
   programName: string;
   programColor: string;
   programSlug?: string;
+  exploreProjectsUrl?: string;
   difficulty?: string;
   year?: number;
   matchedSkills?: string[];
