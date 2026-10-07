@@ -328,91 +328,180 @@ export async function getSimilarOrganizations(
   }
 }
 
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export async function findOrganizationsBySkills(
   skills: string[],
-  limit = 40,
+  limit = 60,
   options?: {
     programSlugs?: string[];
   }
 ): Promise<Organization[]> {
   const { expandSkillTokens } = await import('@/lib/repositories/projects');
   const { direct, expanded } = expandSkillTokens(skills);
+  if (direct.length === 0 && expanded.length === 0) return [];
+
   const collection = await getCollection<Organization>(COLLECTIONS.organizations);
   const projectsCol = await getCollection(COLLECTIONS.projects);
 
-  const filter: Record<string, unknown> = {};
+  const orgFilter: Record<string, unknown> = {};
 
   if (options?.programSlugs && options.programSlugs.length > 0) {
-    const programsCol = await getCollection(COLLECTIONS.programs);
-    const matchedPrograms = await programsCol
-      .find({ slug: { $in: options.programSlugs } })
-      .toArray();
-    const programIds = matchedPrograms.map((p) => p._id);
-    if (programIds.length > 0) {
-      filter.programId = { $in: programIds };
-    }
-  }
-
-  // 1. Find organizations with matching technologies or topics
-  const tokens = Array.from(new Set([...direct, ...expanded]));
-  const regexPatterns = tokens.slice(0, 30).map((t) => new RegExp(`^${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'));
-
-  const techOrgs = await collection
-    .find({
-      ...filter,
-      $or: [
-        { technologies: { $in: regexPatterns } },
-        { topics: { $in: regexPatterns } },
-      ],
-    })
-    .limit(limit * 2)
-    .toArray();
-
-  // 2. Also find organizations through their associated projects
-  const orgSlugsFromTech = new Set(techOrgs.map((o) => o.slug));
-  const projectCandidates = await projectsCol
-    .find(
-      { techStack: { $in: regexPatterns } },
-      { projection: { orgSlug: 1, org: 1 } }
-    )
-    .limit(100)
-    .toArray();
-
-  const additionalSlugs = Array.from(
-    new Set(
-      projectCandidates
-        .map((p) => p.orgSlug || (typeof p.org === 'string' ? p.org.toLowerCase().replace(/[^a-z0-9_-]/g, '-') : null))
-        .filter((s): s is string => Boolean(s) && !orgSlugsFromTech.has(s))
-    )
-  );
-
-  let extraOrgs: Organization[] = [];
-  if (additionalSlugs.length > 0) {
-    extraOrgs = await collection
-      .find({
-        ...filter,
-        slug: { $in: additionalSlugs.slice(0, 30) },
-      })
-      .limit(limit)
-      .toArray();
-  }
-
-  const allFound = [...techOrgs, ...extraOrgs];
-
-  // Backfill with top active organizations if pool is small
-  if (allFound.length < 15) {
-    const fallbackOrgs = await collection
-      .find(filter)
-      .sort({ is2026: -1, projectCount: -1 })
-      .limit(20)
-      .toArray();
-    for (const fo of fallbackOrgs) {
-      if (!allFound.some((o) => o.slug === fo.slug)) {
-        allFound.push(fo);
+    const validSlugs = options.programSlugs.map((s) => s.toLowerCase().trim()).filter(Boolean);
+    if (validSlugs.length > 0) {
+      const programsCol = await getCollection(COLLECTIONS.programs);
+      const matchedPrograms = await programsCol
+        .find({ slug: { $in: validSlugs } })
+        .toArray();
+      const programIds = matchedPrograms.map((p) => p._id);
+      if (programIds.length > 0) {
+        orgFilter.programId = { $in: programIds };
       }
     }
   }
 
-  return serializeDocs(allFound as unknown as Record<string, unknown>[]) as unknown as Organization[];
+  // 1. Fetch matching project counts per orgSlug across the project catalog
+  const tokenList = Array.from(new Set([...direct, ...expanded]));
+  const regexList = tokenList.slice(0, 35).map((t) => new RegExp(`^${escapeRegex(t)}$`, 'i'));
+
+  const projectMatchFilter: Record<string, unknown> = {
+    $or: [
+      { techStack: { $in: regexList } },
+      { topics: { $in: regexList } },
+    ],
+  };
+  if (orgFilter.programId) {
+    projectMatchFilter.programId = orgFilter.programId;
+  }
+
+  const projectCountsByOrg = new Map<string, number>();
+  try {
+    const projectAgg = await projectsCol
+      .aggregate<{ _id: string; count: number }>([
+        { $match: projectMatchFilter },
+        { $group: { _id: '$orgSlug', count: { $sum: 1 } } },
+      ])
+      .toArray();
+
+    for (const p of projectAgg) {
+      if (p._id) {
+        projectCountsByOrg.set(p._id.toLowerCase().trim(), p.count);
+      }
+    }
+  } catch (err) {
+    console.warn('Project aggregation for org matcher failed, continuing with direct org scoring:', err);
+  }
+
+  // 2. Fetch all organizations within scope (fast in-memory processing of entire catalog)
+  const allOrgs = await collection.find(orgFilter).toArray();
+  if (allOrgs.length === 0) return [];
+
+  const expandedLower = expanded.map((s) => s.toLowerCase().trim());
+
+  // 3. Multi-signal scoring across all organizations
+  const scored = allOrgs.map((org) => {
+    const orgTech = (org.technologies || []).map((t) => t.toLowerCase().trim());
+    const orgTopics = (org.topics || []).map((t) => t.toLowerCase().trim());
+    const orgDesc = (org.description || '').toLowerCase();
+    const orgCat = (org.category || '').toLowerCase();
+    const orgName = (org.name || '').toLowerCase();
+    const orgSlug = (org.slug || '').toLowerCase();
+
+    const matchedDirect = new Set<string>();
+    const matchedExpanded = new Set<string>();
+    let satisfiedUserSkillCount = 0;
+
+    for (const skill of skills) {
+      const sLower = skill.toLowerCase().trim();
+      let skillSatisfied = false;
+
+      // Check tech stack
+      for (const t of orgTech) {
+        if (t === sLower || t.includes(sLower) || sLower.includes(t)) {
+          matchedDirect.add(t);
+          skillSatisfied = true;
+        }
+      }
+      // Check topics
+      for (const top of orgTopics) {
+        if (top === sLower || top.includes(sLower) || sLower.includes(top)) {
+          matchedDirect.add(top);
+          skillSatisfied = true;
+        }
+      }
+      // Check description, category, name
+      if (!skillSatisfied && sLower.length >= 3) {
+        if (orgDesc.includes(sLower) || orgCat.includes(sLower) || orgName.includes(sLower)) {
+          matchedDirect.add(skill);
+          skillSatisfied = true;
+        }
+      }
+
+      if (skillSatisfied) {
+        satisfiedUserSkillCount++;
+      }
+    }
+
+    // Check expanded synonym matches
+    for (const exp of expandedLower) {
+      if (orgTech.includes(exp) || orgTopics.includes(exp)) {
+        matchedExpanded.add(exp);
+      }
+    }
+
+    const matchingProjects = projectCountsByOrg.get(orgSlug) || 0;
+    if (matchingProjects > 0 && satisfiedUserSkillCount === 0) {
+      satisfiedUserSkillCount = 1;
+    }
+
+    // If completely unrelated and zero matching projects, assign score 0
+    if (satisfiedUserSkillCount === 0 && matchedDirect.size === 0 && matchingProjects === 0) {
+      return { org, score: 0 };
+    }
+
+    const coverageRatio = skills.length > 0 ? satisfiedUserSkillCount / skills.length : 0.5;
+    const years = Array.isArray(org.years) ? org.years : [2026];
+    const latestYear = years.length > 0 ? Math.max(...years) : 2026;
+    const is2026 = Boolean(org.is2026 || latestYear === 2026);
+    const isRecent = latestYear >= 2025 ? 1.0 : latestYear >= 2024 ? 0.8 : 0.6;
+    const longevityBonus = Math.min(years.length, 10) * 1.5;
+    const projectBonus = Math.min(matchingProjects, 60) * 1.2;
+    const directHitsBonus = Math.min(matchedDirect.size, 8) * 5;
+    const expandedHitsBonus = Math.min(matchedExpanded.size, 6) * 2;
+
+    const score =
+      coverageRatio * 60 +
+      satisfiedUserSkillCount * 20 +
+      directHitsBonus +
+      expandedHitsBonus +
+      (is2026 ? 24 : 0) +
+      isRecent * 10 +
+      longevityBonus +
+      projectBonus;
+
+    return {
+      org,
+      score: Math.round(score),
+    };
+  });
+
+  const validScored = scored
+    .filter((s) => s.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  const finalPool = validScored.slice(0, limit).map((s) => s.org);
+
+  // If pool is sparse, backfill with active recent orgs
+  if (finalPool.length < Math.min(limit, 15)) {
+    const existingSlugs = new Set(finalPool.map((o) => o.slug));
+    const fallbackOrgs = allOrgs
+      .filter((o) => !existingSlugs.has(o.slug))
+      .sort((a, b) => (b.is2026 ? 1 : 0) - (a.is2026 ? 1 : 0) || (b.projectCount || 0) - (a.projectCount || 0));
+    finalPool.push(...fallbackOrgs.slice(0, limit - finalPool.length));
+  }
+
+  return serializeDocs(finalPool as unknown as Record<string, unknown>[]) as unknown as Organization[];
 }
 

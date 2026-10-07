@@ -15,7 +15,7 @@ import type { Program, Organization, Project } from '@/../types';
 
 const MAX_SKILLS = 40;
 const MAX_SKILL_LEN = 48;
-const MAX_CANDIDATES = 40;
+const MAX_CANDIDATES = 75;
 const TOP_RESULTS = 24;
 
 /** Skip OpenAI for a cool-down after auth/quota failures so heuristic stays fast. */
@@ -254,15 +254,24 @@ function orgSkillOverlap(
   for (const req of requirements) {
     let reqHit = false;
     for (const token of req.tokens) {
-      if (orgTech.includes(token)) {
-        reqHit = true;
-        matchedTech.add(token);
+      const tLower = token.toLowerCase();
+      
+      // Match in tech
+      for (const ot of orgTech) {
+        if (ot === tLower || ot.includes(tLower) || tLower.includes(ot)) {
+          reqHit = true;
+          matchedTech.add(ot);
+        }
       }
-      if (orgTopics.includes(token)) {
-        reqHit = true;
-        matchedTech.add(token);
+      // Match in topics
+      for (const top of orgTopics) {
+        if (top === tLower || top.includes(tLower) || tLower.includes(top)) {
+          reqHit = true;
+          matchedTech.add(top);
+        }
       }
-      if (token.length >= 3 && textBody.includes(token)) {
+      // Match in textBody
+      if (!reqHit && tLower.length >= 3 && textBody.includes(tLower)) {
         reqHit = true;
         matchedTech.add(token);
       }
@@ -297,25 +306,26 @@ function heuristicRankOrganizations(
     const { matched, matchedUserSkillCount, totalUserSkills } = orgSkillOverlap(org, skills);
 
     const userCoverage = totalUserSkills > 0 ? matchedUserSkillCount / totalUserSkills : 0.5;
-    const orgRatio = orgTech.length > 0 ? matched.length / Math.max(orgTech.length, 3) : 0.4;
+    const orgRatio = orgTech.length > 0 ? Math.min(matched.length / Math.max(orgTech.length, 3), 1.0) : 0.4;
 
     const years = Array.isArray(org.years) ? org.years : [2026];
     const latestYear = years.length > 0 ? Math.max(...years) : 2026;
     const isRecent = latestYear >= 2025 ? 1.0 : latestYear >= 2024 ? 0.85 : 0.65;
+    const is2026 = Boolean(org.is2026 || latestYear === 2026);
 
     const expScore = exp === 'beginner' ? 0.9 : exp === 'advanced' ? 0.95 : 1.0;
     const availScore = availNum >= 20 ? 0.85 : 0.65;
 
     const raw =
-      userCoverage * 0.52 +
+      userCoverage * 0.55 +
       orgRatio * 0.20 +
-      isRecent * 0.15 +
+      isRecent * 0.12 +
       expScore * 0.08 +
       availScore * 0.05;
 
-    const bonus = Math.min(matched.length, 6) * 2.5 + (org.is2026 ? 3 : 0);
+    const bonus = Math.min(matched.length, 8) * 3.0 + (is2026 ? 4 : 0);
     const matchPercentage = Math.round(
-      Math.min(98, Math.max(45, 42 + raw * 52 + bonus))
+      Math.min(98, Math.max(45, 40 + raw * 54 + bonus))
     );
 
     let reasoning = '';
@@ -365,7 +375,7 @@ function heuristicRankOrganizations(
       programSlug: org.programSlug || 'gsoc',
       exploreProjectsUrl,
       yearlyStats: org.yearlyStats,
-      _score: raw * 100 + matchedUserSkillCount * 12 + matched.length * 4 + (latestYear >= 2025 ? 5 : 0),
+      _score: raw * 100 + matchedUserSkillCount * 18 + matched.length * 5 + (is2026 ? 6 : 0) + (latestYear >= 2025 ? 4 : 0),
     };
   });
 
@@ -435,7 +445,7 @@ export async function POST(req: Request) {
         const hb = heuristic.find((h) => h.slug === b.org.slug);
         return (hb?.matchPercentage || 0) - (ha?.matchPercentage || 0);
       })
-      .slice(0, 24);
+      .slice(0, 30);
 
     const orgsContext: GeminiOrgCandidate[] = pool.map(({ org, index }) => {
       const { matched } = orgSkillOverlap(org, skills);
