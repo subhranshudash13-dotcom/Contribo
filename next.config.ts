@@ -4,9 +4,10 @@ const nextConfig: NextConfig = {
   // Gzip responses in production when not handled by the host
   compress: true,
 
-  // Smaller client bundles for icon/motion libraries
+  // Smaller client bundles for icon/motion libraries & controlled build concurrency
   experimental: {
     optimizePackageImports: ["lucide-react", "framer-motion"],
+    cpus: 1,
   },
 
   // Optimized images (AVIF/WebP) + allowed remote hosts

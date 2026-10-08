@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Sparkles, Building2, ArrowRight } from 'lucide-react';
+import { Building2, ArrowRight } from 'lucide-react';
 
 export function HeroButtons() {
     return (
@@ -10,7 +10,6 @@ export function HeroButtons() {
                 href="/matcher" 
                 className="inline-flex items-center justify-center h-12 px-6 bg-accent hover:bg-accent-hover text-white font-semibold text-sm rounded-xl transition-all shadow-sm gap-2 group w-full sm:w-auto cursor-pointer active:scale-[0.98]"
             >
-                <Sparkles size={15} />
                 <span>Orbit AI Matcher</span>
                 <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
             </Link>

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Organization } from '../../../types';
 import { SaveButton, ShareButton } from './SaveTrackActions';
 import { OrgLogo } from './OrgLogo';
@@ -130,8 +130,8 @@ export function OrgCard({
                 {years.length > 0 ? `${years.length} active years` : 'Open Source'}
               </span>
               {org.is2026 && (
-                <span className="inline-flex items-center gap-1 text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 uppercase tracking-wider shadow-2xs">
-                  <Sparkles size={9} /> 2026
+                <span className="inline-flex items-center text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 uppercase tracking-wider shadow-2xs">
+                  2026
                 </span>
               )}
             </div>

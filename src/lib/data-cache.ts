@@ -8,31 +8,33 @@ import { listProjects } from '@/lib/repositories/projects';
 
 /** Platform stats — short TTL, high traffic. */
 export const getCachedPlatformStats = unstable_cache(
-  async () => getPlatformStats({ bypassCache: true }),
-  ['platform-stats-v1'],
-  { revalidate: 120 }
+  async () => getPlatformStats({ bypassCache: false }),
+  ['platform-stats-v2'],
+  { revalidate: 180 }
 );
 
 /** Programs catalog — rarely changes. */
 export const getCachedPrograms = unstable_cache(
   async () => listPrograms(),
-  ['programs-list-v1'],
-  { revalidate: 300 }
+  ['programs-list-v2'],
+  { revalidate: 600 }
 );
 
-/** Filter facets for projects UI (global). */
-export const getCachedFilterFacets = unstable_cache(
-  async (programSlug?: string) =>
-    getFilterFacets({ programSlug: programSlug || null }),
-  ['filter-facets-v1'],
-  { revalidate: 180 }
-);
+/** Filter facets for projects UI (global or per-program). */
+export function getCachedFilterFacets(programSlug?: string) {
+  const slugKey = programSlug ? programSlug.toLowerCase().trim() : 'all';
+  return unstable_cache(
+    async () => getFilterFacets({ programSlug: programSlug || null }),
+    [`filter-facets-v2-${slugKey}`],
+    { revalidate: 300 }
+  )();
+}
 
 /** Homepage / trending rail. */
 export const getCachedTrending = unstable_cache(
   async (domain = 'all', limit = 18) =>
     getTrendingProjects({ domain, limit }),
-  ['trending-projects-v1'],
+  ['trending-projects-v2'],
   { revalidate: 180 }
 );
 
@@ -40,7 +42,7 @@ export const getCachedTrending = unstable_cache(
 export const getCachedHomeBundle = unstable_cache(
   async () => {
     const [stats, trending] = await Promise.all([
-      getPlatformStats({ bypassCache: true }),
+      getPlatformStats({ bypassCache: false }),
       getTrendingProjects({ domain: 'all', limit: 18 }),
     ]);
 
@@ -66,11 +68,11 @@ export const getCachedHomeBundle = unstable_cache(
       })),
     };
   },
-  ['home-bundle-v3'],
+  ['home-bundle-v4'],
   { revalidate: 180 }
 );
 
-/** Default organizations catalog page (first 48 orgs, no filters). */
+/** Default organizations catalog page (first 120 orgs, no filters). */
 export const getCachedDefaultOrganizations = unstable_cache(
   async () =>
     listOrganizations({
@@ -78,19 +80,19 @@ export const getCachedDefaultOrganizations = unstable_cache(
       skip: 0,
       lean: true,
     }),
-  ['default-organizations-v5'],
-  { revalidate: 180 }
+  ['default-organizations-v6'],
+  { revalidate: 300 }
 );
 
-/** Default projects catalog page (first 18 projects, no filters). */
+/** Default projects catalog page (first 24 projects, no filters). */
 export const getCachedDefaultProjects = unstable_cache(
   async () =>
     listProjects({
-      limit: 18,
+      limit: 24,
       skip: 0,
       lean: true,
     }),
-  ['default-projects-v4'],
-  { revalidate: 180 }
+  ['default-projects-v5'],
+  { revalidate: 300 }
 );
 

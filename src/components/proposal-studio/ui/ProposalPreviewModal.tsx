@@ -1,6 +1,6 @@
 'use client';
 
-import { ExternalLink, Plus, Sparkles, X } from 'lucide-react';
+import { ExternalLink, Plus, X } from 'lucide-react';
 import type { AcceptedProposal } from '@/lib/proposal-studio/data';
 
 interface ProposalPreviewModalProps {
@@ -57,7 +57,7 @@ export function ProposalPreviewModal({
 
           <div className="rounded-2xl border border-hairline bg-page p-4 space-y-3">
             <h4 className="flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-accent">
-              <Sparkles size={13} /> Why mentors accepted this
+              Why mentors accepted this
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {proposal.rationale.map((r, i) => (

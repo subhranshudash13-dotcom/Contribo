@@ -1,15 +1,14 @@
 import Link from 'next/link';
 import { Program } from '../../../types';
 import { ProgramCard } from '@/components/ui/ProgramCard';
-import { Sparkles } from 'lucide-react';
-import { listPrograms } from '@/lib/repositories/programs';
+import { getCachedPrograms } from '@/lib/data-cache';
 
 export const metadata = {
   title: 'Programs | Contribo',
 };
 
 async function getPrograms(): Promise<Program[]> {
-  const programs = await listPrograms();
+  const programs = await getCachedPrograms();
   return programs as unknown as Program[];
 }
 

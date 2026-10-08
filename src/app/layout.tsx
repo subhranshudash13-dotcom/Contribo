@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "next-themes";
 import { DM_Sans } from "next/font/google";
@@ -5,6 +6,7 @@ import { Navbar } from "@/components/ui/Navbar";
 import { Footer } from "@/components/ui/Footer";
 import AuthButton from "@/components/ui/AuthButton";
 import { NetworkProvider } from "@/components/ui/NetworkProvider";
+import { NavigationProgressBar } from "@/components/ui/NavigationProgressBar";
 import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
 import "./globals.css";
@@ -81,6 +83,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <Suspense fallback={null}>
+            <NavigationProgressBar />
+          </Suspense>
           <NetworkProvider>
             <Navbar authButton={<AuthButton />} />
             <div className="flex-1 w-full pt-16 px-1">{children}</div>

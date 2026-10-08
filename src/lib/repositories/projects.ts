@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import type { Project } from '@/../types';
 import { COLLECTIONS, getCollection } from '@/lib/db';
 import { serializeDocs, serializeDoc, toObjectId } from '@/lib/serialize';
@@ -150,7 +151,7 @@ export async function listProjects(query: ProjectListQuery) {
   };
 }
 
-export async function getProjectById(id: string) {
+export const getProjectById = cache(async (id: string) => {
   const oid = toObjectId(id);
   if (!oid) return null;
   const collection = await getCollection<Project>(COLLECTIONS.projects);
@@ -179,7 +180,7 @@ export async function getProjectById(id: string) {
   }
 
   return serialized;
-}
+});
 
 /** Domain concept pillars mapping abstract / composite / high-level developer terms to technical tokens */
 export const DOMAIN_PILLARS: Record<string, { aliases: string[]; tokens: string[] }> = {

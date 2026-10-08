@@ -5,7 +5,6 @@ import {
   DollarSign, 
   Users, 
   Award, 
-  Sparkles, 
   ArrowRight, 
   CheckCircle2, 
   GitPullRequest,

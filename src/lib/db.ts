@@ -46,10 +46,10 @@ export const COLLECTIONS = {
 export type CollectionName = (typeof COLLECTIONS)[keyof typeof COLLECTIONS];
 
 const options = {
-  maxPoolSize: 10,
-  minPoolSize: 0,
-  maxIdleTimeMS: 30_000,
-  serverSelectionTimeoutMS: 10_000,
+  maxPoolSize: 25,
+  minPoolSize: 2,
+  maxIdleTimeMS: 60_000,
+  serverSelectionTimeoutMS: 5_000,
   connectTimeoutMS: 10_000,
 };
 

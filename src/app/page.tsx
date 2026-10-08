@@ -3,7 +3,6 @@ import Image from 'next/image';
 import { ProgramLogo } from '@/components/ui/ProgramLogos';
 import {
   ArrowRight,
-  Sparkles,
   Building2,
   Calendar,
   BookOpen,
@@ -236,7 +235,7 @@ export default async function Home() {
             <div className="space-y-4 pt-2">
               <div className="flex gap-4">
                 <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent shrink-0 mt-1">
-                  <Sparkles size={16} />
+                  <Compass size={16} />
                 </div>
                 <div>
                   <h3 className="font-heading font-semibold text-primary text-base">AI Matching</h3>

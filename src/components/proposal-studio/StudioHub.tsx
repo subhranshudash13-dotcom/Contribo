@@ -11,7 +11,6 @@ import {
   Plus,
   RefreshCw,
   Rocket,
-  Sparkles,
   Star,
   Trash2,
   Wand2,
@@ -63,7 +62,7 @@ export function StudioHub() {
           <div className="lg:col-span-7 space-y-6 flex flex-col justify-center">
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-1.5 font-mono text-xs font-bold uppercase tracking-wider text-accent border border-accent/25">
-                <Sparkles size={13} /> Proposal Studio
+                Proposal Studio
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-page border border-hairline px-3 py-1 font-mono text-[11px] font-semibold text-muted">
                 GSoC · LFX · Outreachy Ready

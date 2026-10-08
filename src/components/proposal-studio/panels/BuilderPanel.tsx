@@ -14,7 +14,7 @@ import {
   Lightbulb,
   List,
   RefreshCw,
-  Sparkles,
+  Wand2,
 } from 'lucide-react';
 import { BUILDER_SECTIONS } from '../constants';
 import { ProgressMeter } from '../ui/ProgressMeter';
@@ -185,7 +185,7 @@ export function BuilderPanel() {
             {aiLoading === section.id ? (
               <RefreshCw size={14} className="animate-spin" />
             ) : (
-              <Sparkles size={14} />
+              <Wand2 size={14} />
             )}
             <span>AI Improve Section</span>
           </button>
@@ -233,7 +233,7 @@ export function BuilderPanel() {
           className="w-full flex items-center justify-between px-6 py-4 text-left font-mono text-xs sm:text-sm font-bold text-secondary hover:text-primary hover:bg-surface-raised transition-colors cursor-pointer"
         >
           <span className="flex items-center gap-2.5">
-            <Sparkles size={16} className="text-brass" />
+            <Lightbulb size={16} className="text-brass" />
             <span>Accepted Reference Snippet ({section.shortLabel})</span>
           </span>
           {showSnippet ? <ChevronUp size={18} /> : <ChevronDown size={18} />}

@@ -10,7 +10,6 @@ import {
   Plus,
   RefreshCw,
   Save,
-  Sparkles,
 } from 'lucide-react';
 import { STUDIO_NAV } from './constants';
 import { useProposalStudioContext } from './context/ProposalStudioContext';

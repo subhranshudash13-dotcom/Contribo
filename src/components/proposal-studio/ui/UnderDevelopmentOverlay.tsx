@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Sparkles, ArrowRight, LayoutDashboard, Compass } from 'lucide-react';
+import { ArrowRight, LayoutDashboard, Compass } from 'lucide-react';
 
 export function UnderDevelopmentOverlay() {
   return (
@@ -32,7 +32,7 @@ export function UnderDevelopmentOverlay() {
 
         {/* Center Icon */}
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-raised border border-hairline shadow-inner text-accent">
-          <Sparkles className="h-8 w-8 animate-pulse text-accent" />
+          <Compass className="h-8 w-8 animate-pulse text-accent" />
         </div>
 
         {/* Header and description */}

@@ -5,7 +5,6 @@ import {
   DollarSign, 
   Users, 
   CheckCircle2, 
-  Sparkles, 
   Calendar, 
   Clock, 
   ShieldCheck, 

@@ -6,7 +6,6 @@ import {
   Compass, 
   Award, 
   ShieldAlert, 
-  Sparkles 
 } from 'lucide-react';
 
 export interface DetailedGuide {
@@ -51,7 +50,7 @@ export const DETAILED_GUIDES: Record<string, DetailedGuide> = {
         </div>
         <div className="bg-brass/10 border border-brass/20 p-4 rounded">
           <h4 className="font-bold text-xs sm:text-sm text-brass mb-2 flex items-center gap-1.5">
-            <Sparkles size={16} /> Pro Tip from Mentors
+            <Award size={16} /> Pro Tip from Mentors
           </h4>
           <p className="text-xs sm:text-sm text-primary leading-relaxed font-medium">
             Never submit a PDF draft proposal on the final day without requesting feedback first. Get your draft in front of the mentors at least two weeks early to receive comments and refine your technical details.

@@ -15,7 +15,6 @@ import {
   Printer,
   RefreshCw,
   Share2,
-  Sparkles,
 } from 'lucide-react';
 import { BUILDER_SECTIONS } from '../constants';
 import { ProgressMeter } from '../ui/ProgressMeter';
@@ -119,7 +118,7 @@ export function ExportPanel() {
             </p>
             <div className="flex items-center gap-2 pt-1 font-mono text-[11px] text-muted">
               <span className="inline-flex items-center gap-1 text-accent font-semibold">
-                <Sparkles size={12} /> Python 3.13 ReportLab Engine
+                Python 3.13 ReportLab Engine
               </span>
               <span>·</span>
               <span>Letter Size / 300 DPI</span>

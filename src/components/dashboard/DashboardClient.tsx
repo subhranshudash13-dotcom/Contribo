@@ -11,7 +11,6 @@ import {
   Inbox,
   Trash2,
   Loader2,
-  Sparkles,
   ExternalLink,
   ArrowRight,
   Edit3,
@@ -286,7 +285,7 @@ export function DashboardClient({
             href="/matcher"
             className="flex items-center gap-1.5 text-xs font-bold text-accent hover:text-accent/80 transition-colors"
           >
-            <Sparkles size={14} /> AI Matcher
+            AI Matcher
           </Link>
           <Link
             href="/proposal-studio"
@@ -505,7 +504,7 @@ export function DashboardClient({
 
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-brass mb-1">
-                <Sparkles size={16} />
+                <BookOpen size={16} />
                 <h3 className="font-heading font-bold text-lg text-primary">Official Guides</h3>
               </div>
               <p className="text-secondary text-xs leading-relaxed">

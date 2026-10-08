@@ -7,7 +7,6 @@ import {
   FileText,
   Play,
   ShieldCheck,
-  Sparkles,
   Lightbulb,
   Rocket,
 } from 'lucide-react';
