@@ -5,9 +5,6 @@ import Link from 'next/link';
 import {
   ArrowRight,
   FileText,
-  Play,
-  ShieldCheck,
-  Sparkles,
   Lightbulb,
   Rocket,
 } from 'lucide-react';

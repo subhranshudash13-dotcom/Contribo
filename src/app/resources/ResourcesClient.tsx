@@ -12,7 +12,6 @@ import {
   ChevronUp,
   Zap
 } from 'lucide-react';
-import Link from 'next/link';
 
 interface ResourceGuide {
   id: string;

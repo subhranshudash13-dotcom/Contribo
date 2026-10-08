@@ -9,7 +9,6 @@ import {
   Target,
   Calendar,
   Users,
-  Sparkles,
   Terminal,
   MessageSquare,
   FileText,
@@ -564,7 +563,7 @@ export const ROADMAP_TRACKS: RoadmapTrack[] = [
     outcome: 'Multiple quality PRs during an event season, converted into long-term habits',
     duration: '2–6 weeks per event',
     accent: 'brass',
-    icon: Sparkles,
+    icon: Rocket,
     stages: [
       {
         id: 'e-pick',

@@ -3,14 +3,11 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import {
-  Download,
-  FolderArchive,
   History,
   MessageSquarePlus,
   Plus,
   RefreshCw,
   Save,
-  Sparkles,
 } from 'lucide-react';
 import { STUDIO_NAV } from './constants';
 import { useProposalStudioContext } from './context/ProposalStudioContext';

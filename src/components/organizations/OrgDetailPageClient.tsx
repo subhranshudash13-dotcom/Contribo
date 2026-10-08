@@ -12,7 +12,6 @@ import {
   Check,
   Building2,
   Calendar,
-  Sparkles,
   Search,
   ExternalLink,
   Flame,
@@ -392,7 +391,7 @@ export function OrgDetailPageClient({
                 )}`}
                 className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-primary bg-page border border-hairline hover:border-accent/40 hover:bg-surface-raised transition-all text-center shadow-2xs"
               >
-                <Sparkles size={14} className="text-accent" />
+                <FileText size={14} className="text-accent" />
                 Draft Project Proposal for {org.name}
               </Link>
             </div>
@@ -703,7 +702,7 @@ export function OrgDetailPageClient({
                           className="p-1 rounded-md text-muted hover:text-accent hover:bg-page transition-colors"
                           title="Draft Proposal in Studio"
                         >
-                          <Sparkles size={13} />
+                          <FileText size={13} />
                         </Link>
                       </div>
                     </div>

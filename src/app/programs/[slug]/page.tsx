@@ -12,7 +12,6 @@ import {
   ListChecks,
   ArrowLeft,
   ExternalLink,
-  Sparkles,
   Users,
   Target,
   Lightbulb,
@@ -29,6 +28,8 @@ import { getProgramGuide } from '@/lib/program-guides';
 
 /** Programs that get the full org explorer treatment */
 const EXPLORER_ENABLED_SLUGS = new Set(['gsoc', 'lfx', 'esoc', 'outreachy', 'sob', 'mlh-fellowship', 'mlh']);
+
+export const revalidate = 600;
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -176,7 +177,6 @@ export default async function ProgramDetailPage({ params }: Props) {
                   href="/matcher"
                   className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-brass/35 text-brass hover:bg-brass/5 font-bold text-sm transition-colors"
                 >
-                  <Sparkles size={15} />
                   AI Project Matcher
                 </Link>
               </div>
@@ -288,7 +288,7 @@ export default async function ProgramDetailPage({ params }: Props) {
                 <ul className="space-y-2">
                   {guide.outcomes.map((item, i) => (
                     <li key={i} className="flex gap-2 text-sm text-secondary leading-relaxed">
-                      <Sparkles size={14} className="shrink-0 mt-0.5 text-brass" />
+                      <CheckCircle2 size={14} className="shrink-0 mt-0.5 text-brass" />
                       {item}
                     </li>
                   ))}
@@ -543,7 +543,6 @@ export default async function ProgramDetailPage({ params }: Props) {
                 href="/matcher"
                 className="border border-brass/30 text-brass hover:bg-brass/10 py-3 rounded-xl font-bold transition-colors text-center w-full text-sm inline-flex items-center justify-center gap-2"
               >
-                <Sparkles size={15} />
                 Find matching projects
               </Link>
             </div>

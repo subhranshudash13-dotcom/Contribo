@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MessageSquarePlus, X, Send, Sparkles, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { MessageSquarePlus, X, Send, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { friendlyApiMessage, submitUserFeedback } from '@/lib/client/api';
 
 export function FeedbackModal({

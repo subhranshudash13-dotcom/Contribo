@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Github, Twitter, Mail, Heart, Sparkles } from 'lucide-react';
+import { Github, Twitter, Mail } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -44,7 +44,6 @@ export function Footer() {
             <li>
               <Link href="/matcher" className="hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md transition-colors flex items-center gap-1.5">
                 <span>Orbit AI</span>
-                <Sparkles size={12} className="text-accent animate-pulse" />
               </Link>
             </li>
             <li>

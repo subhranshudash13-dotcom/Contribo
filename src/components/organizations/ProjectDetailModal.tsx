@@ -7,7 +7,6 @@ import {
   ExternalLink,
   Code2,
   Calendar,
-  Sparkles,
   DollarSign,
   Clock,
   Github,
@@ -251,7 +250,6 @@ export function ProjectDetailModal({
                 href={proposalStudioUrl}
                 className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-xs font-bold text-white bg-accent hover:opacity-90 transition-all shadow-sm w-full sm:w-auto text-center"
               >
-                <Sparkles size={14} />
                 Draft Proposal in Studio
               </Link>
             </div>

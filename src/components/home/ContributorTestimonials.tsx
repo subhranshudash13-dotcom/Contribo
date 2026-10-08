@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Star, CheckCircle2, Quote, MessageSquarePlus, Send, Sparkles, Check, X, Loader2 } from 'lucide-react';
+import { Star, CheckCircle2, Quote, MessageSquarePlus, Send, Check, X, Loader2 } from 'lucide-react';
 
 interface Testimonial {
   name: string;
@@ -141,8 +141,7 @@ export function ContributorTestimonials() {
       {/* Section Header with Actions */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 max-w-[1440px] mx-auto px-4 sm:px-6">
         <div className="space-y-3 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-semibold">
-            <Sparkles size={13} />
+          <div className="inline-flex items-center px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-semibold">
             <span>Community Voice & Impact</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-primary tracking-tight">

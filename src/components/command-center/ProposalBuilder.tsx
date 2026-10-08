@@ -2,10 +2,8 @@ import React, { useState } from 'react';
 import { ProposalDraft, ProgramType } from './CommandCenterClient';
 import { PROGRAM_PRESETS } from './data';
 import { 
-  ChevronDown, 
   Lightbulb, 
   CheckCircle2, 
-  Info, 
   Settings2,
   RefreshCw
 } from 'lucide-react';

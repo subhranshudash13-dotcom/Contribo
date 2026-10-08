@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 interface ProgramTimelineChartProps {
   initialMonthIndex: number;
 }
 
 export function ProgramTimelineChart({ initialMonthIndex }: ProgramTimelineChartProps) {
-  const [currentMonthIndex, setCurrentMonthIndex] = useState(() => 
+  const [currentMonthIndex] = useState(() => 
     typeof initialMonthIndex === 'number' ? initialMonthIndex : new Date().getMonth()
   );
 

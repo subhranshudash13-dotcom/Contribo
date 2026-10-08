@@ -2,14 +2,13 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 import { Logo } from '@/components/ui/Logo';
 import { registerUser } from '@/app/actions/register';
 
 export default function LoginPage() {
-  const router = useRouter();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -57,7 +56,7 @@ export default function LoginPage() {
         // Successful login, redirect to dashboard using hard navigation to guarantee cookies are set
         window.location.href = '/dashboard';
       }
-    } catch (err) {
+    } catch {
       console.error('Login error: [REDACTED]');
       setError('An unexpected error occurred. Please try again.');
     } finally {
@@ -70,7 +69,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signIn(provider, { callbackUrl: '/dashboard' });
-    } catch (err) {
+    } catch {
       console.error('Social login error: [REDACTED]');
       setError('Failed to initialize social login.');
       setLoading(false);
@@ -91,9 +90,12 @@ export default function LoginPage() {
 
         {/* Laptop Mockup Visual */}
         <div className="relative z-10 flex items-center justify-center my-auto translate-y-6">
-          <img 
+          <Image 
             src="/workspace_hero.png" 
             alt="Developer Workspace" 
+            width={580}
+            height={360}
+            priority
             className="w-full max-w-[580px] h-auto object-contain filter drop-shadow-[0_24px_50px_rgba(0,0,0,0.06)] dark:drop-shadow-[0_24px_50px_rgba(0,0,0,0.3)] select-none pointer-events-none"
           />
         </div>

@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Sparkles,
   ArrowRight,
   ArrowLeft,
   Code2,
@@ -14,13 +13,12 @@ import {
   Inbox,
   Github,
   ExternalLink,
-  Building2,
   BarChart3,
   ChevronDown,
   ChevronUp,
   FolderGit2,
 } from 'lucide-react';
-import { SaveButton, TrackApplicationButton } from '@/components/ui/SaveTrackActions';
+import { SaveButton } from '@/components/ui/SaveTrackActions';
 import { OfflineState } from '@/components/ui/OfflineState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { useNetwork } from '@/components/ui/NetworkProvider';
@@ -213,9 +211,6 @@ export default function MatcherClient() {
     <main className="min-h-[calc(100vh-64px)] px-4 py-8 lg:py-16 max-w-4xl mx-auto w-full">
       {step < 5 && (
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-sm bg-surface border border-hairline mb-6">
-            <Sparkles className="text-brass" size={24} />
-          </div>
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-primary mb-3 font-heading">
             Orbit AI Organization Recommender
           </h1>
@@ -518,7 +513,7 @@ export default function MatcherClient() {
                   onClick={() => void handleMatch()}
                   className="bg-brass text-white px-8 py-3 rounded-sm font-bold hover:brightness-110 transition-all flex items-center gap-2 font-heading"
                 >
-                  <Sparkles size={18} /> Find Recommended Organizations
+                  Find Recommended Organizations
                 </button>
               </div>
             </motion.div>
@@ -553,7 +548,6 @@ export default function MatcherClient() {
                     {matchMode && (
                       <div className="mt-3">
                         <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-brass/10 border border-brass/30 text-brass text-xs font-mono font-bold shadow-xs">
-                          <Sparkles size={13} className="text-brass" />
                           <span>
                             {matchMode === 'gemini'
                               ? 'Orbit AI • Gemini 3.8 Flash'

@@ -1,5 +1,5 @@
 import { apiError, apiOk, publicCacheHeaders } from '@/lib/api';
-import { getFilterFacets } from '@/lib/repositories/filters';
+import { getCachedFilterFacets } from '@/lib/data-cache';
 
 /**
  * GET /api/meta/filters
@@ -9,10 +9,8 @@ import { getFilterFacets } from '@/lib/repositories/filters';
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const facets = await getFilterFacets({
-      programSlug: searchParams.get('programSlug') || searchParams.get('program'),
-      programId: searchParams.get('programId'),
-    });
+    const programSlug = searchParams.get('programSlug') || searchParams.get('program') || undefined;
+    const facets = await getCachedFilterFacets(programSlug);
 
     return apiOk(
       {

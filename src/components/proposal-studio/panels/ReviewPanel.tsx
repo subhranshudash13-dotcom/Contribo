@@ -5,7 +5,6 @@ import {
   ArrowRight,
   CheckCircle2,
   RefreshCw,
-  Sparkles,
   Wand2,
 } from 'lucide-react';
 import { BUILDER_SECTIONS } from '../constants';
@@ -148,7 +147,7 @@ export function ReviewPanel() {
 
           <section className="rounded-3xl border border-hairline bg-surface p-5 shadow-sm">
             <div className="mb-3 flex items-center gap-2">
-              <Sparkles size={15} className="text-accent" />
+              <AlertCircle size={15} className="text-accent" />
               <h3 className="font-heading text-base font-bold text-primary">
                 Incomplete sections
               </h3>

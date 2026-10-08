@@ -54,7 +54,7 @@ export function LazySection({
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [rootMargin]);
+  }, [rootMargin, ready]);
 
   return (
     <div

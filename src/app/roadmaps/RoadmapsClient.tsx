@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -14,7 +14,6 @@ import {
   Lightbulb,
   ListChecks,
   RotateCcw,
-  Sparkles,
   Target,
 } from 'lucide-react';
 import {
@@ -158,7 +157,10 @@ export default function RoadmapsClient() {
     }
   }, []);
 
-  const trackChecked = progress[activeTrack.id]?.checkedItems ?? {};
+  const trackChecked = useMemo(
+    () => progress[activeTrack.id]?.checkedItems ?? {},
+    [activeTrack.id, progress]
+  );
 
   const { checkedCount, totalCount, percent, stageCompleteMap } = useMemo(() => {
     let checked = 0;
@@ -372,7 +374,7 @@ export default function RoadmapsClient() {
               {activeTrack.tagline}. For {activeTrack.audience.toLowerCase()}.
             </p>
             <p className="text-sm text-primary mt-3 font-medium flex items-start gap-2">
-              <Sparkles size={16} className={`mt-0.5 shrink-0 ${accent.text}`} aria-hidden />
+              <Target size={16} className={`mt-0.5 shrink-0 ${accent.text}`} aria-hidden />
               <span>
                 <span className="text-muted font-normal">Outcome: </span>
                 {activeTrack.outcome}
@@ -798,7 +800,7 @@ export default function RoadmapsClient() {
             href: '/matcher',
             title: 'Match projects',
             desc: 'Use the AI matcher to find projects that fit your skills.',
-            icon: Sparkles,
+            icon: Compass,
           },
           {
             href: '/resources',

@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import type { Organization } from '@/../types';
 import { COLLECTIONS, getCollection } from '@/lib/db';
 import { serializeDocs, serializeDoc } from '@/lib/serialize';
@@ -233,11 +234,11 @@ export async function suggestOrganizations(
     }));
 }
 
-export async function getOrganizationBySlug(
+export const getOrganizationBySlug = cache(async (
   slug: string,
   programSlug?: string | null,
   options?: { includeProjectCount?: boolean }
-) {
+) => {
   const collection = await getCollection<Organization>(COLLECTIONS.organizations);
   const filter: Record<string, unknown> = { slug };
 
@@ -269,7 +270,7 @@ export async function getOrganizationBySlug(
   }
 
   return serialized;
-}
+});
 
 export async function getSimilarOrganizations(
   org: { slug: string; category?: string; technologies?: string[]; topics?: string[]; programId?: unknown },

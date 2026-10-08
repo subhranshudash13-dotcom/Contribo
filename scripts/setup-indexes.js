@@ -80,7 +80,12 @@ async function main() {
     // Prefer unique; if legacy duplicates exist, falls back to non-unique
     await ensureIndex(orgsCollection, { programId: 1, slug: 1 }, { unique: true });
     await ensureIndex(orgsCollection, { name: 1 });
+    await ensureIndex(orgsCollection, { is2026: -1, name: 1 });
+    await ensureIndex(orgsCollection, { programId: 1, is2026: -1, name: 1 });
+    await ensureIndex(orgsCollection, { category: 1, is2026: -1 });
     await ensureIndex(orgsCollection, { technologies: 1 });
+    await ensureIndex(orgsCollection, { years: 1 });
+    await ensureIndex(orgsCollection, { projectCount: -1, is2026: -1, name: 1 });
 
     // 3. projects
     console.log("\nConfiguring indexes for 'projects'...");
@@ -91,6 +96,12 @@ async function main() {
     await ensureIndex(projectsCollection, { techStack: 1 });
     await ensureIndex(projectsCollection, { year: -1 });
     await ensureIndex(projectsCollection, { stars: -1 });
+    await ensureIndex(projectsCollection, { year: -1, stars: -1 });
+    await ensureIndex(projectsCollection, { stars: -1, year: -1 });
+    await ensureIndex(projectsCollection, { programId: 1, year: -1, stars: -1 });
+    await ensureIndex(projectsCollection, { orgSlug: 1, year: -1 });
+    await ensureIndex(projectsCollection, { difficulty: 1, year: -1 });
+    await ensureIndex(projectsCollection, { year: -1, stars: -1, createdAt: -1 });
     await ensureIndex(
       projectsCollection,
       { orgSlug: 1, title: 1, year: 1, programId: 1 },

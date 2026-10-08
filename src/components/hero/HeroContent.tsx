@@ -1,6 +1,4 @@
 'use client';
-import Link from 'next/link';
-import { Sparkles, ArrowRight } from 'lucide-react';
 import { HeroSearch } from './HeroSearch';
 import { HeroButtons } from './HeroButtons';
 

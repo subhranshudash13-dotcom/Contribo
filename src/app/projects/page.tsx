@@ -3,7 +3,7 @@ import Script from 'next/script';
 import { Project } from '../../../types';
 import { ProjectCard } from '@/components/ui/ProjectCard';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { FilterX, Search, ChevronRight, SlidersHorizontal, ChevronLeft, Star, Tag, Code, Sparkles, ArrowRight, BookOpen, CheckCircle2, FileText } from 'lucide-react';
+import { FilterX, Search, ChevronRight, SlidersHorizontal, ChevronLeft, ArrowRight } from 'lucide-react';
 import { listProjects } from '@/lib/repositories/projects';
 import { auth } from '@/auth';
 import { getUserItemStatus } from '@/lib/repositories/dashboard';
@@ -107,18 +107,22 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
   const page = typeof params.page === 'string' ? parseInt(params.page, 10) : 1;
   const limit = 24; // 24 projects per page
   
-  const { projects, total, programs, technologies, difficulties } = await getProjectsData({
-    programId,
-    orgSlug,
-    difficulty,
-    tech,
-    q,
-    sortBy,
-    page,
-    limit
-  });
+  const [data, session] = await Promise.all([
+    getProjectsData({
+      programId,
+      orgSlug,
+      difficulty,
+      tech,
+      q,
+      sortBy,
+      page,
+      limit
+    }),
+    auth(),
+  ]);
 
-  const session = await auth();
+  const { projects, total, programs, technologies, difficulties } = data;
+
   let savedProjects: string[] = [];
   let trackedProjects: string[] = [];
 

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import {
   Star,
   Building2,
-  Sparkles,
   Globe,
   Brain,
   Server,
@@ -269,9 +268,8 @@ export function TrendingProjects({
         <div className="flex items-center gap-3 shrink-0">
           <Link
             href="/matcher"
-            className="inline-flex items-center gap-2 h-10 px-4 rounded-xl bg-brass hover:bg-brass-hover text-white text-xs sm:text-sm font-semibold transition-all shadow-xs cursor-pointer"
+            className="inline-flex items-center justify-center h-10 px-4 rounded-xl bg-brass hover:bg-brass-hover text-white text-xs sm:text-sm font-semibold transition-all shadow-xs cursor-pointer"
           >
-            <Sparkles size={14} />
             Match skills
           </Link>
           <Link

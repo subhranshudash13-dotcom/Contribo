@@ -8,8 +8,6 @@ import {
   FolderArchive,
   MessageSquarePlus,
   Search,
-  Sparkles,
-  Users,
 } from 'lucide-react';
 import { type AcceptedProposal, type OrgProposalGroup } from '@/lib/proposal-studio/data';
 import { PROGRAM_FILTERS } from '../constants';
@@ -98,7 +96,7 @@ export function ArchivePanel() {
 
       {/* 2. Educational Best Practice Notice */}
       <div className="flex items-start gap-3.5 rounded-2xl border border-accent/20 bg-accent/5 p-4 sm:p-5">
-        <Sparkles size={18} className="mt-0.5 shrink-0 text-accent" />
+        <BookmarkCheck size={18} className="mt-0.5 shrink-0 text-accent" />
         <div className="space-y-1 text-xs sm:text-sm text-secondary">
           <p className="font-bold text-primary">
             How to use the archive effectively:
