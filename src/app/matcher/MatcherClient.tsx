@@ -13,13 +13,12 @@ import {
   Inbox,
   Github,
   ExternalLink,
-  Building2,
   BarChart3,
   ChevronDown,
   ChevronUp,
   FolderGit2,
 } from 'lucide-react';
-import { SaveButton, TrackApplicationButton } from '@/components/ui/SaveTrackActions';
+import { SaveButton } from '@/components/ui/SaveTrackActions';
 import { OfflineState } from '@/components/ui/OfflineState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { useNetwork } from '@/components/ui/NetworkProvider';

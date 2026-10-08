@@ -54,7 +54,6 @@ const options = {
 };
 
 declare global {
-  // eslint-disable-next-line no-var
   var _mongoClientPromise_v2: Promise<MongoClient> | undefined;
 }
 

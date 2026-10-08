@@ -3,7 +3,7 @@ import Script from 'next/script';
 import { Project } from '../../../types';
 import { ProjectCard } from '@/components/ui/ProjectCard';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { FilterX, Search, ChevronRight, SlidersHorizontal, ChevronLeft, Star, Tag, Code, ArrowRight, BookOpen, CheckCircle2, FileText } from 'lucide-react';
+import { FilterX, Search, ChevronRight, SlidersHorizontal, ChevronLeft, ArrowRight } from 'lucide-react';
 import { listProjects } from '@/lib/repositories/projects';
 import { auth } from '@/auth';
 import { getUserItemStatus } from '@/lib/repositories/dashboard';

@@ -5,29 +5,17 @@ import { useRouter } from 'next/navigation';
 import {
   Bookmark,
   Clock,
-  CheckCircle2,
-  CalendarDays,
   Activity,
-  Inbox,
   Trash2,
   Loader2,
-  ExternalLink,
   ArrowRight,
   Edit3,
   BookOpen,
-  Compass,
-  MessageSquarePlus,
   FileText,
-  Building2,
-  Code2,
-  TrendingUp,
   Search,
-  Filter,
-  Check,
   AlertCircle,
   Zap,
   FolderGit2,
-  MoreVertical,
   Target
 } from 'lucide-react';
 import Link from 'next/link';
@@ -88,40 +76,7 @@ function getProgramTheme(slug?: string) {
   return colorMap[slug || ''] || { bg: 'bg-accent/10', text: 'text-accent', dot: 'bg-accent' };
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const isAccepted = status === 'accepted';
-  const isSubmitted = status === 'submitted';
-  const isDrafting = status === 'drafting';
-  const isResearching = status === 'researching';
-  const isRejected = status === 'rejected' || status === 'withdrawn';
 
-  let color = 'text-muted';
-  let Icon = Clock;
-
-  if (isAccepted) {
-    color = 'text-emerald-500';
-    Icon = CheckCircle2;
-  } else if (isSubmitted) {
-    color = 'text-merge';
-    Icon = CheckCircle2;
-  } else if (isDrafting) {
-    color = 'text-accent';
-    Icon = Edit3;
-  } else if (isResearching) {
-    color = 'text-brass';
-    Icon = Compass;
-  } else if (isRejected) {
-    color = 'text-error';
-    Icon = AlertCircle;
-  }
-
-  return (
-    <span className={`inline-flex items-center gap-1.5 font-mono text-[10px] uppercase font-bold ${color}`}>
-      <Icon size={12} strokeWidth={2.5} />
-      {statusLabel(status)}
-    </span>
-  );
-}
 
 function formatDate(value?: string | Date | null) {
   if (!value) return '—';

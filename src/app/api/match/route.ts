@@ -381,7 +381,10 @@ function heuristicRankOrganizations(
 
   const sorted = scored
     .sort((a, b) => b._score - a._score || b.matchPercentage - a.matchPercentage)
-    .map(({ _score: _s, ...rest }) => rest);
+    .map(({ _score, ...rest }) => {
+      void _score;
+      return rest;
+    });
 
   return sorted.slice(0, TOP_RESULTS);
 }

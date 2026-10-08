@@ -205,8 +205,6 @@ export function useProposalStudio() {
     return () => {
       cancelled = true;
     };
-    // showToast is stable enough; omit to avoid re-bootstrap loops
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftParam, projectParam, orgParam]);
 
   const filteredCatalog = useMemo(() => {

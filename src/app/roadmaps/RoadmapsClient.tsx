@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -157,7 +157,10 @@ export default function RoadmapsClient() {
     }
   }, []);
 
-  const trackChecked = progress[activeTrack.id]?.checkedItems ?? {};
+  const trackChecked = useMemo(
+    () => progress[activeTrack.id]?.checkedItems ?? {},
+    [activeTrack.id, progress]
+  );
 
   const { checkedCount, totalCount, percent, stageCompleteMap } = useMemo(() => {
     let checked = 0;

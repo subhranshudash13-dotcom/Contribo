@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import {
-  Download,
-  FolderArchive,
   History,
   MessageSquarePlus,
   Plus,

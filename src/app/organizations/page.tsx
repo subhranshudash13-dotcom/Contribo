@@ -4,7 +4,7 @@ import { OrgCard } from '@/components/ui/OrgCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { OrgSearch } from '@/components/ui/OrgSearch';
 import { OrgMarquee } from '@/components/ui/OrgMarquee';
-import { FilterX, Building2, ChevronRight, Compass, Cpu, Layers, X } from 'lucide-react';
+import { FilterX, Building2, ChevronRight, Compass, Cpu, X } from 'lucide-react';
 import { listOrganizations } from '@/lib/repositories/organizations';
 import { auth } from '@/auth';
 import { getUserItemStatus } from '@/lib/repositories/dashboard';

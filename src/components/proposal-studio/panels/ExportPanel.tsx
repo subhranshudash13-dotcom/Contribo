@@ -2,22 +2,16 @@
 
 import React, { useState } from 'react';
 import {
-  Check,
-  CheckCircle2,
   ClipboardCopy,
   Code,
   Download,
   Eye,
   FileCode,
   FileDown,
-  FileText,
-  Layers,
   Printer,
   RefreshCw,
-  Share2,
 } from 'lucide-react';
 import { BUILDER_SECTIONS } from '../constants';
-import { ProgressMeter } from '../ui/ProgressMeter';
 import { useProposalStudioContext } from '../context/ProposalStudioContext';
 
 export function ExportPanel() {

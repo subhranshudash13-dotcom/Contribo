@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { Program } from '../../../types';
 import { ProgramCard } from '@/components/ui/ProgramCard';
 import { getCachedPrograms } from '@/lib/data-cache';

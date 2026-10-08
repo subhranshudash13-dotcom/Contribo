@@ -7,10 +7,7 @@ import {
   Award, 
   ArrowRight, 
   CheckCircle2, 
-  GitPullRequest,
-  TrendingUp,
-  ShieldCheck,
-  Zap,
+  ShieldCheck, 
   MessageSquare
 } from 'lucide-react';
 import Link from 'next/link';
@@ -112,7 +109,6 @@ export function OpenSourceExplainer({ className = '', showCta = true }: { classN
         <div className="lg:col-span-6 space-y-3">
           {PILLARS.map((pillar, idx) => {
             const isActive = activeTab === idx;
-            const Icon = pillar.icon;
             return (
               <div
                 key={pillar.id}

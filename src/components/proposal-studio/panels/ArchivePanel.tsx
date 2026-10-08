@@ -8,7 +8,6 @@ import {
   FolderArchive,
   MessageSquarePlus,
   Search,
-  Users,
 } from 'lucide-react';
 import { type AcceptedProposal, type OrgProposalGroup } from '@/lib/proposal-studio/data';
 import { PROGRAM_FILTERS } from '../constants';

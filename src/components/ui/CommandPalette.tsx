@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Command, BookOpen, Building2, Code2, Loader2, ArrowUpRight, WifiOff } from 'lucide-react';
+import { Search, BookOpen, Building2, Code2, Loader2, WifiOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { friendlyApiMessage, isApiError } from '@/lib/client/api';
 import { useNetwork } from '@/components/ui/NetworkProvider';

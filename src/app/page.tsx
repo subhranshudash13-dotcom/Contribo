@@ -3,14 +3,10 @@ import Image from 'next/image';
 import { ProgramLogo } from '@/components/ui/ProgramLogos';
 import {
   ArrowRight,
-  Building2,
   Calendar,
   BookOpen,
   Compass,
-  GitFork,
   Users,
-  GitPullRequest,
-  UserCheck,
 } from 'lucide-react';
 import { Hero } from '@/components/hero/Hero';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';

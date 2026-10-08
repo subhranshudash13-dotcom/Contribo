@@ -1,22 +1,33 @@
 'use client';
 
-import React, { useEffect, useState, useTransition } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 export function NavigationProgressBar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isNavigating, setIsNavigating] = useState(false);
   const [progress, setProgress] = useState(0);
+  const isFirstRender = useRef(true);
 
-  // When pathname or searchParams change, navigation has completed
+  // When pathname or searchParams change, mark navigation as complete
   useEffect(() => {
-    setIsNavigating(false);
-    setProgress(100);
-    const timer = setTimeout(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    const completeTimer = setTimeout(() => {
+      setProgress(100);
+    }, 0);
+
+    const resetTimer = setTimeout(() => {
       setProgress(0);
-    }, 250);
-    return () => clearTimeout(timer);
+    }, 300);
+
+    return () => {
+      clearTimeout(completeTimer);
+      clearTimeout(resetTimer);
+    };
   }, [pathname, searchParams]);
 
   // Intercept standard link clicks
@@ -51,7 +62,6 @@ export function NavigationProgressBar() {
           targetUrl.origin === currentUrl.origin &&
           (targetUrl.pathname !== currentUrl.pathname || targetUrl.search !== currentUrl.search)
         ) {
-          setIsNavigating(true);
           setProgress(25);
           setTimeout(() => setProgress((prev) => (prev > 0 ? Math.min(prev + 40, 85) : 0)), 150);
         }
@@ -64,7 +74,7 @@ export function NavigationProgressBar() {
     return () => document.removeEventListener('click', handleAnchorClick, { capture: true });
   }, []);
 
-  if (progress === 0 && !isNavigating) return null;
+  if (progress === 0) return null;
 
   return (
     <div
