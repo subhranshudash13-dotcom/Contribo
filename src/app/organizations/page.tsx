@@ -55,11 +55,12 @@ export default async function OrganizationsDirectory({ searchParams }: Props) {
   const searchQuery = typeof params.q === 'string' ? params.q : undefined;
   const category = typeof params.category === 'string' ? params.category : undefined;
 
-  const { organizations, total, programs, categories } = await getOrganizationsPage(
-    programId,
-    searchQuery,
-    category
-  );
+  const [pageData, session] = await Promise.all([
+    getOrganizationsPage(programId, searchQuery, category),
+    auth(),
+  ]);
+
+  const { organizations, total, programs, categories } = pageData;
 
   const buildFilterUrl = (newParams: { programId?: string; q?: string; category?: string }) => {
     const p = new URLSearchParams();
@@ -70,7 +71,6 @@ export default async function OrganizationsDirectory({ searchParams }: Props) {
     return query ? `/organizations?${query}` : '/organizations';
   };
 
-  const session = await auth();
   let savedOrgs: string[] = [];
   if (session?.user?.id && organizations.length > 0) {
     try {

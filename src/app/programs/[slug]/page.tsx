@@ -29,6 +29,8 @@ import { getProgramGuide } from '@/lib/program-guides';
 /** Programs that get the full org explorer treatment */
 const EXPLORER_ENABLED_SLUGS = new Set(['gsoc', 'lfx', 'esoc', 'outreachy', 'sob', 'mlh-fellowship', 'mlh']);
 
+export const revalidate = 600;
+
 type Props = {
   params: Promise<{ slug: string }>;
 };

@@ -7,6 +7,8 @@ export const metadata = {
   title: 'Programs | Contribo',
 };
 
+export const revalidate = 600;
+
 async function getPrograms(): Promise<Program[]> {
   const programs = await getCachedPrograms();
   return programs as unknown as Program[];

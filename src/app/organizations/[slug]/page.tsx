@@ -50,7 +50,7 @@ export default async function OrganizationDetailPage({ params }: Props) {
     notFound();
   }
 
-  // Fetch Program, Projects, and Similar Organizations in parallel
+  // Fetch Program, Projects, Similar Organizations, and Session in parallel
   const programPromise = org.programId
     ? getProgramById(String(org.programId))
     : Promise.resolve(null);
@@ -59,22 +59,23 @@ export default async function OrganizationDetailPage({ params }: Props) {
     orgSlug: org.slug,
     limit: 200,
     skip: 0,
-    lean: false,
+    lean: true,
   });
 
   const similarOrgsPromise = getSimilarOrganizations(org, 4);
+  const sessionPromise = auth();
 
-  const [rawProgram, projectsResult, similarOrgs] = await Promise.all([
+  const [rawProgram, projectsResult, similarOrgs, session] = await Promise.all([
     programPromise,
     projectsPromise,
     similarOrgsPromise,
+    sessionPromise,
   ]);
 
   const program = rawProgram as unknown as Program | null;
   const projects = (projectsResult.projects || []) as unknown as Project[];
 
   // User save status
-  const session = await auth();
   let isSaved = false;
   if (session?.user?.id && org._id) {
     try {
