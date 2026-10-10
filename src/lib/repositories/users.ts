@@ -29,12 +29,19 @@ function stripSensitive(user: Record<string, unknown>): UserProfile {
   return safe as UserProfile;
 }
 
-export async function getUserProfile(userId: string): Promise<UserProfile | null> {
+function userQuery(userId: string) {
   const oid = toObjectId(userId);
-  if (!oid) return null;
+  if (oid) {
+    return { $or: [{ _id: oid }, { _id: userId }] };
+  }
+  return { _id: userId };
+}
+
+export async function getUserProfile(userId: string): Promise<UserProfile | null> {
+  if (!userId) return null;
 
   const collection = await getCollection(COLLECTIONS.users);
-  const user = await collection.findOne({ _id: oid } as never, {
+  const user = await collection.findOne(userQuery(userId) as never, {
     projection: PUBLIC_USER_PROJECTION,
   });
 
@@ -60,8 +67,7 @@ export async function updateUserProfile(
   userId: string,
   updates: UserProfileUpdate
 ): Promise<UserProfile | null> {
-  const oid = toObjectId(userId);
-  if (!oid) return null;
+  if (!userId) return null;
 
   const allowed: Record<string, unknown> = { updatedAt: new Date() };
 
@@ -102,7 +108,7 @@ export async function updateUserProfile(
   }
 
   const collection = await getCollection(COLLECTIONS.users);
-  await collection.updateOne({ _id: oid } as never, { $set: allowed });
+  await collection.updateOne(userQuery(userId) as never, { $set: allowed });
 
   return getUserProfile(userId);
 }

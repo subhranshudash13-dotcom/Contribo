@@ -21,19 +21,7 @@ export function UnderDevelopmentOverlay() {
           aria-hidden="true"
         />
 
-        {/* Status Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-accent/20 bg-accent/10 text-accent text-xs font-semibold uppercase tracking-wider mb-6">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
-          </span>
-          Under Active Development
-        </div>
 
-        {/* Center Icon */}
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-raised border border-hairline shadow-inner text-accent">
-          <Compass className="h-8 w-8 animate-pulse text-accent" />
-        </div>
 
         {/* Header and description */}
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-primary font-heading">

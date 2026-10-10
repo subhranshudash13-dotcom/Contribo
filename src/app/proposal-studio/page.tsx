@@ -29,7 +29,7 @@ import { redirect } from 'next/navigation';
 export default async function ProposalStudioPage() {
   const session = await auth();
   if (!session?.user?.id) {
-    redirect('/login');
+    redirect('/login?callbackUrl=/proposal-studio');
   }
 
   return (

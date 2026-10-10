@@ -1,5 +1,5 @@
 import React from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { Metadata } from 'next';
@@ -11,13 +11,35 @@ import { listProjects } from '@/lib/repositories/projects';
 import { getUserItemStatus } from '@/lib/repositories/dashboard';
 import { OrgDetailPageClient } from '@/components/organizations/OrgDetailPageClient';
 
+const SLUG_REDIRECTS: Record<string, string> = {
+  apache: '/organizations/apache-software-foundation',
+  python: '/organizations/python-software-foundation',
+  llvm: '/organizations/llvm-compiler-infrastructure',
+  'rocket-chat': '/organizations/rocketchat',
+  'tor-project': '/organizations/the-tor-project',
+  tor: '/organizations/the-tor-project',
+  meta: '/organizations/meta-open-source',
+  redhat: '/organizations/redhat-mlh',
+  google: '/organizations/google-deepmind',
+  blender: '/organizations/blender-foundation',
+  owasp: '/organizations/owasp-foundation',
+  postgres: '/organizations/postgresql',
+  jupyter: '/organizations?search=jupyter',
+  docker: '/organizations?search=docker',
+};
+
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const org = (await getOrganizationBySlug(slug)) as unknown as Organization | null;
+  const redirectTarget = SLUG_REDIRECTS[slug.toLowerCase()];
+  const lookupSlug = redirectTarget?.startsWith('/organizations/')
+    ? redirectTarget.replace('/organizations/', '')
+    : slug;
+
+  const org = (await getOrganizationBySlug(lookupSlug)) as unknown as Organization | null;
 
   if (!org) {
     return {
@@ -44,6 +66,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function OrganizationDetailPage({ params }: Props) {
   const { slug } = await params;
+  const redirectTarget = SLUG_REDIRECTS[slug.toLowerCase()];
+  if (redirectTarget) {
+    redirect(redirectTarget);
+  }
+
   const org = (await getOrganizationBySlug(slug, null, { includeProjectCount: true })) as Organization | null;
 
   if (!org) {

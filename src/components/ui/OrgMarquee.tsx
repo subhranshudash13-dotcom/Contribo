@@ -1,30 +1,35 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Building2 } from 'lucide-react';
 
 interface MarqueeLogo {
   name: string;
   logoUrl: string;
   brandColor: string;
+  slug: string;
 }
 
 const DEFAULT_MARQUEE_LOGOS: MarqueeLogo[] = [
-  { name: 'Apache Software', logoUrl: 'https://cdn.simpleicons.org/apache/D22128', brandColor: '#D22128' },
-  { name: 'Linux Foundation', logoUrl: 'https://cdn.simpleicons.org/linuxfoundation/0070FF', brandColor: '#0070FF' },
-  { name: 'Python PSF', logoUrl: 'https://cdn.simpleicons.org/python/3776AB', brandColor: '#3776AB' },
-  { name: 'Google Open Source', logoUrl: 'https://cdn.simpleicons.org/google/4285F4', brandColor: '#4285F4' },
-  { name: 'CNCF Cloud', logoUrl: 'https://cdn.simpleicons.org/cncf/008BB8', brandColor: '#008BB8' },
-  { name: 'Mozilla Devs', logoUrl: 'https://cdn.simpleicons.org/mozilla/FF7139', brandColor: '#FF7139' },
-  { name: 'Red Hat Open', logoUrl: 'https://cdn.simpleicons.org/redhat/EE0000', brandColor: '#EE0000' },
-  { name: 'Kubernetes Ops', logoUrl: 'https://cdn.simpleicons.org/kubernetes/326CE5', brandColor: '#326CE5' },
+  { name: 'Apache Software', logoUrl: 'https://cdn.simpleicons.org/apache/D22128', brandColor: '#D22128', slug: 'apache-software-foundation' },
+  { name: 'Linux Foundation', logoUrl: 'https://cdn.simpleicons.org/linuxfoundation/0070FF', brandColor: '#0070FF', slug: 'cncf' },
+  { name: 'Python PSF', logoUrl: 'https://cdn.simpleicons.org/python/3776AB', brandColor: '#3776AB', slug: 'python-software-foundation' },
+  { name: 'Google DeepMind', logoUrl: 'https://cdn.simpleicons.org/google/4285F4', brandColor: '#4285F4', slug: 'google-deepmind' },
+  { name: 'CNCF Cloud', logoUrl: 'https://cdn.simpleicons.org/cncf/008BB8', brandColor: '#008BB8', slug: 'cncf' },
+  { name: 'Mozilla Devs', logoUrl: 'https://cdn.simpleicons.org/mozilla/FF7139', brandColor: '#FF7139', slug: 'mozilla' },
+  { name: 'Red Hat Open', logoUrl: 'https://cdn.simpleicons.org/redhat/EE0000', brandColor: '#EE0000', slug: 'redhat-mlh' },
+  { name: 'PostgreSQL', logoUrl: 'https://cdn.simpleicons.org/postgresql/4169E1', brandColor: '#4169E1', slug: 'postgresql' },
 ];
 
 function MarqueeItem({ logo }: { logo: MarqueeLogo }) {
   const [hasError, setHasError] = useState(false);
 
   return (
-    <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl border border-hairline/80 bg-surface hover:border-accent/40 transition-all shrink-0 select-none shadow-2xs">
+    <Link
+      href={`/organizations/${logo.slug}`}
+      className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl border border-hairline/80 bg-surface hover:border-accent/40 transition-all shrink-0 select-none shadow-2xs hover:scale-[1.02] cursor-pointer"
+    >
       {!hasError ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -40,7 +45,7 @@ function MarqueeItem({ logo }: { logo: MarqueeLogo }) {
       <span className="text-xs font-semibold text-primary tracking-tight">
         {logo.name}
       </span>
-    </div>
+    </Link>
   );
 }
 

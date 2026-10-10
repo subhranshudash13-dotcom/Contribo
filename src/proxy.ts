@@ -156,11 +156,10 @@ export const proxy = auth((req) => {
     }
   }
 
-  // Soft limit on login page POSTs (server actions hit different paths; this covers page abuse)
-  if (pathname.startsWith("/login") && method === "POST") {
-    if (isRateLimited(`loginpage:${ip}`, 20, 60_000)) {
-      return rateLimitResponse(60);
-    }
+  // Redirect authenticated users away from login page
+  if (pathname === "/login" && req.auth) {
+    const callbackUrl = req.nextUrl.searchParams.get("callbackUrl") || "/dashboard";
+    return NextResponse.redirect(new URL(callbackUrl, req.nextUrl.origin));
   }
 
   return withSecurityHeaders(NextResponse.next());

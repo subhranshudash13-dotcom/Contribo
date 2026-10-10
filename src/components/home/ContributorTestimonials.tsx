@@ -150,10 +150,13 @@ export function ContributorTestimonials() {
           <p className="text-secondary text-base sm:text-lg leading-relaxed font-normal">
             Real stories from developers who used Contribo to land their dream open-source internships.
           </p>
+          <p className="text-[11px] sm:text-xs text-muted/70 font-mono">
+            * Note: These testimonials are pseudo and we will be updating them once we get real user feedbacks.
+          </p>
         </div>
 
         {/* Action Button to Open Feedback Form */}
-        <div className="shrink-0 pb-1">
+        <div className="shrink-0 pb-1 flex flex-col items-start md:items-end gap-1.5">
           <button
             onClick={() => setShowFeedbackForm(!showFeedbackForm)}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-surface border border-hairline hover:border-accent/40 text-primary font-semibold text-sm transition-all shadow-xs hover:shadow-sm cursor-pointer active:scale-95"
@@ -161,6 +164,9 @@ export function ContributorTestimonials() {
             <MessageSquarePlus size={16} className="text-accent" />
             <span>{showFeedbackForm ? 'Close Feedback' : 'Leave Your Feedback'}</span>
           </button>
+          <span className="text-[10px] text-muted/60 font-mono text-left md:text-right">
+            Help us replace pseudo reviews with real user feedback
+          </span>
         </div>
       </div>
 
@@ -416,6 +422,13 @@ export function ContributorTestimonials() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Small disclaimer note */}
+      <div className="text-center px-4 -mt-2">
+        <p className="text-[11px] text-muted/60 font-mono">
+          * Notice: Testimonials displayed above are pseudo and will be updated once real user feedbacks are collected.
+        </p>
       </div>
     </section>
   );
