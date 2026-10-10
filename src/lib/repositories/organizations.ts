@@ -132,40 +132,70 @@ export async function listOrganizations(query: OrgListQuery) {
   let organizations: Record<string, unknown>[];
 
   if (gsocProgramId) {
-    const pipeline: Record<string, unknown>[] = [
-      { $match: filter },
-      {
-        $addFields: {
-          isGsoc: {
-            $cond: [{ $eq: ['$programId', gsocProgramId] }, 1, 0],
+    if (query.skip === 0 && !query.programId && !query.programSlug) {
+      // First 5-6 organizations from GSoC, next from other programs, followed by remaining GSoC
+      const [totalCount, gsocDocs, otherDocs] = await Promise.all([
+        collection.countDocuments(filter),
+        collection
+          .find({ ...filter, programId: gsocProgramId } as never, findOpts)
+          .sort({ is2026: -1, name: 1 })
+          .limit(6)
+          .toArray(),
+        collection
+          .find({ ...filter, programId: { $ne: gsocProgramId } } as never, findOpts)
+          .sort({ is2026: -1, name: 1 })
+          .limit(query.limit)
+          .toArray(),
+      ]);
+      total = totalCount;
+      const combined = [...gsocDocs, ...otherDocs];
+      if (combined.length < query.limit) {
+        const remainingNeeded = query.limit - combined.length;
+        const moreGsoc = await collection
+          .find({ ...filter, programId: gsocProgramId } as never, findOpts)
+          .sort({ is2026: -1, name: 1 })
+          .skip(6)
+          .limit(remainingNeeded)
+          .toArray();
+        combined.push(...moreGsoc);
+      }
+      organizations = combined as unknown as Record<string, unknown>[];
+    } else {
+      const pipeline: Record<string, unknown>[] = [
+        { $match: filter },
+        {
+          $addFields: {
+            isGsoc: {
+              $cond: [{ $eq: ['$programId', gsocProgramId] }, 1, 0],
+            },
           },
         },
-      },
-      {
-        $sort: {
-          isGsoc: -1,
-          is2026: -1,
-          name: 1,
+        {
+          $sort: {
+            isGsoc: -1,
+            is2026: -1,
+            name: 1,
+          },
         },
-      },
-    ];
+      ];
 
-    if (lean) {
-      pipeline.push({ $project: LEAN_ORG_PROJECTION });
+      if (lean) {
+        pipeline.push({ $project: LEAN_ORG_PROJECTION });
+      }
+
+      const [totalCount, docs] = await Promise.all([
+        collection.countDocuments(filter),
+        collection
+          .aggregate([
+            ...pipeline,
+            { $skip: query.skip },
+            { $limit: query.limit },
+          ])
+          .toArray(),
+      ]);
+      total = totalCount;
+      organizations = docs as unknown as Record<string, unknown>[];
     }
-
-    const [totalCount, docs] = await Promise.all([
-      collection.countDocuments(filter),
-      collection
-        .aggregate([
-          ...pipeline,
-          { $skip: query.skip },
-          { $limit: query.limit },
-        ])
-        .toArray(),
-    ]);
-    total = totalCount;
-    organizations = docs as unknown as Record<string, unknown>[];
   } else {
     const [totalCount, docs] = await Promise.all([
       collection.countDocuments(filter),

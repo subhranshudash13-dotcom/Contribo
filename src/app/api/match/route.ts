@@ -299,6 +299,28 @@ function orgSkillOverlap(
   };
 }
 
+function orderWithGsocPriority(matches: OrgMatchResult[], targetGsocCount = 6): OrgMatchResult[] {
+  const isGsocOrg = (m: OrgMatchResult) => {
+    const slug = (m.programSlug || '').toLowerCase().trim();
+    const name = (m.programName || '').toLowerCase().trim();
+    return slug === 'gsoc' || name.includes('summer of code') || name.includes('gsoc');
+  };
+
+  const gsocOrgs = matches.filter(isGsocOrg);
+  const otherOrgs = matches.filter((m) => !isGsocOrg(m));
+
+  // If there are no other programs or no GSoC orgs, keep order as-is
+  if (otherOrgs.length === 0 || gsocOrgs.length === 0) {
+    return matches;
+  }
+
+  // Put first 5-6 orgs from GSoC, followed by orgs from other programs, then remaining GSoC orgs
+  const topGsoc = gsocOrgs.slice(0, targetGsocCount);
+  const remainingGsoc = gsocOrgs.slice(targetGsocCount);
+
+  return [...topGsoc, ...otherOrgs, ...remainingGsoc];
+}
+
 function heuristicRankOrganizations(
   candidates: EnrichedOrganization[],
   skills: string[],
@@ -391,7 +413,8 @@ function heuristicRankOrganizations(
       return rest as OrgMatchResult;
     });
 
-  return sorted.slice(0, TOP_RESULTS);
+  const prioritized = orderWithGsocPriority(sorted, 6);
+  return prioritized.slice(0, TOP_RESULTS);
 }
 
 function clampMatchPercentage(n: unknown, fallback: number): number {
@@ -576,7 +599,8 @@ Rules:
 2. Strictly prioritize organizations where the user's requested skills (${skills.join(', ')}) are central to their ecosystem.
 3. matchPercentage must reflect real overlap (weak overlap ≤55; strong multi-skill ≥75; never 100).
 4. reasoning: 1–2 sentences, concrete, mention matched skills and how this org fits the contributor profile.
-5. Return ONLY JSON: { "matches": [ { "id": number, "matchPercentage": number, "reasoning": string } ] }
+6. Program Prioritization: Place the first 5–6 best-matching Google Summer of Code (GSoC) organizations first, followed by top-matching organizations from other programs (e.g. LFX Mentorship, Outreachy, Summer of Bitcoin).
+7. Return ONLY JSON: { "matches": [ { "id": number, "matchPercentage": number, "reasoning": string } ] }
 `;
 
           const completion = await openai.chat.completions.create({
@@ -662,6 +686,7 @@ Rules:
     }
 
     finalMatches = finalMatches.filter((m) => m.matchedSkills && m.matchedSkills.length > 0);
+    finalMatches = orderWithGsocPriority(finalMatches, 6);
     if (finalMatches.length === 0) {
       finalMatches = heuristic;
       mode = 'heuristic';

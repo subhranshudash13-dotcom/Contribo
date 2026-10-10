@@ -53,6 +53,7 @@ STRICT GROUNDING & ACCURACY RULES:
 3. Realistic Match Percentage: Produce a realistic match score from 25 to 96 (never 100). Higher scores (85-96%) require high direct skill overlap. Partial overlap should be scored proportionally (40-70%). Never award high scores to candidates without strong skill alignment.
 4. Grounded Personalized Rationale: 1–2 sentences explaining specifically why this Organization is an ideal match for their skill profile. Mention ONLY specific matched technologies from their candidate record. Never invent tech stacks or tools.
 5. Strictly exclude or demote any candidate that lacks relevance to the user's stated skills.
+6. Program Prioritization: Place the first 5–6 best-matching Google Summer of Code (GSoC) organizations first, followed by top-matching organizations from other programs (e.g. LFX Mentorship, Outreachy, Summer of Bitcoin) to provide balanced program representation.
 
 Output Format:
 Return ONLY a valid JSON object matching this schema:
