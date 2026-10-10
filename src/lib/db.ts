@@ -46,30 +46,28 @@ export const COLLECTIONS = {
 export type CollectionName = (typeof COLLECTIONS)[keyof typeof COLLECTIONS];
 
 const options = {
-  maxPoolSize: 25,
-  minPoolSize: 2,
-  maxIdleTimeMS: 60_000,
+  maxPoolSize: 50,
+  minPoolSize: 5,
+  maxIdleTimeMS: 45_000,
   serverSelectionTimeoutMS: 5_000,
   connectTimeoutMS: 10_000,
+  socketTimeoutMS: 30_000,
+  waitQueueTimeoutMS: 5_000,
+  retryWrites: true,
+  retryReads: true,
 };
 
 declare global {
   var _mongoClientPromise_v2: Promise<MongoClient> | undefined;
 }
 
-let clientPromise: Promise<MongoClient>;
-
-if (process.env.NODE_ENV === 'development') {
-  // Preserve the client across HMR reloads in development.
-  if (!global._mongoClientPromise_v2) {
-    const client = new MongoClient(uri, options);
-    global._mongoClientPromise_v2 = client.connect();
-  }
-  clientPromise = global._mongoClientPromise_v2;
-} else {
+// Cache the connection promise on globalThis across both development (HMR)
+// and production (container/serverless warm starts) to prevent connection churn under high concurrency.
+if (!global._mongoClientPromise_v2) {
   const client = new MongoClient(uri, options);
-  clientPromise = client.connect();
+  global._mongoClientPromise_v2 = client.connect();
 }
+const clientPromise: Promise<MongoClient> = global._mongoClientPromise_v2;
 
 /**
  * Resolve the database name from env or the URI path segment.

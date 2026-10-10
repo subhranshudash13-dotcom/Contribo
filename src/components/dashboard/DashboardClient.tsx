@@ -11,14 +11,10 @@ import {
   ArrowRight,
   Edit3,
   BookOpen,
-  FileText,
   Search,
   AlertCircle,
   Zap,
   FolderGit2,
-  Target,
-  Building2,
-  Sparkles,
   ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
@@ -225,7 +221,7 @@ export function DashboardClient({
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-hairline">
         <div className="space-y-2.5 max-w-2xl">
           <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-tertiary">
-            <Target size={12} /> Contributor Dashboard
+            <span>Contributor Dashboard</span>
             <span className="text-hairline">|</span>
             <div className="flex items-center gap-1.5">
               <Activity size={10} className={!isOnline ? 'text-error' : pending ? 'text-brass animate-pulse' : 'text-success'} />
@@ -251,9 +247,9 @@ export function DashboardClient({
           </Link>
           <Link
             href="/proposal-studio"
-            className="flex items-center gap-1.5 h-8 px-4 rounded-full bg-primary text-page text-xs font-bold hover:opacity-90 transition-opacity shadow-sm"
+            className="flex items-center justify-center h-8 px-4 rounded-full bg-primary text-page text-xs font-bold hover:opacity-90 transition-opacity shadow-sm"
           >
-            <FileText size={14} /> Proposal Studio
+            Proposal Studio
           </Link>
         </div>
       </div>
@@ -263,8 +259,7 @@ export function DashboardClient({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold tracking-wider uppercase bg-accent/10 text-accent border border-accent/20">
-                <Building2 size={13} />
+              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold tracking-wider uppercase bg-accent/10 text-accent border border-accent/20">
                 Target Organizations ({savedOrganizations.length})
               </span>
             </div>
@@ -393,8 +388,7 @@ export function DashboardClient({
           <div className="rounded-2xl border border-hairline bg-surface/50 backdrop-blur-sm p-6 sm:p-8">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div className="space-y-2 max-w-xl">
-                <div className="flex items-center gap-2 text-accent text-xs font-bold uppercase tracking-wider">
-                  <Sparkles size={14} />
+                <div className="text-accent text-xs font-bold uppercase tracking-wider">
                   <span>Pin Your Target Organizations</span>
                 </div>
                 <h3 className="text-lg font-heading font-bold text-primary">
@@ -406,9 +400,9 @@ export function DashboardClient({
                 <div className="pt-2">
                   <Link
                     href="/organizations"
-                    className="inline-flex items-center gap-2 h-9 px-4 rounded-full bg-primary text-page text-xs font-bold hover:opacity-90 transition-opacity shadow-sm"
+                    className="inline-flex items-center justify-center h-9 px-4 rounded-full bg-primary text-page text-xs font-bold hover:opacity-90 transition-opacity shadow-sm"
                   >
-                    <Building2 size={14} /> Browse Organizations Directory
+                    Browse Organizations Directory
                   </Link>
                 </div>
               </div>

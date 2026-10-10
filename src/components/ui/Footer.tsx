@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Github, Twitter, Mail } from 'lucide-react';
+import { Github, Mail } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -23,10 +23,7 @@ export function Footer() {
             <a href="https://github.com/subhranshudash13-dotcom/Contribo" target="_blank" rel="noopener noreferrer" className="hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md p-1 transition-colors" aria-label="GitHub">
               <Github size={18} />
             </a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md p-1 transition-colors" aria-label="Twitter">
-              <Twitter size={18} />
-            </a>
-            <a href="mailto:support@contribo.com" className="hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md p-1 transition-colors" aria-label="Email support">
+            <a href="mailto:subhranshu.dash13@gmail.com" className="hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md p-1 transition-colors" aria-label="Email subhranshu.dash13@gmail.com">
               <Mail size={18} />
             </a>
           </div>
