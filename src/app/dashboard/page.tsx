@@ -32,7 +32,7 @@ export const dynamic = 'force-dynamic';
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user?.id) {
-    redirect('/login');
+    redirect('/login?callbackUrl=/dashboard');
   }
 
   const [summary, profile] = await Promise.all([
@@ -71,8 +71,10 @@ export default async function DashboardPage() {
     title: string;
     subtitle?: string;
     slug?: string;
+    programSlug?: string;
     techStack?: string[];
     targetId?: string;
+    logoUrl?: string;
   }>).map(
     (item): DashboardSaved => ({
       _id: item._id,
@@ -80,8 +82,10 @@ export default async function DashboardPage() {
       title: item.title,
       subtitle: item.subtitle,
       slug: item.slug,
+      programSlug: item.programSlug,
       techStack: item.techStack,
       targetId: item.targetId ? String(item.targetId) : undefined,
+      logoUrl: item.logoUrl,
     })
   );
 

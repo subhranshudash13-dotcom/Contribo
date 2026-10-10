@@ -38,7 +38,7 @@ const ACCEPTED_PROPOSALS = [
     org: 'Google Summer of Code',
     year: '2023',
     program: 'GSOC',
-    link: '#', // Placeholder
+    link: 'https://github.com/COPS-IITBHU/GSoC-Accepted-Proposals/blob/master/2023/Palisadoes%20-%202023%20-%20Eshaan%20Aggarwal.pdf',
   },
   {
     id: 4,
@@ -48,7 +48,7 @@ const ACCEPTED_PROPOSALS = [
     org: 'Outreachy',
     year: '2023',
     program: 'OUTREACHY',
-    link: '#', // Placeholder
+    link: 'https://www.outreachy.org/past-projects/',
   }
 ];
 

@@ -138,6 +138,7 @@ export interface UserProfile {
   availabilityHours?: number;
   location?: string;
   githubUsername?: string;
+  lastLoginAt?: Date | string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   /** Never expose password hashes to clients */

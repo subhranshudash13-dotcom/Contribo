@@ -19,17 +19,18 @@ export interface OrgDetail {
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
   techStack: string[];
   accentColor?: string;
+  href?: string;
 }
 
 const ROW_1_ORGS: OrgDetail[] = [
   {
     name: 'Apache Software Foundation',
-    slug: 'apache',
+    slug: 'apache-software-foundation',
     category: 'Cloud & Big Data',
     logoUrl: 'https://cdn.simpleicons.org/apache',
     description: 'Spark, Kafka, Flink, and foundational cloud infrastructure.',
     programs: ['GSoC', 'LFX'],
-    contributions: '420+ Projects',
+    contributions: '280+ Projects',
     difficulty: 'Intermediate',
     techStack: ['Java', 'Scala', 'Python'],
     accentColor: '#D22128',
@@ -41,19 +42,19 @@ const ROW_1_ORGS: OrgDetail[] = [
     logoUrl: 'https://cdn.simpleicons.org/cncf',
     description: 'Kubernetes, Envoy, Prometheus, and cloud native systems.',
     programs: ['LFX', 'GSoC'],
-    contributions: '350+ Projects',
+    contributions: '75+ Projects',
     difficulty: 'Advanced',
     techStack: ['Go', 'Rust', 'Kubernetes'],
     accentColor: '#4285F4',
   },
   {
     name: 'Python Software Foundation',
-    slug: 'python',
+    slug: 'python-software-foundation',
     category: 'Languages & Core',
     logoUrl: 'https://cdn.simpleicons.org/python',
     description: 'CPython compiler, pip, asyncio, and standard libraries.',
     programs: ['GSoC', 'Outreachy'],
-    contributions: '340+ Projects',
+    contributions: '289+ Projects',
     difficulty: 'Intermediate',
     techStack: ['Python', 'C', 'Rust'],
     accentColor: '#3776AB',
@@ -65,7 +66,7 @@ const ROW_1_ORGS: OrgDetail[] = [
     logoUrl: 'https://cdn.simpleicons.org/numfocus',
     description: 'NumPy, pandas, SciPy, Jupyter, and PyData computing.',
     programs: ['GSoC', 'Outreachy'],
-    contributions: '210+ Projects',
+    contributions: '300+ Projects',
     difficulty: 'Intermediate',
     techStack: ['Python', 'C++', 'Fortran'],
     accentColor: '#E26D5C',
@@ -77,7 +78,7 @@ const ROW_1_ORGS: OrgDetail[] = [
     logoUrl: 'https://cdn.simpleicons.org/kde',
     description: 'Plasma desktop, Krita digital painting, and KDE Frameworks.',
     programs: ['GSoC', 'Outreachy'],
-    contributions: '280+ Projects',
+    contributions: '55+ Projects',
     difficulty: 'Beginner',
     techStack: ['C++', 'Qt', 'QML'],
     accentColor: '#1D99F3',
@@ -89,33 +90,33 @@ const ROW_1_ORGS: OrgDetail[] = [
     logoUrl: 'https://cdn.simpleicons.org/mozilla',
     description: 'Firefox engine, WebAssembly, Servo, and privacy tooling.',
     programs: ['GSoC', 'Outreachy'],
-    contributions: '180+ Projects',
+    contributions: '76+ Projects',
     difficulty: 'Intermediate',
     techStack: ['Rust', 'C++', 'JavaScript'],
     accentColor: '#FF7139',
   },
   {
-    name: 'Google Open Source',
-    slug: 'google',
+    name: 'Google DeepMind',
+    slug: 'google-deepmind',
     category: 'AI & Mobile',
     logoUrl: 'https://cdn.simpleicons.org/google',
-    description: 'TensorFlow, Flutter, Dart, Bazel, and Chromium ecosystem.',
+    description: 'JAX, Gemma, deep learning frameworks, and open AI research.',
     programs: ['GSoC'],
-    contributions: '400+ Projects',
+    contributions: '37+ Projects',
     difficulty: 'Intermediate',
-    techStack: ['C++', 'Python', 'Dart'],
+    techStack: ['Python', 'JAX', 'TypeScript'],
     accentColor: '#EA4335',
   },
   {
     name: 'Red Hat Open Source',
-    slug: 'redhat',
+    slug: 'redhat-mlh',
     category: 'Enterprise Linux',
     logoUrl: 'https://cdn.simpleicons.org/redhat',
     description: 'Fedora, Quarkus, Podman, and enterprise Linux core.',
-    programs: ['GSoC', 'LFX'],
+    programs: ['MLH', 'GSoC'],
     contributions: '190+ Projects',
     difficulty: 'Advanced',
-    techStack: ['Go', 'C', 'Java'],
+    techStack: ['Go', 'C', 'Kubernetes'],
     accentColor: '#EE0000',
   },
 ];
@@ -123,27 +124,27 @@ const ROW_1_ORGS: OrgDetail[] = [
 const ROW_2_ORGS: OrgDetail[] = [
   {
     name: 'LLVM Compiler Project',
-    slug: 'llvm',
+    slug: 'llvm-compiler-infrastructure',
     category: 'Compilers & Toolchains',
     logoUrl: 'https://cdn.simpleicons.org/llvm',
     description: 'Clang, MLIR, LLDB, and modern code generation engines.',
     programs: ['GSoC'],
-    contributions: '110+ Projects',
+    contributions: '130+ Projects',
     difficulty: 'Advanced',
     techStack: ['C++', 'TableGen', 'Assembly'],
     accentColor: '#6B7280',
   },
   {
-    name: 'Jupyter Interactive',
-    slug: 'jupyter',
-    category: 'Scientific Notebooks',
-    logoUrl: 'https://cdn.simpleicons.org/jupyter',
-    description: 'JupyterLab, interactive kernels, and data science standards.',
-    programs: ['GSoC', 'Outreachy'],
-    contributions: '130+ Projects',
+    name: 'PostgreSQL Global Group',
+    slug: 'postgresql',
+    category: 'Relational Databases',
+    logoUrl: 'https://cdn.simpleicons.org/postgresql',
+    description: 'The world’s most advanced open source relational database.',
+    programs: ['GSoC'],
+    contributions: '58+ Projects',
     difficulty: 'Intermediate',
-    techStack: ['TypeScript', 'Python', 'React'],
-    accentColor: '#F37626',
+    techStack: ['C', 'SQL', 'Python'],
+    accentColor: '#4169E1',
   },
   {
     name: 'VideoLAN (VLC)',
@@ -152,19 +153,19 @@ const ROW_2_ORGS: OrgDetail[] = [
     logoUrl: 'https://cdn.simpleicons.org/vlc',
     description: 'VLC media player, libvlc, and open multimedia decoding.',
     programs: ['GSoC'],
-    contributions: '95+ Projects',
+    contributions: '100+ Projects',
     difficulty: 'Advanced',
     techStack: ['C', 'C++', 'OpenGL'],
     accentColor: '#FF8800',
   },
   {
     name: 'Rocket.Chat Engine',
-    slug: 'rocket-chat',
+    slug: 'rocketchat',
     category: 'Comms & Messaging',
     logoUrl: 'https://cdn.simpleicons.org/rocketchat',
     description: 'Real-time collaboration, bots, and omni-channel messaging.',
     programs: ['GSoC', 'LFX'],
-    contributions: '150+ Projects',
+    contributions: '113+ Projects',
     difficulty: 'Beginner',
     techStack: ['TypeScript', 'React', 'Node.js'],
     accentColor: '#F5455C',
@@ -176,26 +177,26 @@ const ROW_2_ORGS: OrgDetail[] = [
     logoUrl: 'https://cdn.simpleicons.org/gnome',
     description: 'GTK4, GNOME Shell, libadwaita, and Linux desktop tools.',
     programs: ['GSoC', 'Outreachy'],
-    contributions: '160+ Projects',
+    contributions: '72+ Projects',
     difficulty: 'Beginner',
     techStack: ['C', 'Rust', 'GTK4'],
     accentColor: '#4A90D9',
   },
   {
     name: 'The Tor Project',
-    slug: 'tor-project',
+    slug: 'the-tor-project',
     category: 'Privacy & Security',
     logoUrl: 'https://cdn.simpleicons.org/torbrowser',
     description: 'Onion routing, censorship circumvention, and Tor Browser.',
     programs: ['GSoC', 'Outreachy'],
-    contributions: '105+ Projects',
+    contributions: '15+ Projects',
     difficulty: 'Advanced',
     techStack: ['Rust', 'C', 'Python'],
     accentColor: '#7D4698',
   },
   {
     name: 'Meta Open Source',
-    slug: 'meta',
+    slug: 'meta-open-source',
     category: 'AI & Web Platforms',
     logoUrl: 'https://cdn.simpleicons.org/meta',
     description: 'PyTorch, React, LLaMA toolchains, and Relay.',
@@ -206,16 +207,16 @@ const ROW_2_ORGS: OrgDetail[] = [
     accentColor: '#0081FB',
   },
   {
-    name: 'Docker Community',
-    slug: 'docker',
-    category: 'DevOps & Containers',
-    logoUrl: 'https://cdn.simpleicons.org/docker',
-    description: 'Moby, BuildKit, Compose, and developer container tools.',
-    programs: ['LFX', 'GSoC'],
-    contributions: '140+ Projects',
+    name: 'Blender Foundation',
+    slug: 'blender-foundation',
+    category: '3D Graphics & Media',
+    logoUrl: 'https://cdn.simpleicons.org/blender',
+    description: 'Open source 3D creation suite: modeling, animation, rendering.',
+    programs: ['GSoC'],
+    contributions: '72+ Projects',
     difficulty: 'Intermediate',
-    techStack: ['Go', 'TypeScript', 'Docker'],
-    accentColor: '#2496ED',
+    techStack: ['C', 'C++', 'Python'],
+    accentColor: '#E87D0D',
   },
 ];
 
@@ -230,13 +231,11 @@ function difficultyBadge(d: 'Beginner' | 'Intermediate' | 'Advanced') {
 }
 
 function OrgMarqueeCard({ org }: { org: OrgDetail }) {
-  const orgUrl = `/organizations/${org.slug}`;
+  const orgUrl = org.href || `/organizations/${org.slug}`;
+  const isExternal = orgUrl.startsWith('http://') || orgUrl.startsWith('https://');
 
-  return (
-    <Link
-      href={orgUrl}
-      className="group relative flex flex-col justify-between w-[285px] sm:w-[315px] h-[160px] p-4 rounded-2xl border border-hairline bg-surface/90 hover:bg-surface transition-all duration-200 hover:border-brass/50 hover:shadow-md dark:hover:shadow-[0_8px_25px_rgba(0,0,0,0.4)] shrink-0 overflow-hidden select-none cursor-pointer"
-    >
+  const cardContent = (
+    <>
       {/* Top Brand Accent Line */}
       <div
         className="absolute top-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200"
@@ -314,6 +313,30 @@ function OrgMarqueeCard({ org }: { org: OrgDetail }) {
           <ArrowRight size={11} className="group-hover:translate-x-0.5 transition-transform ml-0.5" />
         </span>
       </div>
+    </>
+  );
+
+  const cardClassName = "group relative flex flex-col justify-between w-[285px] sm:w-[315px] h-[160px] p-4 rounded-2xl border border-hairline bg-surface/90 hover:bg-surface transition-all duration-200 hover:border-brass/50 hover:shadow-md dark:hover:shadow-[0_8px_25px_rgba(0,0,0,0.4)] shrink-0 overflow-hidden select-none cursor-pointer";
+
+  if (isExternal) {
+    return (
+      <a
+        href={orgUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={cardClassName}
+      >
+        {cardContent}
+      </a>
+    );
+  }
+
+  return (
+    <Link
+      href={orgUrl}
+      className={cardClassName}
+    >
+      {cardContent}
     </Link>
   );
 }

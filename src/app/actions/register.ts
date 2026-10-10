@@ -15,6 +15,7 @@ const REGISTER_LIMIT = 8;
 const REGISTER_WINDOW_MS = 15 * 60_000;
 
 function isRegisterRateLimited(ip: string): boolean {
+  if (process.env.NODE_ENV !== "production") return false;
   const now = Date.now();
   const row = registerHits.get(ip);
   if (!row || now > row.resetAt) {

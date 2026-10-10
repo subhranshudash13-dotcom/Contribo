@@ -234,13 +234,29 @@ export async function suggestOrganizations(
     }));
 }
 
+const SLUG_ALIASES: Record<string, string> = {
+  apache: 'apache-software-foundation',
+  python: 'python-software-foundation',
+  llvm: 'llvm-compiler-infrastructure',
+  'rocket-chat': 'rocketchat',
+  'tor-project': 'the-tor-project',
+  tor: 'the-tor-project',
+  meta: 'meta-open-source',
+  redhat: 'redhat-mlh',
+  google: 'google-deepmind',
+  blender: 'blender-foundation',
+  owasp: 'owasp-foundation',
+  postgres: 'postgresql',
+};
+
 export const getOrganizationBySlug = cache(async (
   slug: string,
   programSlug?: string | null,
   options?: { includeProjectCount?: boolean }
 ) => {
   const collection = await getCollection<Organization>(COLLECTIONS.organizations);
-  const filter: Record<string, unknown> = { slug };
+  const resolvedSlug = SLUG_ALIASES[slug.toLowerCase()] || slug;
+  const filter: Record<string, unknown> = { slug: resolvedSlug };
 
   if (programSlug) {
     const program = await resolveProgramFilter({ programSlug });
@@ -250,7 +266,11 @@ export const getOrganizationBySlug = cache(async (
     }
   }
 
-  const org = await collection.findOne(filter);
+  let org = await collection.findOne(filter);
+  if (!org && resolvedSlug !== slug) {
+    org = await collection.findOne({ slug });
+  }
+
   const serialized = serializeDoc(org as unknown as Record<string, unknown> | null);
   if (!serialized) return null;
 
@@ -258,7 +278,8 @@ export const getOrganizationBySlug = cache(async (
     try {
       const { programIdFilter } = await import('@/lib/serialize');
       const projects = await getCollection(COLLECTIONS.projects);
-      const countFilter: Record<string, unknown> = { orgSlug: slug };
+      const effectiveSlug = (serialized.slug as string) || resolvedSlug;
+      const countFilter: Record<string, unknown> = { orgSlug: effectiveSlug };
       if (serialized.programId) {
         countFilter.programId = programIdFilter(String(serialized.programId));
       }

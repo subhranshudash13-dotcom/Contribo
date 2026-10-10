@@ -1,3 +1,4 @@
+import { ObjectId } from 'mongodb';
 import type { Application, ApplicationStatus, SavedItem, SavedItemType } from '@/../types';
 import { COLLECTIONS, getCollection } from '@/lib/db';
 import { serializeDocs, serializeDoc, toObjectId } from '@/lib/serialize';
@@ -18,6 +19,33 @@ export async function listSavedItems(userId: string, type?: SavedItemType) {
   if (type) filter.type = type;
 
   const items = await collection.find(filter).sort({ createdAt: -1 }).toArray();
+
+  const orgIds = items
+    .filter((i) => i.type === 'organization' && i.targetId)
+    .map((i) => toObjectId(String(i.targetId)))
+    .filter((id): id is ObjectId => id !== null);
+
+  if (orgIds.length > 0) {
+    const orgsCol = await getCollection(COLLECTIONS.organizations);
+    const orgDocs = await orgsCol
+      .find({ _id: { $in: orgIds } })
+      .project({ logoUrl: 1, slug: 1, programSlug: 1, techStack: 1 })
+      .toArray();
+    const orgMap = new Map(orgDocs.map((o) => [String(o._id), o]));
+
+    for (const item of items) {
+      if (item.type === 'organization' && item.targetId) {
+        const org = orgMap.get(String(item.targetId));
+        if (org) {
+          if (!item.slug && org.slug) item.slug = org.slug;
+          if (!item.programSlug && org.programSlug) item.programSlug = org.programSlug;
+          if (!item.techStack && org.techStack) item.techStack = org.techStack;
+          (item as unknown as Record<string, unknown>).logoUrl = org.logoUrl;
+        }
+      }
+    }
+  }
+
   return serializeDocs(items as unknown as Record<string, unknown>[]);
 }
 

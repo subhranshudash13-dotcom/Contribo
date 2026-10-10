@@ -47,10 +47,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID,
       clientSecret: process.env.AUTH_GITHUB_SECRET,
+      allowDangerousEmailAccountLinking: true,
     }),
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      allowDangerousEmailAccountLinking: true,
     }),
     Credentials({
       name: "Credentials",
@@ -79,6 +81,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const isValid = verifyPassword(password, user.password);
           if (!isValid) return null;
 
+          // Record successful credentials login in MongoDB
+          await db.collection("users").updateOne(
+            { _id: user._id },
+            { $set: { lastLoginAt: new Date(), updatedAt: new Date() } }
+          );
+
           return {
             id: user._id.toString(),
             email: (user.email as string) || email,
@@ -91,11 +99,42 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+  events: {
+    async signIn({ user }) {
+      if (!user?.email) return;
+      try {
+        const db = await getDb();
+        const updateFields: Record<string, unknown> = {
+          lastLoginAt: new Date(),
+          updatedAt: new Date(),
+        };
+        if (user.name) updateFields.name = user.name;
+        if (user.image) updateFields.image = user.image;
+
+        await db.collection("users").updateOne(
+          { email: user.email.toLowerCase().trim() },
+          {
+            $set: updateFields,
+            $setOnInsert: {
+              createdAt: new Date(),
+              skills: [],
+              interests: [],
+            },
+          },
+          { upsert: true }
+        );
+      } catch (err) {
+        console.error("Failed to update user login in MongoDB:", err);
+      }
+    },
+  },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
-      if (isOnDashboard) {
+      const isProtected =
+        nextUrl.pathname.startsWith("/dashboard") ||
+        nextUrl.pathname.startsWith("/proposal-studio");
+      if (isProtected) {
         if (isLoggedIn) return true;
         return false; // Redirect unauthenticated users to login page
       }
@@ -105,12 +144,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // Only persist the stable user id on the JWT — never OAuth access/refresh tokens.
       if (user?.id) {
         token.id = user.id;
+      } else if (!token.id && token.sub) {
+        token.id = token.sub;
       }
       return token;
     },
     async session({ session, token }) {
-      if (session.user && token.id) {
-        session.user.id = token.id as string;
+      if (session.user) {
+        session.user.id = (token.id || token.sub) as string;
       }
       return session;
     },
