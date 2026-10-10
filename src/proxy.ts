@@ -119,10 +119,23 @@ export const proxy = auth((req) => {
       return withSecurityHeaders(NextResponse.next());
     }
 
-    // Auth endpoints — protect credential stuffing
+    // Auth endpoints: strictly guard credential submissions against brute-force, while allowing smooth session checks
     if (pathname.startsWith("/api/auth")) {
-      if (isRateLimited(`auth:${ip}`, 15, 60_000)) {
-        return rateLimitResponse(60);
+      const isAuthMutation =
+        method === "POST" &&
+        (pathname.includes("/callback/credentials") ||
+          pathname.includes("/signin") ||
+          pathname.includes("/register"));
+
+      if (isAuthMutation) {
+        if (isRateLimited(`auth-mutation:${ip}`, 20, 60_000)) {
+          return rateLimitResponse(60);
+        }
+      } else {
+        // High limit for standard session polling and CSRF token reads across tabs
+        if (isRateLimited(`auth-read:${ip}`, 180, 60_000)) {
+          return rateLimitResponse(30);
+        }
       }
       return withSecurityHeaders(NextResponse.next());
     }
@@ -134,7 +147,7 @@ export const proxy = auth((req) => {
       pathname.startsWith("/api/feedback");
 
     if (isAiOrHeavy && (method === "POST" || method === "PUT" || method === "PATCH")) {
-      if (isRateLimited(`ai:${ip}`, 12, 60_000)) {
+      if (isRateLimited(`ai:${ip}`, 20, 60_000)) {
         return rateLimitResponse(60);
       }
     }
@@ -146,12 +159,13 @@ export const proxy = auth((req) => {
         (method === "POST" || method === "PATCH" || method === "DELETE"));
 
     if (isUserWrite) {
-      if (isRateLimited(`userwrite:${ip}`, 40, 60_000)) {
+      if (isRateLimited(`userwrite:${ip}`, 60, 60_000)) {
         return rateLimitResponse(60);
       }
     } else if (!isAiOrHeavy) {
-      if (isRateLimited(`general:${ip}`, 100, 60_000)) {
-        return rateLimitResponse(60);
+      // General API reads: 300 requests/minute per IP to comfortably serve active users and shared networks (university/office Wi-Fi)
+      if (isRateLimited(`general:${ip}`, 300, 60_000)) {
+        return rateLimitResponse(30);
       }
     }
   }

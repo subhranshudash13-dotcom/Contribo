@@ -16,26 +16,37 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-      <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mb-6">
-        <AlertTriangle size={32} />
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 py-12">
+      <div className="w-14 h-14 bg-error/10 border border-error/20 text-error rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+        <AlertTriangle size={28} />
       </div>
-      <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Something went wrong!</h2>
-      <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-        We encountered an error loading this page. Please try again or navigate back home.
+      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold tracking-wider uppercase bg-error/10 text-error border border-error/20 mb-3">
+        Error Recovery
+      </div>
+      <h2 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight text-primary mb-2">
+        Something didn&apos;t load as expected
+      </h2>
+      <p className="text-secondary text-sm max-w-md mx-auto mb-8 leading-relaxed">
+        We encountered a temporary issue rendering this view. You can retry the request or return to the main directory.
       </p>
-      <div className="flex gap-4">
+      <div className="flex items-center gap-3 flex-wrap justify-center">
         <button
           onClick={() => reset()}
-          className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-2.5 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+          className="h-10 px-5 rounded-full bg-primary text-page text-xs font-bold hover:opacity-90 transition-opacity shadow-sm"
         >
-          Try again
+          Try Again
+        </button>
+        <button
+          onClick={() => window.location.reload()}
+          className="h-10 px-5 rounded-full border border-hairline bg-surface hover:bg-surface-raised text-primary text-xs font-bold transition-colors"
+        >
+          Reload Page
         </button>
         <Link 
           href="/"
-          className="border border-gray-300 dark:border-gray-700 px-6 py-2.5 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          className="h-10 px-5 rounded-full border border-hairline hover:border-accent/40 text-secondary hover:text-primary text-xs font-bold inline-flex items-center transition-colors"
         >
-          Go Home
+          Return Home
         </Link>
       </div>
     </div>
