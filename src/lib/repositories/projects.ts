@@ -219,78 +219,89 @@ export const DOMAIN_PILLARS: Record<string, { aliases: string[]; tokens: string[
 };
 
 /** Common specific tech aliases → DB tokens */
+/** Strict tech aliases → true naming variants ONLY (never assume unstated skills or cross-pollinate frameworks) */
 export const SKILL_ALIASES: Record<string, string[]> = {
-  javascript: ['javascript', 'js', 'typescript', 'ts', 'node.js', 'nodejs', 'react', 'electron', 'web'],
-  typescript: ['typescript', 'ts', 'javascript', 'react', 'node.js', 'electron', 'next.js', 'web'],
-  python: ['python', 'python3', 'django', 'flask', 'fastapi', 'ai', 'ml', 'pytorch', 'tensorflow', 'numpy', 'pandas', 'data science'],
-  'c++': ['c++', 'c/c++', 'cpp', 'c', 'qt', 'cmake', 'c++11', 'c++14', 'c++17', 'c++20', 'clang'],
-  'c/c++': ['c/c++', 'c++', 'cpp', 'c', 'cmake', 'clang'],
-  c: ['c', 'c++', 'c/c++', 'posix', 'linux', 'systems'],
-  java: ['java', 'spring', 'spring boot', 'android', 'kotlin', 'gradle', 'maven', 'jvm'],
-  kotlin: ['kotlin', 'android', 'java', 'mobile', 'kmp', 'kotlin multiplatform'],
-  swift: ['swift', 'ios', 'mobile', 'macos', 'apple', 'xcode', 'swiftui'],
-  'node.js': ['node.js', 'nodejs', 'javascript', 'express', 'typescript', 'electron', 'backend'],
-  nodejs: ['node.js', 'nodejs', 'javascript', 'express', 'typescript', 'electron', 'backend'],
-  react: ['react', 'reactjs', 'react.js', 'javascript', 'typescript', 'next.js', 'react native', 'electron', 'frontend', 'web'],
-  'react native': ['react native', 'react-native', 'react', 'mobile', 'javascript', 'typescript', 'cross-platform'],
-  'react-native': ['react native', 'react-native', 'react', 'mobile', 'javascript', 'typescript', 'cross-platform'],
-  electron: ['electron', 'javascript', 'typescript', 'node.js', 'react', 'desktop'],
-  'next.js': ['next.js', 'nextjs', 'react', 'typescript', 'javascript', 'frontend', 'web'],
-  flutter: ['flutter', 'dart', 'mobile', 'cross-platform', 'desktop'],
-  dart: ['dart', 'flutter', 'mobile'],
-  jenkins: ['jenkins', 'ci/cd', 'devops', 'continuous integration', 'java', 'docker', 'automation'],
-  'machine learning': ['machine learning', 'ml', 'deep learning', 'pytorch', 'tensorflow', 'data science', 'ai', 'neural networks', 'scikit-learn'],
-  ml: ['machine learning', 'ml', 'pytorch', 'tensorflow', 'ai', 'deep learning', 'data science'],
-  ai: ['ai', 'artificial intelligence', 'machine learning', 'ml', 'llm', 'nlp', 'deep learning'],
-  pytorch: ['pytorch', 'python', 'machine learning', 'deep learning', 'ai', 'torch'],
-  tensorflow: ['tensorflow', 'python', 'machine learning', 'deep learning', 'ai', 'keras'],
-  'deep learning': ['deep learning', 'machine learning', 'pytorch', 'tensorflow', 'ai', 'neural networks'],
-  'data science': ['data science', 'python', 'machine learning', 'jupyter', 'pandas', 'numpy'],
-  golang: ['go', 'golang', 'cloud native', 'kubernetes', 'docker', 'backend'],
-  go: ['go', 'golang', 'cloud native', 'kubernetes', 'docker', 'backend'],
-  rust: ['rust', 'cargo', 'tokio', 'actix', 'serde', 'tauri', 'webassembly', 'wasm', 'systems'],
-  docker: ['docker', 'containers', 'containerd', 'kubernetes', 'devops', 'cloud native'],
-  kubernetes: ['kubernetes', 'k8s', 'docker', 'cloud native', 'cncf', 'devops', 'containers'],
-  html: ['html', 'html/css', 'css', 'javascript', 'web', 'frontend'],
-  'html/css': ['html/css', 'html', 'css', 'javascript', 'web', 'frontend'],
-  css: ['css', 'html/css', 'tailwindcss', 'frontend', 'web'],
-  tailwindcss: ['tailwindcss', 'tailwind', 'css', 'frontend', 'web'],
-  tailwind: ['tailwindcss', 'tailwind', 'css', 'frontend', 'web'],
-  'github actions': ['github actions', 'ci', 'devops', 'automation'],
-  nlp: ['nlp', 'natural language processing', 'machine learning', 'python', 'ai', 'transformers', 'llm'],
-  'computer vision': ['computer vision', 'opencv', 'machine learning', 'python', 'ai', 'image processing'],
-  reactjs: ['react', 'reactjs', 'react.js', 'javascript', 'typescript', 'react native', 'frontend'],
-  'react.js': ['react', 'reactjs', 'react.js', 'javascript', 'typescript', 'react native', 'frontend'],
-  vuejs: ['vue', 'vuejs', 'vue.js', 'frontend', 'javascript', 'typescript'],
-  'vue.js': ['vue', 'vuejs', 'vue.js', 'frontend', 'javascript', 'typescript'],
-  vue: ['vue', 'vuejs', 'vue.js', 'frontend', 'javascript', 'typescript'],
-  angularjs: ['angular', 'angularjs', 'angular.js', 'typescript', 'frontend'],
-  'angular.js': ['angular', 'angularjs', 'angular.js', 'typescript', 'frontend'],
-  angular: ['angular', 'angularjs', 'angular.js', 'typescript', 'frontend'],
-  svelte: ['svelte', 'sveltekit', 'javascript', 'typescript', 'frontend'],
-  sqlite: ['sqlite', 'database', 'sql'],
-  sql: ['sql', 'postgresql', 'mysql', 'sqlite', 'database'],
-  postgresql: ['postgresql', 'postgres', 'sql', 'database'],
-  postgres: ['postgresql', 'postgres', 'sql', 'database'],
-  mongodb: ['mongodb', 'nosql', 'database'],
-  redis: ['redis', 'cache', 'database', 'in-memory'],
-  cpp: ['c++', 'c/c++', 'cpp', 'c', 'cmake'],
-  cplusplus: ['c++', 'c/c++', 'cpp', 'c', 'cmake'],
-  'c#': ['c#', '.net', 'dotnet', 'asp.net', 'csharp', 'unity'],
-  csharp: ['c#', '.net', 'dotnet', 'asp.net', 'csharp', 'unity'],
-  ruby: ['ruby', 'rails', 'ruby on rails'],
-  php: ['php', 'laravel', 'symfony', 'wordpress'],
-  r: ['r', 'r-project', 'cran', 'bioconductor', 'statistics'],
-  julia: ['julia', 'scientific computing', 'machine learning'],
-  linux: ['linux', 'kernel', 'posix', 'shell', 'bash', 'unix', 'systems'],
-  shell: ['shell', 'bash', 'zsh', 'sh', 'linux'],
-  bash: ['shell', 'bash', 'zsh', 'sh', 'linux'],
-  graphql: ['graphql', 'apollo', 'api', 'backend'],
-  solana: ['solana', 'rust', 'web3', 'blockchain', 'smart contracts'],
-  ethereum: ['ethereum', 'solidity', 'web3', 'blockchain', 'smart contracts'],
-  blockchain: ['blockchain', 'web3', 'cryptography', 'smart contracts', 'ethereum', 'solana'],
-  webassembly: ['webassembly', 'wasm', 'rust', 'c++', 'c'],
-  wasm: ['webassembly', 'wasm', 'rust', 'c++', 'c'],
+  javascript: ['javascript', 'js'],
+  js: ['javascript', 'js'],
+  typescript: ['typescript', 'ts'],
+  ts: ['typescript', 'ts'],
+  python: ['python', 'python3', 'py'],
+  python3: ['python', 'python3', 'py'],
+  py: ['python', 'python3', 'py'],
+  'c++': ['c++', 'c/c++', 'cpp', 'cplusplus'],
+  cpp: ['c++', 'c/c++', 'cpp', 'cplusplus'],
+  'c/c++': ['c++', 'c/c++', 'cpp', 'cplusplus'],
+  cplusplus: ['c++', 'c/c++', 'cpp', 'cplusplus'],
+  c: ['c'],
+  java: ['java'],
+  kotlin: ['kotlin'],
+  swift: ['swift', 'swiftui'],
+  'node.js': ['node.js', 'nodejs', 'node'],
+  nodejs: ['node.js', 'nodejs', 'node'],
+  node: ['node.js', 'nodejs', 'node'],
+  react: ['react', 'reactjs', 'react.js'],
+  reactjs: ['react', 'reactjs', 'react.js'],
+  'react.js': ['react', 'reactjs', 'react.js'],
+  'react native': ['react native', 'react-native'],
+  'react-native': ['react native', 'react-native'],
+  electron: ['electron'],
+  'next.js': ['next.js', 'nextjs'],
+  nextjs: ['next.js', 'nextjs'],
+  vue: ['vue', 'vuejs', 'vue.js'],
+  vuejs: ['vue', 'vuejs', 'vue.js'],
+  'vue.js': ['vue', 'vuejs', 'vue.js'],
+  angular: ['angular', 'angularjs', 'angular.js'],
+  angularjs: ['angular', 'angularjs', 'angular.js'],
+  'angular.js': ['angular', 'angularjs', 'angular.js'],
+  svelte: ['svelte', 'sveltekit'],
+  sveltekit: ['svelte', 'sveltekit'],
+  flutter: ['flutter'],
+  dart: ['dart'],
+  golang: ['go', 'golang'],
+  go: ['go', 'golang'],
+  rust: ['rust'],
+  docker: ['docker'],
+  kubernetes: ['kubernetes', 'k8s'],
+  k8s: ['kubernetes', 'k8s'],
+  html: ['html', 'html/css', 'html5'],
+  css: ['css', 'html/css', 'css3'],
+  'html/css': ['html/css', 'html', 'css'],
+  tailwindcss: ['tailwindcss', 'tailwind'],
+  tailwind: ['tailwindcss', 'tailwind'],
+  django: ['django'],
+  fastapi: ['fastapi'],
+  flask: ['flask'],
+  'spring boot': ['spring boot', 'spring'],
+  spring: ['spring boot', 'spring'],
+  postgresql: ['postgresql', 'postgres'],
+  postgres: ['postgresql', 'postgres'],
+  mongodb: ['mongodb', 'mongo'],
+  mongo: ['mongodb', 'mongo'],
+  sqlite: ['sqlite', 'sqlite3'],
+  redis: ['redis'],
+  graphql: ['graphql'],
+  'c#': ['c#', 'csharp', '.net', 'dotnet'],
+  csharp: ['c#', 'csharp', '.net', 'dotnet'],
+  ruby: ['ruby'],
+  'ruby on rails': ['ruby on rails', 'rails'],
+  rails: ['ruby on rails', 'rails'],
+  php: ['php'],
+  laravel: ['laravel'],
+  r: ['r', 'r-project'],
+  julia: ['julia'],
+  linux: ['linux'],
+  shell: ['shell', 'bash', 'zsh', 'sh'],
+  bash: ['shell', 'bash', 'sh'],
+  solana: ['solana'],
+  ethereum: ['ethereum', 'solidity'],
+  solidity: ['ethereum', 'solidity'],
+  webassembly: ['webassembly', 'wasm'],
+  wasm: ['webassembly', 'wasm'],
+  'machine learning': ['machine learning', 'ml'],
+  ml: ['machine learning', 'ml'],
+  ai: ['ai', 'artificial intelligence'],
+  pytorch: ['pytorch'],
+  tensorflow: ['tensorflow'],
 };
 
 export function expandSkillToTokens(rawSkill: string): string[] {
@@ -300,7 +311,7 @@ export function expandSkillToTokens(rawSkill: string): string[] {
   const parts = lower.split(/[\/&+,]/).map((p) => p.trim()).filter(Boolean);
   for (const p of parts) tokens.add(p);
 
-  // Exact matching for domain pillars to prevent false substring collisions
+  // If the user explicitly entered a domain category (like "frontend", "devops", etc.)
   for (const [, def] of Object.entries(DOMAIN_PILLARS)) {
     if (def.aliases.some((a) => lower === a)) {
       for (const t of def.tokens) tokens.add(t.toLowerCase());
@@ -388,16 +399,16 @@ export async function findProjectsBySkills(
       ? new RegExp(`^${escapeRegex(difficulty)}$`, 'i')
       : null;
 
-  // Title search tokens for direct skills (length >= 2, e.g. rust, go, c++, qt, python, react)
-  const titleRegexes = direct
+  // Title search tokens for direct skills (word boundary to avoid false positives like 'go' in 'algorithm')
+  const titleClauses = direct
     .filter((t) => t.length >= 2)
-    .map((t) => new RegExp(escapeRegex(t), 'i'));
+    .map((t) => ({ title: { $regex: `\\b${escapeRegex(t)}\\b`, $options: 'i' } }));
 
   const filter: Record<string, unknown> = {
     $or: [
       { techStack: { $in: expandedRegexes } },
       { topics: { $in: expandedRegexes } },
-      ...(titleRegexes.length > 0 ? [{ title: { $in: titleRegexes } }] : []),
+      ...(titleClauses.length > 0 ? titleClauses : []),
     ],
   };
 
@@ -428,7 +439,9 @@ export async function findProjectsBySkills(
 
     let titleHits = 0;
     for (const s of direct) {
-      if (s.length >= 2 && titleLower.includes(s)) titleHits++;
+      if (s.length >= 2 && new RegExp(`\\b${escapeRegex(s)}\\b`, 'i').test(titleLower)) {
+        titleHits++;
+      }
     }
 
     const techCount = Math.max(1, pTech.length);

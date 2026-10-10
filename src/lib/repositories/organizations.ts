@@ -4,6 +4,7 @@ import { COLLECTIONS, getCollection } from '@/lib/db';
 import { serializeDocs, serializeDoc } from '@/lib/serialize';
 import { resolveProgramFilter } from '@/lib/repositories/programs';
 import { ORGANIZATION_DOMAIN_GROUPS } from '@/lib/repositories/filters';
+import { expandSkillToTokens } from '@/lib/repositories/projects';
 
 export interface OrgListQuery {
   programId?: string | null;
@@ -420,44 +421,36 @@ export async function findOrganizationsBySkills(
   const allOrgs = await collection.find(orgFilter).toArray();
   if (allOrgs.length === 0) return [];
 
-  const expandedLower = expanded.map((s) => s.toLowerCase().trim());
-
-  // 3. Multi-signal scoring across all organizations
+  // 3. Multi-signal ground-truth scoring across organizations
   const scored = allOrgs.map((org) => {
     const orgTech = (org.technologies || []).map((t) => t.toLowerCase().trim());
     const orgTopics = (org.topics || []).map((t) => t.toLowerCase().trim());
-    const orgDesc = (org.description || '').toLowerCase();
-    const orgCat = (org.category || '').toLowerCase();
-    const orgName = (org.name || '').toLowerCase();
     const orgSlug = (org.slug || '').toLowerCase();
 
     const matchedDirect = new Set<string>();
-    const matchedExpanded = new Set<string>();
     let satisfiedUserSkillCount = 0;
 
     for (const skill of skills) {
-      const sLower = skill.toLowerCase().trim();
+      const tokens = expandSkillToTokens(skill);
       let skillSatisfied = false;
 
-      // Check tech stack
-      for (const t of orgTech) {
-        if (t === sLower || t.includes(sLower) || sLower.includes(t)) {
-          matchedDirect.add(t);
-          skillSatisfied = true;
-        }
-      }
-      // Check topics
-      for (const top of orgTopics) {
-        if (top === sLower || top.includes(sLower) || sLower.includes(top)) {
-          matchedDirect.add(top);
-          skillSatisfied = true;
-        }
-      }
-      // Check description, category, name
-      if (!skillSatisfied && sLower.length >= 3) {
-        if (orgDesc.includes(sLower) || orgCat.includes(sLower) || orgName.includes(sLower)) {
+      // Check verified technology array
+      for (const t of tokens) {
+        if (orgTech.includes(t)) {
           matchedDirect.add(skill);
           skillSatisfied = true;
+          break;
+        }
+      }
+
+      // Check verified topics array
+      if (!skillSatisfied) {
+        for (const t of tokens) {
+          if (orgTopics.includes(t)) {
+            matchedDirect.add(skill);
+            skillSatisfied = true;
+            break;
+          }
         }
       }
 
@@ -466,39 +459,30 @@ export async function findOrganizationsBySkills(
       }
     }
 
-    // Check expanded synonym matches
-    for (const exp of expandedLower) {
-      if (orgTech.includes(exp) || orgTopics.includes(exp)) {
-        matchedExpanded.add(exp);
-      }
-    }
-
     const matchingProjects = projectCountsByOrg.get(orgSlug) || 0;
     if (matchingProjects > 0 && satisfiedUserSkillCount === 0) {
       satisfiedUserSkillCount = 1;
     }
 
-    // If completely unrelated and zero matching projects, assign score 0
+    // STRICT RULE: If the organization does not use ANY of the user's skills and has zero matching projects, exclude it completely.
     if (satisfiedUserSkillCount === 0 && matchedDirect.size === 0 && matchingProjects === 0) {
       return { org, score: 0 };
     }
 
-    const coverageRatio = skills.length > 0 ? satisfiedUserSkillCount / skills.length : 0.5;
+    const coverageRatio = skills.length > 0 ? satisfiedUserSkillCount / skills.length : 0;
     const years = Array.isArray(org.years) ? org.years : [2026];
     const latestYear = years.length > 0 ? Math.max(...years) : 2026;
     const is2026 = Boolean(org.is2026 || latestYear === 2026);
     const isRecent = latestYear >= 2025 ? 1.0 : latestYear >= 2024 ? 0.8 : 0.6;
     const longevityBonus = Math.min(years.length, 10) * 1.5;
-    const projectBonus = Math.min(matchingProjects, 60) * 1.2;
-    const directHitsBonus = Math.min(matchedDirect.size, 8) * 5;
-    const expandedHitsBonus = Math.min(matchedExpanded.size, 6) * 2;
+    const projectBonus = Math.min(matchingProjects, 40) * 1.5;
+    const directHitsBonus = Math.min(matchedDirect.size, 8) * 6;
 
     const score =
-      coverageRatio * 60 +
-      satisfiedUserSkillCount * 20 +
+      coverageRatio * 80 +
+      satisfiedUserSkillCount * 25 +
       directHitsBonus +
-      expandedHitsBonus +
-      (is2026 ? 24 : 0) +
+      (is2026 ? 20 : 0) +
       isRecent * 10 +
       longevityBonus +
       projectBonus;
@@ -513,16 +497,8 @@ export async function findOrganizationsBySkills(
     .filter((s) => s.score > 0)
     .sort((a, b) => b.score - a.score);
 
+  // Return strictly matching organizations only — never hallucinate or backfill unrelated orgs
   const finalPool = validScored.slice(0, limit).map((s) => s.org);
-
-  // If pool is sparse, backfill with active recent orgs
-  if (finalPool.length < Math.min(limit, 15)) {
-    const existingSlugs = new Set(finalPool.map((o) => o.slug));
-    const fallbackOrgs = allOrgs
-      .filter((o) => !existingSlugs.has(o.slug))
-      .sort((a, b) => (b.is2026 ? 1 : 0) - (a.is2026 ? 1 : 0) || (b.projectCount || 0) - (a.projectCount || 0));
-    finalPool.push(...fallbackOrgs.slice(0, limit - finalPool.length));
-  }
 
   return serializeDocs(finalPool as unknown as Record<string, unknown>[]) as unknown as Organization[];
 }

@@ -47,11 +47,12 @@ export async function rankOrganizationsWithGemini(params: {
   const systemInstruction = `You are Orbit AI, an expert open-source mentorship matchmaker and organization recommendation engine.
 Your mission is to evaluate, rank, and recommend open-source organizations to contributors based on their skills (${params.skills.join(', ')}), experience level (${params.experience}), and weekly availability (${params.availability}h/week).
 
-Evaluation Criteria:
-1. Technical & Practical Alignment: Recommend organizations whose tech stack, topics, and active project ecosystem strongly match user skills.
-2. Experience Level Suitability: For beginners, highlight supportive organizations with broad introductory subprojects and established mentorship. For advanced contributors, highlight deep-architecture and specialized domain organizations.
-3. Realistic Match Percentage: Produce a realistic match score from 45 to 98 (never 100). Higher scores for high direct skill overlap and active recent participation.
-4. Personalized Rationale: 1–2 sentences explaining specifically why this Organization is an ideal match for their skill profile and what domains/tech they would work on. Mention specific matched skills.
+STRICT GROUNDING & ACCURACY RULES:
+1. Technical & Practical Alignment: You MUST only consider the technologies and matched skills explicitly provided in each candidate's data. Do NOT hallucinate, infer, or assume technologies that are not listed in the candidate record.
+2. Experience Level Suitability: For beginners, highlight supportive organizations with introductory subprojects and established mentorship. For advanced contributors, highlight deep-architecture and specialized domain organizations.
+3. Realistic Match Percentage: Produce a realistic match score from 25 to 96 (never 100). Higher scores (85-96%) require high direct skill overlap. Partial overlap should be scored proportionally (40-70%). Never award high scores to candidates without strong skill alignment.
+4. Grounded Personalized Rationale: 1–2 sentences explaining specifically why this Organization is an ideal match for their skill profile. Mention ONLY specific matched technologies from their candidate record. Never invent tech stacks or tools.
+5. Strictly exclude or demote any candidate that lacks relevance to the user's stated skills.
 
 Output Format:
 Return ONLY a valid JSON object matching this schema:
@@ -126,11 +127,11 @@ export async function rankProjectsWithGemini(params: {
   const systemInstruction = `You are Orbit AI, an expert open-source mentorship matchmaker and technical advisor.
 Your mission is to evaluate and rank open-source projects and organizations for a contributor based on their skills, experience level, and weekly availability.
 
-Evaluation criteria:
-1. Technical & Practical Alignment: Match projects whose tech stack and ecosystem strongly align with user skills (${params.skills.join(', ')}).
+STRICT GROUNDING & ACCURACY RULES:
+1. Technical & Practical Alignment: Match projects whose tech stack and ecosystem strongly align with user skills (${params.skills.join(', ')}). Do NOT assume or invent technologies.
 2. Experience Level Suitability: Align project difficulty (${params.experience}) so beginners get high-quality approachable projects and advanced contributors get complex architecture/systems projects.
-3. Realistic Match Percentage: Produce a realistic match score from 40 to 98 (never 100). Higher scores for direct multi-skill synergy.
-4. Personalized Rationale: 1–2 sentences explaining why this organization/project fits their skill set and experience. Mention specific matched technologies.
+3. Realistic Match Percentage: Produce a realistic match score from 25 to 96 (never 100). Higher scores for direct multi-skill synergy. Partial overlap scores proportionally lower.
+4. Grounded Personalized Rationale: 1–2 sentences explaining why this organization/project fits their skill set and experience. Mention specific matched technologies from their profile. Never hallucinate.
 
 Output Format:
 Return ONLY a valid JSON object matching this schema:

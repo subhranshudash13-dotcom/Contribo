@@ -239,41 +239,52 @@ async function enrichOrganizations(orgs: Organization[]): Promise<EnrichedOrgani
   });
 }
 
+function normalizeToken(token: string): string {
+  return token.toLowerCase().trim().replace(/[\s\-_.]/g, '');
+}
+
+function addTagToMap(raw: string, map: Map<string, string>) {
+  if (!raw) return;
+  const trimmed = raw.trim();
+  if (!trimmed) return;
+  map.set(normalizeToken(trimmed), trimmed);
+  const parts = trimmed.split(/[\/,]/).map((p) => p.trim()).filter(Boolean);
+  if (parts.length > 1) {
+    for (const p of parts) {
+      map.set(normalizeToken(p), p);
+    }
+  }
+}
+
 function orgSkillOverlap(
   org: EnrichedOrganization,
   userSkills: string[]
 ) {
-  const { direct, expanded, requirements } = expandSkillTokens(userSkills);
-  const orgTech = (org.technologies || []).map((t) => t.toLowerCase().trim());
-  const orgTopics = (org.topics || []).map((t) => t.toLowerCase().trim());
-  const textBody = `${org.name || ''} ${org.description || ''} ${org.category || ''}`.toLowerCase();
+  const { requirements } = expandSkillTokens(userSkills);
+  const orgTech = org.technologies || [];
+  const orgTopics = org.topics || [];
 
-  const matchedTech = new Set<string>();
+  const orgTechMap = new Map<string, string>();
+  for (const ot of orgTech) addTagToMap(ot, orgTechMap);
+
+  const orgTopicMap = new Map<string, string>();
+  for (const top of orgTopics) addTagToMap(top, orgTopicMap);
+
+  const matchedSkillsSet = new Set<string>();
   let satisfiedReqCount = 0;
 
   for (const req of requirements) {
     let reqHit = false;
     for (const token of req.tokens) {
-      const tLower = token.toLowerCase();
-      
-      // Match in tech
-      for (const ot of orgTech) {
-        if (ot === tLower || ot.includes(tLower) || tLower.includes(ot)) {
-          reqHit = true;
-          matchedTech.add(ot);
-        }
-      }
-      // Match in topics
-      for (const top of orgTopics) {
-        if (top === tLower || top.includes(tLower) || tLower.includes(top)) {
-          reqHit = true;
-          matchedTech.add(top);
-        }
-      }
-      // Match in textBody
-      if (!reqHit && tLower.length >= 3 && textBody.includes(tLower)) {
+      const normToken = normalizeToken(token);
+      if (!normToken) continue;
+
+      if (orgTechMap.has(normToken)) {
         reqHit = true;
-        matchedTech.add(token);
+        matchedSkillsSet.add(orgTechMap.get(normToken)!);
+      } else if (orgTopicMap.has(normToken)) {
+        reqHit = true;
+        matchedSkillsSet.add(orgTopicMap.get(normToken)!);
       }
     }
     if (reqHit) {
@@ -281,15 +292,8 @@ function orgSkillOverlap(
     }
   }
 
-  for (const ot of org.technologies || []) {
-    const lower = ot.toLowerCase().trim();
-    if (expanded.includes(lower) || direct.includes(lower)) {
-      matchedTech.add(ot);
-    }
-  }
-
   return {
-    matched: Array.from(matchedTech),
+    matched: Array.from(matchedSkillsSet),
     matchedUserSkillCount: satisfiedReqCount,
     totalUserSkills: userSkills.length,
   };
@@ -301,89 +305,90 @@ function heuristicRankOrganizations(
   exp: 'beginner' | 'intermediate' | 'advanced',
   availNum: number
 ): OrgMatchResult[] {
-  const scored = candidates.map((org) => {
-    const orgTech = org.technologies || [];
-    const { matched, matchedUserSkillCount, totalUserSkills } = orgSkillOverlap(org, skills);
+  const scored = candidates
+    .map((org) => {
+      const orgTech = org.technologies || [];
+      const { matched, matchedUserSkillCount, totalUserSkills } = orgSkillOverlap(org, skills);
 
-    const userCoverage = totalUserSkills > 0 ? matchedUserSkillCount / totalUserSkills : 0.5;
-    const orgRatio = orgTech.length > 0 ? Math.min(matched.length / Math.max(orgTech.length, 3), 1.0) : 0.4;
+      // STRICT: Must have at least 1 verified skill match
+      if (totalUserSkills > 0 && (matchedUserSkillCount === 0 || matched.length === 0)) {
+        return null;
+      }
 
-    const years = Array.isArray(org.years) ? org.years : [2026];
-    const latestYear = years.length > 0 ? Math.max(...years) : 2026;
-    const isRecent = latestYear >= 2025 ? 1.0 : latestYear >= 2024 ? 0.85 : 0.65;
-    const is2026 = Boolean(org.is2026 || latestYear === 2026);
+      const userCoverage = totalUserSkills > 0 ? matchedUserSkillCount / totalUserSkills : 1.0;
 
-    const expScore = exp === 'beginner' ? 0.9 : exp === 'advanced' ? 0.95 : 1.0;
-    const availScore = availNum >= 20 ? 0.85 : 0.65;
+      const years = Array.isArray(org.years) ? org.years : [2026];
+      const latestYear = years.length > 0 ? Math.max(...years) : 2026;
+      const is2026 = Boolean(org.is2026 || latestYear === 2026);
 
-    const raw =
-      userCoverage * 0.55 +
-      orgRatio * 0.20 +
-      isRecent * 0.12 +
-      expScore * 0.08 +
-      availScore * 0.05;
+      const expBonus = exp === 'beginner' ? 2 : exp === 'advanced' ? 3 : 2;
+      const availBonus = availNum >= 20 ? 3 : 1;
 
-    const bonus = Math.min(matched.length, 8) * 3.0 + (is2026 ? 4 : 0);
-    const matchPercentage = Math.round(
-      Math.min(98, Math.max(45, 40 + raw * 54 + bonus))
-    );
+      // Realistic, grounded match percentage (15% - 96%)
+      const basePercentage = userCoverage * 75;
+      const recencyBonus = is2026 ? 8 : latestYear >= 2025 ? 6 : 3;
+      const depthBonus = Math.min(matched.length, 4) * 2; // up to 8%
+      const alignmentBonus = expBonus + availBonus; // up to 6%
 
-    let reasoning = '';
-    if (matched.length > 0) {
-      reasoning += `Outstanding stack alignment with ${matched.slice(0, 4).join(', ')}. `;
-    } else {
-      reasoning += `Aligned with related technologies and domain ecosystem. `;
-    }
-    if (org.category) {
-      reasoning += `Specializes in ${org.category}. `;
-    }
-    if (latestYear >= 2025) {
-      reasoning += `Active participant for ${latestYear}.`;
-    }
+      const rawPercentage = Math.round(basePercentage + recencyBonus + depthBonus + alignmentBonus);
+      const matchPercentage = Math.min(96, Math.max(15, rawPercentage));
 
-    const exploreProjectsUrl = `/organizations/${org.slug || encodeURIComponent(org.name)}`;
+      const reasoning = `Verified stack match with ${matched.slice(0, 4).join(', ')}.${
+        org.category ? ` Specializes in ${org.category}.` : ''
+      }${latestYear >= 2025 ? ` Active participant in ${latestYear}.` : ''}`;
 
-    return {
-      id: String(org._id || org.slug),
-      name: org.name,
-      slug: org.slug,
-      orgName: org.name,
-      orgSlug: org.slug,
-      title: org.name,
-      category: org.category || 'Open Source',
-      description: org.description || `Leading open-source organization in ${org.category || 'technology'}.`,
-      technologies: orgTech,
-      techStack: orgTech,
-      matchedSkills: matched.slice(0, 8),
-      matchPercentage,
-      reasoning: reasoning.trim(),
-      years,
-      latestYear,
-      projectCount: org.projectCount || (org.yearlyStats?.reduce((acc, s) => acc + s.count, 0) || 8),
-      websiteUrl: org.resolvedWebsiteUrl,
-      githubUrl: org.resolvedGithubUrl,
-      ideasUrl: org.ideasUrl,
-      orgLogoUrl: org.logoUrl,
-      orgWebsiteUrl: org.resolvedWebsiteUrl,
-      orgGithubUrl: org.resolvedGithubUrl,
-      orgCategory: org.category,
-      orgDescription: org.description,
-      orgIdeasUrl: org.ideasUrl,
-      orgTopics: org.topics,
-      programName: org.programName || 'Google Summer of Code',
-      programColor: org.programColor || '#4285F4',
-      programSlug: org.programSlug || 'gsoc',
-      exploreProjectsUrl,
-      yearlyStats: org.yearlyStats,
-      _score: raw * 100 + matchedUserSkillCount * 18 + matched.length * 5 + (is2026 ? 6 : 0) + (latestYear >= 2025 ? 4 : 0),
-    };
-  });
+      const exploreProjectsUrl = `/organizations/${org.slug || encodeURIComponent(org.name)}`;
+
+      const score =
+        userCoverage * 100 +
+        matchedUserSkillCount * 25 +
+        matched.length * 5 +
+        (is2026 ? 15 : 0) +
+        (latestYear >= 2025 ? 10 : 0);
+
+      return {
+        id: String(org._id || org.slug),
+        name: org.name,
+        slug: org.slug,
+        orgName: org.name,
+        orgSlug: org.slug,
+        title: org.name,
+        category: org.category || 'Open Source',
+        description: org.description || `Leading open-source organization in ${org.category || 'technology'}.`,
+        technologies: orgTech,
+        techStack: orgTech,
+        matchedSkills: matched.slice(0, 8),
+        matchPercentage,
+        reasoning: reasoning.trim(),
+        years,
+        latestYear,
+        projectCount: org.projectCount || (org.yearlyStats?.reduce((acc, s) => acc + s.count, 0) || 8),
+        websiteUrl: org.resolvedWebsiteUrl,
+        githubUrl: org.resolvedGithubUrl,
+        ideasUrl: org.ideasUrl,
+        orgLogoUrl: org.logoUrl,
+        orgWebsiteUrl: org.resolvedWebsiteUrl,
+        orgGithubUrl: org.resolvedGithubUrl,
+        orgCategory: org.category,
+        orgDescription: org.description,
+        orgIdeasUrl: org.ideasUrl,
+        orgTopics: org.topics,
+        programName: org.programName || 'Google Summer of Code',
+        programColor: org.programColor || '#4285F4',
+        programSlug: org.programSlug || 'gsoc',
+        exploreProjectsUrl,
+        yearlyStats: org.yearlyStats,
+        _score: score,
+      };
+    })
+    .filter(Boolean) as (OrgMatchResult & { _score: number })[];
 
   const sorted = scored
     .sort((a, b) => b._score - a._score || b.matchPercentage - a.matchPercentage)
-    .map(({ _score, ...rest }) => {
-      void _score;
-      return rest;
+    .map((item) => {
+      const rest = { ...item };
+      delete (rest as { _score?: number })._score;
+      return rest as OrgMatchResult;
     });
 
   return sorted.slice(0, TOP_RESULTS);
@@ -392,7 +397,7 @@ function heuristicRankOrganizations(
 function clampMatchPercentage(n: unknown, fallback: number): number {
   const v = typeof n === 'number' ? n : parseInt(String(n), 10);
   if (Number.isNaN(v)) return fallback;
-  return Math.min(98, Math.max(45, Math.round(v)));
+  return Math.min(96, Math.max(15, Math.round(v)));
 }
 
 export async function POST(req: Request) {
@@ -438,16 +443,20 @@ export async function POST(req: Request) {
     const candidates = await enrichOrganizations(rawCandidates);
     const heuristic = heuristicRankOrganizations(candidates, skills, exp, availNum);
 
+    if (heuristic.length === 0) {
+      return apiOk({ matches: [], meta: { candidateCount: 0, mode: 'none', requestedProgramSlugs: programSlugs || [] } });
+    }
+
     let finalMatches: OrgMatchResult[] = heuristic;
     let mode: 'openai' | 'gemini' | 'heuristic' = 'heuristic';
 
-    const pool = candidates
-      .map((org, index) => ({ org, index }))
-      .sort((a, b) => {
-        const ha = heuristic.find((h) => h.slug === a.org.slug);
-        const hb = heuristic.find((h) => h.slug === b.org.slug);
-        return (hb?.matchPercentage || 0) - (ha?.matchPercentage || 0);
+    // Strictly pass verified heuristic matches to AI — never send zero-skill orgs to LLMs
+    const pool = heuristic
+      .map((h, index) => {
+        const org = candidates.find((c) => c.slug === h.slug);
+        return org ? { org, index } : null;
       })
+      .filter((item): item is { org: EnrichedOrganization; index: number } => item !== null)
       .slice(0, 30);
 
     const orgsContext: GeminiOrgCandidate[] = pool.map(({ org, index }) => {
@@ -487,7 +496,9 @@ export async function POST(req: Request) {
               const entry = pool.find((x) => x.index === match.id);
               const dbOrg = entry?.org;
               if (!dbOrg) return null;
-              const { matched } = orgSkillOverlap(dbOrg, skills);
+              const { matched, matchedUserSkillCount } = orgSkillOverlap(dbOrg, skills);
+              if (matchedUserSkillCount === 0 || matched.length === 0) return null;
+
               const base = heuristic.find((h) => h.slug === dbOrg.slug);
               const heuristicPct = base?.matchPercentage ?? 55;
               const aiPct = clampMatchPercentage(match.matchPercentage, heuristicPct);
@@ -586,7 +597,9 @@ Rules:
               const entry = pool.find((x) => x.index === match.id);
               const dbOrg = entry?.org;
               if (!dbOrg) return null;
-              const { matched } = orgSkillOverlap(dbOrg, skills);
+              const { matched, matchedUserSkillCount } = orgSkillOverlap(dbOrg, skills);
+              if (matchedUserSkillCount === 0 || matched.length === 0) return null;
+
               const base = heuristic.find((h) => h.slug === dbOrg.slug);
               const heuristicPct = base?.matchPercentage ?? 50;
               const aiPct = clampMatchPercentage(match.matchPercentage, heuristicPct);
@@ -648,6 +661,7 @@ Rules:
       }
     }
 
+    finalMatches = finalMatches.filter((m) => m.matchedSkills && m.matchedSkills.length > 0);
     if (finalMatches.length === 0) {
       finalMatches = heuristic;
       mode = 'heuristic';
