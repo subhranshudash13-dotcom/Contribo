@@ -416,3 +416,75 @@ test('7. Python Proposal PDF Engine', async (t) => {
 });
 
 
+
+// ==========================================
+// 8. Saved Bookmark Link Resolution
+// ==========================================
+function cleanLabel(value) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function savedItemHref(item) {
+  if (item.type === 'project') {
+    const params = [];
+
+    const title = cleanLabel(item.title);
+    if (title) params.push(`q=${encodeURIComponent(title)}`);
+
+    const orgSlug = cleanLabel(item.slug);
+    if (orgSlug) params.push(`orgSlug=${encodeURIComponent(orgSlug)}`);
+
+    return params.length > 0 ? `/projects?${params.join('&')}` : '/projects';
+  }
+
+  if (item.type === 'organization') {
+    const slug = cleanLabel(item.slug);
+    return slug ? `/organizations/${encodeURIComponent(slug)}` : null;
+  }
+
+  return null;
+}
+
+test('8. Saved Bookmark Links Resolve To Real Routes', async (t) => {
+  await t.test('project with title and org slug links to the filtered listing', () => {
+    const href = savedItemHref({ type: 'project', targetId: '64abc', title: 'Fix the parser', slug: 'psf' });
+    assert.equal(href, '/projects?q=Fix%20the%20parser&orgSlug=psf');
+    assert.ok(!href.includes('/projects/64abc'), 'must not link to a nonexistent project detail route');
+  });
+
+  await t.test('project with title only still resolves via the search query', () => {
+    assert.equal(
+      savedItemHref({ type: 'project', title: 'Add tests' }),
+      '/projects?q=Add%20tests',
+    );
+  });
+
+  await t.test('project with neither title nor slug falls back to the listing', () => {
+    assert.equal(savedItemHref({ type: 'project', targetId: '64abc', title: '   ' }), '/projects');
+  });
+
+  await t.test('title and slug are percent-encoded so the query survives parsing', () => {
+    const href = savedItemHref({ type: 'project', title: 'A & B? C', slug: 'o/r g' });
+    const [, query] = href.split('?');
+    const parsed = new URLSearchParams(query);
+    assert.equal(parsed.get('q'), 'A & B? C');
+    assert.equal(parsed.get('orgSlug'), 'o/r g');
+    assert.ok(!query.includes('+'), 'spaces must be encoded as %20, not +');
+  });
+
+  await t.test('organization keeps linking to its detail page', () => {
+    assert.equal(savedItemHref({ type: 'organization', slug: 'google' }), '/organizations/google');
+  });
+
+  await t.test('unusable rows return null so callers render plain text', () => {
+    assert.equal(savedItemHref({ type: 'organization', targetId: '64abc' }), null);
+    assert.equal(savedItemHref({ type: 'application', title: 'Whatever' }), null);
+    assert.equal(savedItemHref({}), null);
+  });
+
+  await t.test('surrounding whitespace never leaks into the href', () => {
+    assert.equal(savedItemHref({ type: 'project', title: '  Trimmed  ' }), '/projects?q=Trimmed');
+    assert.equal(savedItemHref({ type: 'organization', slug: '  python  ' }), '/organizations/python');
+  });
+});

@@ -24,6 +24,7 @@ import {
   deleteUserApplication,
   unsaveUserItem,
 } from '@/lib/client/api';
+import { savedItemHref } from '@/lib/saved-item-links';
 import { useNetwork } from '@/components/ui/NetworkProvider';
 import { OrgLogo } from '@/components/ui/OrgLogo';
 import type { ApplicationStatus } from '@/../types';
@@ -682,7 +683,9 @@ export function DashboardClient({
               </div>
             ) : (
               <div className="divide-y divide-hairline">
-                {filteredBookmarks.map((item) => (
+                {filteredBookmarks.map((item) => {
+                  const bookmarkHref = savedItemHref(item);
+                  return (
                   <div key={item._id} className="py-4 flex items-center justify-between group">
                     <div className="flex items-center gap-3.5">
                       {item.type === 'organization' ? (
@@ -711,18 +714,18 @@ export function DashboardClient({
                             </span>
                           )}
                         </div>
-                        <Link
-                          href={
-                            item.type === 'project' && item.targetId
-                              ? `/projects/${item.targetId}`
-                              : item.type === 'organization' && item.slug
-                              ? `/organizations/${item.slug}`
-                              : '#'
-                          }
-                          className="font-heading font-bold text-base text-primary hover:text-accent transition-colors block"
-                        >
-                          {item.title}
-                        </Link>
+                        {bookmarkHref ? (
+                          <Link
+                            href={bookmarkHref}
+                            className="font-heading font-bold text-base text-primary hover:text-accent transition-colors block"
+                          >
+                            {item.title}
+                          </Link>
+                        ) : (
+                          <span className="font-heading font-bold text-base text-primary block">
+                            {item.title}
+                          </span>
+                        )}
                         {item.subtitle && (
                           <p className="text-xs text-secondary mt-0.5 line-clamp-1">
                             {item.subtitle}
@@ -740,7 +743,8 @@ export function DashboardClient({
                       {busyId === item._id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
