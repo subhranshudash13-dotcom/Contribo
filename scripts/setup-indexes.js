@@ -84,6 +84,7 @@ async function main() {
     await ensureIndex(orgsCollection, { programId: 1, is2026: -1, name: 1 });
     await ensureIndex(orgsCollection, { category: 1, is2026: -1 });
     await ensureIndex(orgsCollection, { technologies: 1 });
+    await ensureIndex(orgsCollection, { programId: 1, technologies: 1, is2026: -1 });
     await ensureIndex(orgsCollection, { years: 1 });
     await ensureIndex(orgsCollection, { projectCount: -1, is2026: -1, name: 1 });
 
@@ -101,6 +102,8 @@ async function main() {
     await ensureIndex(projectsCollection, { programId: 1, year: -1, stars: -1 });
     await ensureIndex(projectsCollection, { orgSlug: 1, year: -1 });
     await ensureIndex(projectsCollection, { difficulty: 1, year: -1 });
+    await ensureIndex(projectsCollection, { programId: 1, techStack: 1, year: -1 });
+    await ensureIndex(projectsCollection, { programId: 1, difficulty: 1, techStack: 1 });
     await ensureIndex(projectsCollection, { year: -1, stars: -1, createdAt: -1 });
     await ensureIndex(
       projectsCollection,

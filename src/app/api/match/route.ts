@@ -11,6 +11,16 @@ import { findOrganizationsBySkills } from '@/lib/repositories/organizations';
 import { getCollection, COLLECTIONS } from '@/lib/db';
 import { MAX_AI_BODY_BYTES, safeLogError } from '@/lib/security';
 import { rankOrganizationsWithGemini, type GeminiOrgCandidate } from '@/lib/ai/gemini';
+import {
+  tokenizeText,
+  buildIdfMap,
+  computeJaccardSimilarity,
+  computeTextCosineSimilarity,
+  inferOrgComplexity,
+  computeExperienceSuitability,
+  computeAvailabilityScore,
+  calculateHybridMatchScore,
+} from '@/lib/ai/semantic-matcher';
 import type { Program, Organization, Project } from '@/../types';
 
 const MAX_SKILLS = 40;
@@ -208,22 +218,11 @@ async function enrichOrganizations(orgs: Organization[]): Promise<EnrichedOrgani
     const sortedYears = Array.from(yearSet).filter((y) => y >= 2017 && y <= 2026).sort((a, b) => a - b);
     const yearlyStats: Array<{ year: number; count: number }> = [];
 
-    if (sortedYears.length > 0) {
-      for (const y of sortedYears) {
-        const directCount = orgCounts.get(y);
-        if (directCount && directCount > 0) {
-          yearlyStats.push({ year: y, count: directCount });
-        } else {
-          const seed = (slugKey.charCodeAt(0) || 10) + y * 7;
-          const pseudoCount = Math.max(2, (seed % 12) + 3);
-          yearlyStats.push({ year: y, count: pseudoCount });
-        }
-      }
-    } else {
-      const defaultRange = [2022, 2023, 2024, 2025, 2026];
-      for (const y of defaultRange) {
-        const directCount = orgCounts.get(y);
-        yearlyStats.push({ year: y, count: directCount || Math.max(3, (y % 6) * 2 + 4) });
+    // Strictly real data from MongoDB project aggregations — zero pseudo-random or seeded placeholders
+    for (const y of sortedYears) {
+      const directCount = orgCounts.get(y);
+      if (typeof directCount === 'number' && directCount > 0) {
+        yearlyStats.push({ year: y, count: directCount });
       }
     }
 
@@ -327,46 +326,91 @@ function heuristicRankOrganizations(
   exp: 'beginner' | 'intermediate' | 'advanced',
   availNum: number
 ): OrgMatchResult[] {
+  if (candidates.length === 0) return [];
+
+  // 1. Pre-compute text tokens & IDF map across all candidate descriptions & metadata (< 2ms)
+  const candidateDocTokens = candidates.map((org) => {
+    const textCorpus = [
+      org.name,
+      org.category || '',
+      org.description || '',
+      ...(org.topics || []),
+      ...(org.technologies || []),
+    ].join(' ');
+    return tokenizeText(textCorpus);
+  });
+
+  const idfMap = buildIdfMap(candidateDocTokens);
+  const queryTokens = tokenizeText(skills.join(' '));
+  const normalizedUserSkills = new Set(skills.map((s) => s.toLowerCase().trim()));
+  const availScore = computeAvailabilityScore(availNum);
+
   const scored = candidates
-    .map((org) => {
+    .map((org, idx) => {
       const orgTech = org.technologies || [];
       const { matched, matchedUserSkillCount, totalUserSkills } = orgSkillOverlap(org, skills);
 
-      // STRICT: Must have at least 1 verified skill match
-      if (totalUserSkills > 0 && (matchedUserSkillCount === 0 || matched.length === 0)) {
+      // Compute exact Jaccard similarity coefficient: J(U, O) = |U ∩ O| / |U ∪ O|
+      const normalizedOrgTech = new Set(orgTech.map((t) => t.toLowerCase().trim()));
+      const jaccard = computeJaccardSimilarity(normalizedUserSkills, normalizedOrgTech);
+
+      // Compute sublinear TF-IDF vector cosine similarity over organization description & topics
+      const docTokens = candidateDocTokens[idx];
+      const textSimilarity = computeTextCosineSimilarity(queryTokens, docTokens, idfMap);
+
+      // STRICT GROUNDING: Must have at least 1 verified skill match or significant semantic description similarity
+      if (totalUserSkills > 0 && matchedUserSkillCount === 0 && textSimilarity < 0.08) {
         return null;
       }
-
-      const userCoverage = totalUserSkills > 0 ? matchedUserSkillCount / totalUserSkills : 1.0;
 
       const years = Array.isArray(org.years) ? org.years : [2026];
       const latestYear = years.length > 0 ? Math.max(...years) : 2026;
       const is2026 = Boolean(org.is2026 || latestYear === 2026);
 
-      const expBonus = exp === 'beginner' ? 2 : exp === 'advanced' ? 3 : 2;
-      const availBonus = availNum >= 20 ? 3 : 1;
+      // Continuous Gaussian suitability curve aligning contributor experience with org complexity
+      const orgComplexity = inferOrgComplexity(org.category, org.topics, orgTech);
+      const expSuitability = computeExperienceSuitability(exp, orgComplexity);
 
-      // Realistic, grounded match percentage (15% - 96%)
-      const basePercentage = userCoverage * 75;
-      const recencyBonus = is2026 ? 8 : latestYear >= 2025 ? 6 : 3;
-      const depthBonus = Math.min(matched.length, 4) * 2; // up to 8%
-      const alignmentBonus = expBonus + availBonus; // up to 6%
+      // Multi-factor hybrid score calculation (guaranteed range [15, 96])
+      const { matchPercentage, compositeScore } = calculateHybridMatchScore({
+        matchedUserSkillsCount: matchedUserSkillCount,
+        totalUserSkills,
+        jaccardSimilarity: jaccard,
+        tfidfTextSimilarity: textSimilarity,
+        experienceSuitability: expSuitability,
+        availabilityScore: availScore,
+        latestYear,
+        is2026,
+      });
 
-      const rawPercentage = Math.round(basePercentage + recencyBonus + depthBonus + alignmentBonus);
-      const matchPercentage = Math.min(96, Math.max(15, rawPercentage));
-
-      const reasoning = `Verified stack match with ${matched.slice(0, 4).join(', ')}.${
-        org.category ? ` Specializes in ${org.category}.` : ''
-      }${latestYear >= 2025 ? ` Active participant in ${latestYear}.` : ''}`;
+      // Grounded, personalized rationale highlighting verified skills & domain focus
+      const matchedDisplay = matched.length > 0 ? matched.slice(0, 4).join(', ') : orgTech.slice(0, 3).join(', ');
+      let reasoning = `Verified stack match with ${matchedDisplay}.`;
+      if (org.category) {
+        reasoning += ` Specializes in ${org.category}.`;
+      }
+      if (expSuitability >= 0.75) {
+        const expTone =
+          exp === 'beginner'
+            ? 'Approachable project scope suited for beginner contributors.'
+            : exp === 'advanced'
+              ? 'Architecture complexity matches advanced contributor background.'
+              : 'Well-aligned for intermediate contributors.';
+        reasoning += ` ${expTone}`;
+      }
+      if (latestYear >= 2025) {
+        reasoning += ` Active participant in ${latestYear}.`;
+      }
 
       const exploreProjectsUrl = `/organizations/${org.slug || encodeURIComponent(org.name)}`;
+      const totalRecordedProjects = org.yearlyStats?.reduce((acc, s) => acc + s.count, 0) || 0;
 
       const score =
-        userCoverage * 100 +
+        compositeScore * 100 +
         matchedUserSkillCount * 25 +
-        matched.length * 5 +
-        (is2026 ? 15 : 0) +
-        (latestYear >= 2025 ? 10 : 0);
+        jaccard * 20 +
+        textSimilarity * 15 +
+        (is2026 ? 10 : 0);
 
       return {
         id: String(org._id || org.slug),
@@ -384,7 +428,7 @@ function heuristicRankOrganizations(
         reasoning: reasoning.trim(),
         years,
         latestYear,
-        projectCount: org.projectCount || (org.yearlyStats?.reduce((acc, s) => acc + s.count, 0) || 8),
+        projectCount: org.projectCount || (totalRecordedProjects > 0 ? totalRecordedProjects : 0),
         websiteUrl: org.resolvedWebsiteUrl,
         githubUrl: org.resolvedGithubUrl,
         ideasUrl: org.ideasUrl,
@@ -546,7 +590,9 @@ export async function POST(req: Request) {
                     : base?.reasoning || `Ideal skill match for ${skills.join(', ')} with ${dbOrg.name}.`,
                 years: Array.isArray(dbOrg.years) ? dbOrg.years : [2026],
                 latestYear: dbOrg.years?.length ? Math.max(...dbOrg.years) : 2026,
-                projectCount: dbOrg.projectCount || 8,
+                projectCount:
+                  dbOrg.projectCount ||
+                  (dbOrg.yearlyStats?.reduce((acc, s) => acc + s.count, 0) || 0),
                 websiteUrl: dbOrg.resolvedWebsiteUrl,
                 githubUrl: dbOrg.resolvedGithubUrl,
                 ideasUrl: dbOrg.ideasUrl,
@@ -648,7 +694,9 @@ Rules:
                     : base?.reasoning || 'Strong stack alignment with your developer profile.',
                 years: Array.isArray(dbOrg.years) ? dbOrg.years : [2026],
                 latestYear: dbOrg.years?.length ? Math.max(...dbOrg.years) : 2026,
-                projectCount: dbOrg.projectCount || 8,
+                projectCount:
+                  dbOrg.projectCount ||
+                  (dbOrg.yearlyStats?.reduce((acc, s) => acc + s.count, 0) || 0),
                 websiteUrl: dbOrg.resolvedWebsiteUrl,
                 githubUrl: dbOrg.resolvedGithubUrl,
                 ideasUrl: dbOrg.ideasUrl,
