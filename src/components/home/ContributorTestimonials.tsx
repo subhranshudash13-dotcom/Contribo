@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Star, CheckCircle2, Quote, MessageSquarePlus, Send, Check, X, Loader2 } from 'lucide-react';
+import { CONTRIBUTOR_FEEDBACK_CATEGORIES } from '@/lib/feedback-categories.mjs';
 
 interface Testimonial {
   name: string;
@@ -76,13 +77,6 @@ const TESTIMONIALS: Testimonial[] = [
   },
 ];
 
-const FEEDBACK_CATEGORIES = [
-  'General Feedback',
-  'Feature Request',
-  'UI/UX',
-  'Data Issue',
-  'Other',
-];
 
 export function ContributorTestimonials() {
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
@@ -261,18 +255,18 @@ export function ContributorTestimonials() {
                     Feedback Category
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {FEEDBACK_CATEGORIES.map((cat) => (
+                    {CONTRIBUTOR_FEEDBACK_CATEGORIES.map((cat) => (
                       <button
                         type="button"
-                        key={cat}
-                        onClick={() => setCategory(cat)}
+                        key={cat.value}
+                        onClick={() => setCategory(cat.value)}
                         className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
-                          category === cat
+                          category === cat.value
                             ? 'bg-accent text-white border-accent'
                             : 'bg-page/70 border-hairline text-secondary hover:text-primary hover:border-hairline/90'
                         }`}
                       >
-                        {cat}
+                        {cat.value}
                       </button>
                     ))}
                   </div>
