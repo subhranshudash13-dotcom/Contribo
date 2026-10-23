@@ -102,6 +102,12 @@ export default async function OrganizationDetailPage({ params }: Props) {
   const program = rawProgram as unknown as Program | null;
   const projects = (projectsResult.projects || []) as unknown as Project[];
 
+  if (org.programId && !program) {
+    console.warn(
+      `Organization "${org.slug}" references program ${String(org.programId)}, but the program document was not found.`
+    );
+  }
+
   // User save status
   let isSaved = false;
   if (session?.user?.id && org._id) {
