@@ -27,18 +27,19 @@ export function getProjectScopeAndStipend(project: {
   const diff = (project.difficulty || '').toLowerCase();
   const prog = (project.programSlug || project.programName || '').toLowerCase();
 
+  // Only claim GSoC when the program is explicit or the project text names it.
+  // A missing program is unknown, not a GSoC project.
   const isGSoC =
     prog.includes('gsoc') ||
     prog.includes('google summer of code') ||
-    (!prog && (t.includes('gsoc') || d.includes('gsoc') || true)); // Default open source project heuristic
+    (!prog && (t.includes('gsoc') || d.includes('gsoc')));
 
   const isLFX = prog.includes('lfx') || prog.includes('linux foundation');
   const isOutreachy = prog.includes('outreachy');
   const isSummerOfBitcoin = prog.includes('bitcoin');
   const isESoC = prog.includes('esoc');
 
-  // 1. Check for explicit 90 hours / Small project signals
-  if (
+  const isSmall =
     t.includes('90h') ||
     t.includes('90 hour') ||
     t.includes('90-hour') ||
@@ -47,25 +48,9 @@ export function getProjectScopeAndStipend(project: {
     d.includes('small (90') ||
     d.includes('project size: small') ||
     diff.includes('beginner') ||
-    diff.includes('easy')
-  ) {
-    return {
-      size: 'small',
-      sizeLabel: '90h (Small)',
-      hours: 90,
-      durationWeeks: 8,
-      stipendRange: '$1,500 – $3,300 USD',
-      shortStipend: '$1.5k–$3.3k',
-      isGSoC,
-      tooltip: isGSoC
-        ? 'GSoC Small Project (~90 hours): $1,500 – $3,300 USD adjusted by contributor country PPP rate.'
-        : 'Small Project (~90 hours commitment).',
-      badgeTone: 'emerald',
-    };
-  }
+    diff.includes('easy');
 
-  // 2. Check for explicit 350 hours / Large / Advanced project signals
-  if (
+  const isLarge =
     t.includes('350h') ||
     t.includes('350 hour') ||
     t.includes('350-hour') ||
@@ -74,26 +59,10 @@ export function getProjectScopeAndStipend(project: {
     d.includes('large (350') ||
     d.includes('project size: large') ||
     diff.includes('advanced') ||
-    diff.includes('hard')
-  ) {
-    return {
-      size: 'large',
-      sizeLabel: '350h (Large)',
-      hours: 350,
-      durationWeeks: 22,
-      stipendRange: '$6,000 – $13,200 USD',
-      shortStipend: '$6k–$13.2k',
-      isGSoC,
-      tooltip: isGSoC
-        ? 'GSoC Large Project (~350 hours): $6,000 – $13,200 USD adjusted by contributor country PPP rate.'
-        : isLFX
-        ? 'LFX Full-Time Mentorship (~350h): $3,000 – $6,600 USD location-adjusted stipend.'
-        : 'Large Project (~350 hours commitment).',
-      badgeTone: 'purple',
-    };
-  }
+    diff.includes('hard');
 
-  // 3. Program-specific overrides
+  // Known programs always win over a generic difficulty label. A contributor
+  // looking at an Outreachy or LFX project must not be shown GSoC compensation.
   if (isOutreachy) {
     return {
       size: 'standard',
@@ -136,17 +105,106 @@ export function getProjectScopeAndStipend(project: {
     };
   }
 
-  // 4. Default: Standard GSoC Medium Project (~175 hours)
+  if (isLFX) {
+    return {
+      size: 'standard',
+      sizeLabel: 'LFX Mentorship (~350h)',
+      hours: 350,
+      durationWeeks: 12,
+      stipendRange: '$3,000 – $6,600 USD',
+      shortStipend: '$3k–$6.6k',
+      isGSoC: false,
+      tooltip: 'LFX Full-Time Mentorship (~350h): $3,000 – $6,600 USD location-adjusted stipend.',
+      badgeTone: 'blue',
+    };
+  }
+
+  if (isGSoC) {
+    if (isSmall) {
+      return {
+        size: 'small',
+        sizeLabel: '90h (Small)',
+        hours: 90,
+        durationWeeks: 8,
+        stipendRange: '$1,500 – $3,300 USD',
+        shortStipend: '$1.5k–$3.3k',
+        isGSoC: true,
+        tooltip:
+          'GSoC Small Project (~90 hours): $1,500 – $3,300 USD adjusted by contributor country PPP rate.',
+        badgeTone: 'emerald',
+      };
+    }
+
+    if (isLarge) {
+      return {
+        size: 'large',
+        sizeLabel: '350h (Large)',
+        hours: 350,
+        durationWeeks: 22,
+        stipendRange: '$6,000 – $13,200 USD',
+        shortStipend: '$6k–$13.2k',
+        isGSoC: true,
+        tooltip:
+          'GSoC Large Project (~350 hours): $6,000 – $13,200 USD adjusted by contributor country PPP rate.',
+        badgeTone: 'purple',
+      };
+    }
+
+    return {
+      size: 'medium',
+      sizeLabel: '175h (Medium)',
+      hours: 175,
+      durationWeeks: 12,
+      stipendRange: '$3,000 – $6,600 USD',
+      shortStipend: '$3k–$6.6k',
+      isGSoC: true,
+      tooltip:
+        'GSoC Medium Project (~175 hours / 12 weeks): $3,000 – $6,600 USD adjusted by contributor country PPP rate.',
+      badgeTone: 'amber',
+    };
+  }
+
+  // Unknown or unlisted program: describe the scope without borrowing GSoC money.
+  if (isSmall) {
+    return {
+      size: 'small',
+      sizeLabel: '90h (Small)',
+      hours: 90,
+      durationWeeks: 8,
+      stipendRange: 'Varies by program',
+      shortStipend: 'Varies',
+      isGSoC: false,
+      tooltip:
+        'Small project scope (about 90 hours). Stipend and eligibility depend on the hosting program.',
+      badgeTone: 'emerald',
+    };
+  }
+
+  if (isLarge) {
+    return {
+      size: 'large',
+      sizeLabel: '350h (Large)',
+      hours: 350,
+      durationWeeks: 22,
+      stipendRange: 'Varies by program',
+      shortStipend: 'Varies',
+      isGSoC: false,
+      tooltip:
+        'Large project scope (about 350 hours). Stipend and eligibility depend on the hosting program.',
+      badgeTone: 'purple',
+    };
+  }
+
   return {
     size: 'medium',
     sizeLabel: '175h (Medium)',
     hours: 175,
     durationWeeks: 12,
-    stipendRange: '$3,000 – $6,600 USD',
-    shortStipend: '$3k–$6.6k',
-    isGSoC: true,
+    stipendRange: 'Varies by program',
+    shortStipend: 'Varies',
+    isGSoC: false,
     tooltip:
-      'GSoC Medium Project (~175 hours / 12 weeks): $3,000 – $6,600 USD adjusted by contributor country PPP rate.',
+      'Standard project scope (about 175 hours). Stipend and eligibility depend on the hosting program.',
     badgeTone: 'amber',
   };
 }
