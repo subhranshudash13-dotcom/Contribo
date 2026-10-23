@@ -5,6 +5,7 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import clientPromise, { getDb, resolveDatabaseName } from "@/lib/db";
 import { verifyPassword } from "@/lib/hash";
+import { isOAuthProviderConfigured } from "@/lib/auth-providers";
 
 /**
  * Resolve the JWT signing secret. Never fall back to a hardcoded default
@@ -27,6 +28,24 @@ function resolveAuthSecret(): string | undefined {
   return secret;
 }
 
+/**
+ * Name the social sign-ins this instance is not offering. A provider that is
+ * silently absent from `/api/auth/providers` otherwise reads as a new bug.
+ */
+function warnOnMissingOAuthConfig(): void {
+  const missing = (["github", "google"] as const).filter(
+    (provider) => !isOAuthProviderConfigured(process.env, provider)
+  );
+  if (missing.length === 0) return;
+  console.warn(
+    `[auth] Social sign-in unavailable for: ${missing.join(", ")}. ` +
+      "Fill in the matching AUTH_*_ID / AUTH_*_SECRET pair in .env.local (see .env.example). " +
+      "Email and password sign-in still works."
+  );
+}
+
+warnOnMissingOAuthConfig();
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: resolveAuthSecret(),
   adapter: MongoDBAdapter(clientPromise, {
@@ -42,18 +61,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   pages: {
     signIn: "/login",
+    // The built-in Auth.js error page renders a bare "500" for configuration
+    // failures. /login already maps `?error=` to a readable inline message.
+    error: "/login",
   },
   providers: [
-    GitHub({
-      clientId: process.env.AUTH_GITHUB_ID,
-      clientSecret: process.env.AUTH_GITHUB_SECRET,
-      allowDangerousEmailAccountLinking: true,
-    }),
-    Google({
-      clientId: process.env.AUTH_GOOGLE_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET,
-      allowDangerousEmailAccountLinking: true,
-    }),
+    // Register an OAuth provider only when its app credentials exist, so an
+    // unconfigured GitHub/Google button never sends users to a dead end.
+    ...(isOAuthProviderConfigured(process.env, "github")
+      ? [
+          GitHub({
+            clientId: process.env.AUTH_GITHUB_ID,
+            clientSecret: process.env.AUTH_GITHUB_SECRET,
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
+    ...(isOAuthProviderConfigured(process.env, "google")
+      ? [
+          Google({
+            clientId: process.env.AUTH_GOOGLE_ID,
+            clientSecret: process.env.AUTH_GOOGLE_SECRET,
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
     Credentials({
       name: "Credentials",
       credentials: {

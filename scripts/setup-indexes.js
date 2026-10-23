@@ -144,7 +144,84 @@ async function main() {
     // 4. users (auth + profile)
     console.log("\nConfiguring indexes for 'users'...");
     const usersCollection = db.collection('users');
-    await ensureIndex(usersCollection, { email: 1 }, { unique: true, sparse: true });
+    // NOTE: `sparse: true` only omits documents where the email field is
+    // *absent*. The NextAuth MongoDB adapter writes `email: null` for an OAuth
+    // profile with no public email (a GitHub account may have none), so all of
+    // those documents share one null key and the second such sign-in fails with
+    // `E11000 dup key: { email: null }`, which Auth.js reports as an opaque
+    // Configuration error. Uniqueness is therefore limited to real emails, and
+    // a plain index keeps email lookups (credentials login) indexed.
+    //
+    // Migration order: the replacement partial unique index is built *first*,
+    // while `email_1` is still enforcing uniqueness, so there is no window in
+    // which concurrent sign-ups could claim the same email. Both steps fail
+    // loudly — a build that cannot guarantee uniqueness, or a legacy index that
+    // cannot be removed, aborts setup instead of reporting success.
+    const EMAIL_UNIQUE_INDEX = 'email_unique_when_present';
+
+    async function requireEmailUniqueIndex(collection) {
+      const existing = (await collection.indexes()).find(
+        (idx) => idx.name === EMAIL_UNIQUE_INDEX
+      );
+      if (existing) {
+        if (existing.unique !== true) {
+          throw new Error(
+            `users.${EMAIL_UNIQUE_INDEX} exists but is not unique — ` +
+              `drop it and re-run this script to rebuild it as a unique index.`
+          );
+        }
+        console.log(`- ${EMAIL_UNIQUE_INDEX}: already present`);
+        return;
+      }
+      try {
+        await collection.createIndex(
+          { email: 1 },
+          {
+            unique: true,
+            name: EMAIL_UNIQUE_INDEX,
+            partialFilterExpression: { email: { $type: 'string' } },
+          }
+        );
+        console.log(`- ${EMAIL_UNIQUE_INDEX}: ${EMAIL_UNIQUE_INDEX}`);
+      } catch (err) {
+        const first = String(err.message || err).split('\n')[0];
+        if (err.code === 11000 || err.codeName === 'DuplicateKey') {
+          throw new Error(
+            `Cannot create unique index users.${EMAIL_UNIQUE_INDEX}: existing users already ` +
+              `share an email address. Locate them with db.users.aggregate([` +
+              `{$match:{email:{$type:"string"}}},{$group:{_id:"$email",count:{$sum:1}}},` +
+              `{$match:{count:{$gt:1}}}]), resolve the duplicates, then re-run this script. (${first})`
+          );
+        }
+        throw new Error(`Cannot create unique index users.${EMAIL_UNIQUE_INDEX}: ${first}`);
+      }
+    }
+
+    async function dropLegacyEmailIndex(collection) {
+      const legacy = (await collection.indexes()).find(
+        (idx) => idx.name === 'email_1' && (idx.sparse === true || idx.unique === true)
+      );
+      if (!legacy) return;
+      console.log('Dropping legacy users.email index (unique on null blocks OAuth sign-ins)');
+      try {
+        await collection.dropIndex('email_1');
+      } catch (err) {
+        // Nothing to drop is fine; anything else leaves email-less accounts
+        // blocked by the legacy index, so it must not pass as success.
+        if (err.code === 27 || err.codeName === 'IndexNotFound' || err.codeName === 'NamespaceNotFound') {
+          console.log('- email_1: already removed');
+          return;
+        }
+        throw new Error(
+          `Failed to drop the legacy users.email index (email_1) — GitHub accounts without a ` +
+            `public email will keep failing with E11000 { email: null }. ${String(err.message || err).split('\n')[0]}`
+        );
+      }
+    }
+
+    await requireEmailUniqueIndex(usersCollection);
+    await dropLegacyEmailIndex(usersCollection);
+    await ensureIndex(usersCollection, { email: 1 }, { name: 'email_lookup' });
 
     // 5. saved_items (dashboard bookmarks)
     console.log("\nConfiguring indexes for 'saved_items'...");
