@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   BookOpen, 
   GitBranch, 
@@ -10,7 +10,9 @@ import {
   ShieldAlert,
   ChevronDown,
   ChevronUp,
-  Zap
+  Search,
+  X,
+  Zap,
 } from 'lucide-react';
 
 interface ResourceGuide {
@@ -259,48 +261,213 @@ function ResourceCard({ guide }: { guide: ResourceGuide }) {
 }
 
 export function ResourcesClient() {
-  const highlights = RESOURCES.filter(r => r.isHighlight);
-  const others = RESOURCES.filter(r => !r.isHighlight);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [urlReady, setUrlReady] = useState(false);
+
+  // Initialise filters from the URL and support browser back/forward navigation.
+  useEffect(() => {
+    const syncFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      setSearchQuery(params.get('q') ?? '');
+      setSelectedCategory(params.get('category') ?? '');
+      setUrlReady(true);
+    };
+
+    syncFromUrl();
+    window.addEventListener('popstate', syncFromUrl);
+    return () => window.removeEventListener('popstate', syncFromUrl);
+  }, []);
+
+  // Keep filters shareable without reloading the page.
+  useEffect(() => {
+    if (!urlReady) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const query = searchQuery.trim();
+
+    if (query) params.set('q', query);
+    else params.delete('q');
+
+    if (selectedCategory) params.set('category', selectedCategory);
+    else params.delete('category');
+
+    const queryString = params.toString();
+    const nextUrl =
+      `${window.location.pathname}` +
+      `${queryString ? `?${queryString}` : ''}` +
+      `${window.location.hash}`;
+    const currentUrl =
+      `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+    if (nextUrl !== currentUrl) {
+      window.history.replaceState(window.history.state, '', nextUrl);
+    }
+  }, [searchQuery, selectedCategory, urlReady]);
+
+  const categories = Array.from(
+    new Set(RESOURCES.map((resource) => resource.category))
+  ).sort((a, b) => a.localeCompare(b));
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+
+  const filteredResources = RESOURCES.filter((guide) => {
+    const matchesCategory =
+      !selectedCategory || guide.category === selectedCategory;
+
+    const searchableText = [
+      guide.title,
+      guide.category,
+      guide.description,
+      ...guide.keyPoints,
+      guide.realLifeExample.title,
+    ].join(' ').toLowerCase();
+
+    const matchesQuery =
+      !normalizedQuery || searchableText.includes(normalizedQuery);
+
+    return matchesCategory && matchesQuery;
+  });
+
+  const highlights = filteredResources.filter((resource) => resource.isHighlight);
+  const others = filteredResources.filter((resource) => !resource.isHighlight);
+  const hasActiveFilters = Boolean(searchQuery.trim() || selectedCategory);
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('');
+  };
 
   return (
     <div className="max-w-[1200px] mx-auto p-4 sm:p-6 lg:p-8 space-y-16 py-12">
-      
+
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto space-y-4">
         <h1 className="text-4xl sm:text-5xl font-heading font-bold text-primary tracking-tight">
           Contributor Resources
         </h1>
         <p className="text-lg text-secondary leading-relaxed">
-          Level up your open-source journey. Explore our curated guides packed with <strong className="text-primary">real-life examples</strong> from successful past contributors.
+          Level up your open-source journey. Explore our curated guides packed with{' '}
+          <strong className="text-primary">real-life examples</strong> from successful past contributors.
         </p>
       </div>
 
-      {/* Resources to level up */}
-      <section>
-        <div className="flex items-center gap-3 mb-8">
-          <div className="h-8 w-1.5 bg-accent rounded-full" />
-          <h2 className="text-2xl font-bold text-primary">Resources to level up</h2>
+      {/* Search and category filters */}
+      <section
+        aria-label="Search and filter resources"
+        className="max-w-4xl mx-auto w-full space-y-4"
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_240px_auto] gap-3 items-center">
+          <div className="relative">
+            <label htmlFor="resource-search" className="sr-only">
+              Search resources
+            </label>
+            <Search
+              size={18}
+              aria-hidden="true"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary"
+            />
+            <input
+              id="resource-search"
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search resources..."
+              className="w-full rounded-xl border border-hairline bg-surface py-3 pl-10 pr-4 text-sm text-primary placeholder:text-tertiary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="resource-category" className="sr-only">
+              Filter by category
+            </label>
+            <select
+              id="resource-category"
+              value={selectedCategory}
+              onChange={(event) => setSelectedCategory(event.target.value)}
+              className="w-full rounded-xl border border-hairline bg-surface px-3 py-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+            >
+              <option value="">All categories</option>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            type="button"
+            onClick={clearFilters}
+            disabled={!hasActiveFilters}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-hairline px-4 py-3 text-sm font-semibold text-primary transition-colors hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <X size={16} aria-hidden="true" />
+            Clear filters
+          </button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {highlights.map(guide => (
-            <ResourceCard key={guide.id} guide={guide} />
-          ))}
-        </div>
+
+        <p className="text-sm text-secondary" aria-live="polite">
+          Showing {filteredResources.length} of {RESOURCES.length} resources
+        </p>
       </section>
 
-      {/* All Resources */}
-      <section>
-        <div className="flex items-center gap-3 mb-8">
-          <div className="h-8 w-1.5 bg-tertiary rounded-full" />
-          <h2 className="text-2xl font-bold text-primary">All resources</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-          {others.map(guide => (
-            <ResourceCard key={guide.id} guide={guide} />
-          ))}
-        </div>
-      </section>
+      {filteredResources.length === 0 ? (
+        <section
+          className="rounded-2xl border border-dashed border-hairline bg-surface p-8 sm:p-12 text-center space-y-3"
+          aria-live="polite"
+        >
+          <Search size={28} className="mx-auto text-tertiary" aria-hidden="true" />
+          <h2 className="text-xl font-bold text-primary">No resources found</h2>
+          <p className="text-sm text-secondary">
+            Try another keyword or category, or clear your filters to see all resources.
+          </p>
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          >
+            <X size={16} aria-hidden="true" />
+            Clear filters
+          </button>
+        </section>
+      ) : (
+        <>
+          {/* Highlight resources */}
+          {highlights.length > 0 && (
+            <section>
+              <div className="flex items-center gap-3 mb-8">
+                <div className="h-8 w-1.5 bg-accent rounded-full" />
+                <h2 className="text-2xl font-bold text-primary">
+                  Resources to level up
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {highlights.map((guide) => (
+                  <ResourceCard key={guide.id} guide={guide} />
+                ))}
+              </div>
+            </section>
+          )}
 
+          {/* All other matching resources */}
+          {others.length > 0 && (
+            <section>
+              <div className="flex items-center gap-3 mb-8">
+                <div className="h-8 w-1.5 bg-tertiary rounded-full" />
+                <h2 className="text-2xl font-bold text-primary">
+                  All resources
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {others.map((guide) => (
+                  <ResourceCard key={guide.id} guide={guide} />
+                ))}
+              </div>
+            </section>
+          )}
+        </>
+      )}
     </div>
   );
 }
