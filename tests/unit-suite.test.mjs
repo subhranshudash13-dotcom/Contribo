@@ -480,3 +480,69 @@ test('8. Proposal Section Live Counter & Threshold Progress', async (t) => {
 });
 
 
+
+// ==========================================
+// 9. Resource Guide Reading Time & Snippet Cleaning
+// ==========================================
+function rcCountWords(text) {
+  if (!text) return 0;
+  return text.split(/\s+/).filter((token) => /[\p{L}\p{N}]/u.test(token)).length;
+}
+
+function rcReadingTimeMinutes(text, wordsPerMinute = 200) {
+  if (wordsPerMinute <= 0) return 1;
+  const words = rcCountWords(text);
+  if (words === 0) return 1;
+  return Math.max(1, Math.ceil(words / wordsPerMinute));
+}
+
+function rcCleanSnippetText(raw) {
+  return raw
+    .replace(/[ \t]+$/gm, '')
+    .replace(/\n{2,}/g, '\n')
+    .trim();
+}
+
+test('9. Reading Time Estimate & Snippet Normalisation', async (t) => {
+  await t.test('counts words and ignores pure punctuation tokens', () => {
+    assert.equal(rcCountWords('one two three'), 3);
+    assert.equal(rcCountWords('one -- two ... three'), 3);
+    assert.equal(rcCountWords('   '), 0);
+    assert.equal(rcCountWords(''), 0);
+    assert.equal(rcCountWords('naïve 100% ✓'), 2, 'a lone glyph is not a word');
+  });
+
+  await t.test('estimates whole minutes at 200 words per minute, never below one', () => {
+    assert.equal(rcReadingTimeMinutes(''), 1, 'empty guide still reads as 1 minute');
+    assert.equal(rcReadingTimeMinutes(Array(50).fill('word').join(' ')), 1);
+    assert.equal(rcReadingTimeMinutes(Array(200).fill('word').join(' ')), 1, 'exactly one minute');
+    assert.equal(rcReadingTimeMinutes(Array(201).fill('word').join(' ')), 2, 'rounds up');
+    assert.equal(rcReadingTimeMinutes(Array(420).fill('word').join(' ')), 3);
+  });
+
+  await t.test('tolerates a zero or negative rate instead of dividing by it', () => {
+    assert.equal(rcReadingTimeMinutes('a b c', 0), 1);
+    assert.equal(rcReadingTimeMinutes('a b c', -200), 1);
+  });
+
+  await t.test('strips the trailing whitespace rendered lines pick up', () => {
+    const cleaned = rcCleanSnippetText('git rebase -i HEAD~3   \nnext line\t \n');
+    assert.equal(cleaned, 'git rebase -i HEAD~3\nnext line');
+  });
+
+  await t.test('collapses the blank lines that stacked block elements render as', () => {
+    assert.equal(rcCleanSnippetText('a\n\n\n\n\nb'), 'a\nb');
+    assert.equal(rcCleanSnippetText('a\n\nb'), 'a\nb');
+    assert.equal(rcCleanSnippetText('a\nb'), 'a\nb', 'single breaks survive');
+  });
+
+  await t.test('keeps authored numbering — it is content, not a gutter', () => {
+    const transcript = '1. "fix bug"\n2. "oops typo"\n3. "actually fix it this time"';
+    assert.equal(rcCleanSnippetText(transcript), transcript);
+  });
+
+  await t.test('empty or whitespace-only snippets copy as nothing', () => {
+    assert.equal(rcCleanSnippetText('   \n  \n'), '');
+    assert.equal(rcCleanSnippetText(''), '');
+  });
+});
