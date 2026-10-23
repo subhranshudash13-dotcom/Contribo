@@ -16,12 +16,15 @@ try {
  * - MONGODB_DB   (optional) — database name; falls back to URI path, then "contribo"
  */
 
-const uri = process.env.MONGODB_URI ?? '';
-
-if (!uri) {
-  throw new Error(
-    'Missing MONGODB_URI. Add it to your .env file (see .env.example).'
-  );
+/** Resolve the connection string only when a database call is actually made. */
+function getMongoUri(): string {
+  const uri = process.env.MONGODB_URI?.trim();
+  if (!uri) {
+    throw new Error(
+      'Missing MONGODB_URI. Add it to your .env file (see .env.example).'
+    );
+  }
+  return uri;
 }
 
 /** Canonical collection names used across the app. */
@@ -63,19 +66,20 @@ declare global {
 
 // Cache the connection promise on globalThis across both development (HMR)
 // and production (container/serverless warm starts) to prevent connection churn under high concurrency.
-if (!global._mongoClientPromise_v2) {
-  const client = new MongoClient(uri, options);
-  global._mongoClientPromise_v2 = client.connect();
-}
-const clientPromise: Promise<MongoClient> = global._mongoClientPromise_v2;
+// The promise is created lazily so importing this module never opens a socket.
 
 /**
  * Resolve the database name from env or the URI path segment.
- * Example URI: mongodb+srv://user:pass@host/contribo-db → "contribo-db"
+ * Example URI: mongodb+srv://user:pass@host/contribo-db -> "contribo-db"
  */
 export function resolveDatabaseName(): string {
   if (process.env.MONGODB_DB?.trim()) {
     return process.env.MONGODB_DB.trim();
+  }
+
+  const uri = process.env.MONGODB_URI?.trim();
+  if (!uri) {
+    return 'contribo';
   }
 
   try {
@@ -91,17 +95,30 @@ export function resolveDatabaseName(): string {
   return 'contribo';
 }
 
-/** Connected MongoClient promise (used by NextAuth adapter). */
-export default clientPromise;
-
-/** Get a connected MongoClient. */
+/** Get a connected MongoClient, creating the connection on first use. */
 export async function getClient(): Promise<MongoClient> {
-  return clientPromise;
+  if (!global._mongoClientPromise_v2) {
+    const client = new MongoClient(getMongoUri(), options);
+    global._mongoClientPromise_v2 = client.connect();
+  }
+
+  const clientPromise = global._mongoClientPromise_v2;
+
+  try {
+    return await clientPromise;
+  } catch (error) {
+    // Do not cache a failed connection attempt. Health checks and later requests
+    // should be able to retry after the database recovers.
+    if (global._mongoClientPromise_v2 === clientPromise) {
+      global._mongoClientPromise_v2 = undefined;
+    }
+    throw error;
+  }
 }
 
 /** Get the application database (explicit name, never implicit admin). */
 export async function getDb(): Promise<Db> {
-  const client = await clientPromise;
+  const client = await getClient();
   return client.db(resolveDatabaseName());
 }
 

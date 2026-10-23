@@ -3,7 +3,7 @@ import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import clientPromise, { getDb, resolveDatabaseName } from "@/lib/db";
+import { getClient, getDb, resolveDatabaseName } from "@/lib/db";
 import { verifyPassword } from "@/lib/hash";
 
 /**
@@ -29,7 +29,7 @@ function resolveAuthSecret(): string | undefined {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: resolveAuthSecret(),
-  adapter: MongoDBAdapter(clientPromise, {
+  adapter: MongoDBAdapter(getClient, {
     databaseName: resolveDatabaseName(),
   }),
   session: { 
