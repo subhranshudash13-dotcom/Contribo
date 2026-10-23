@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import type { Metadata } from 'next';
 import { ProgramLogo } from '@/components/ui/ProgramLogos';
 import {
   ArrowRight,
@@ -35,6 +36,15 @@ const PROGRAM_IMAGES: Record<string, string> = {
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80';
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    url: '/',
+  },
+};
 
 export default async function Home() {
   // Parallel fetch: catalog + session + programs (cached)
