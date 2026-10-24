@@ -114,7 +114,7 @@ export async function listProjects(query: ProjectListQuery) {
 
     const [totalCount, pageDocs] = await Promise.all([
       collection.countDocuments(filter),
-      cursor.skip(query.skip).limit(query.limit).toArray(),
+      cursor.skip(Math.max(0, query.skip)).limit(query.limit).toArray(),
     ]);
     total = totalCount;
     projects = pageDocs;
@@ -134,7 +134,7 @@ export async function listProjects(query: ProjectListQuery) {
         collection
           .find(filter, baseProjection ? { projection: baseProjection } : undefined)
           .sort({ year: -1, stars: -1 })
-          .skip(query.skip)
+          .skip(Math.max(0, query.skip))
           .limit(query.limit)
           .toArray(),
       ]);

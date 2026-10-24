@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { parsePage } from '@/lib/pagination';
 import Script from 'next/script';
 import { Project } from '../../../types';
 import { ProjectCard } from '@/components/ui/ProjectCard';
@@ -104,7 +106,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
   const orgSlug = typeof params.orgSlug === 'string' ? params.orgSlug : undefined;
   const tech = typeof params.tech === 'string' ? params.tech : undefined;
   const sortBy = typeof params.sortBy === 'string' ? params.sortBy : 'newest';
-  const page = typeof params.page === 'string' ? parseInt(params.page, 10) : 1;
+  const requestedPage = parsePage(params.page);
   const limit = 24; // 24 projects per page
   
   const [data, session] = await Promise.all([
@@ -115,7 +117,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
       tech,
       q,
       sortBy,
-      page,
+      page: requestedPage,
       limit
     }),
     auth(),
@@ -140,6 +142,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
   }
   
   const totalPages = Math.ceil(total / limit);
+  const page = requestedPage;
   const startOffset = total > 0 ? (page - 1) * limit + 1 : 0;
   const endOffset = Math.min(total, page * limit);
   
@@ -156,6 +159,11 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
     urlParams.set('page', pageNumber.toString());
     return `/projects?${urlParams.toString()}`;
   };
+
+  // Page past the end: send the user to the last real page instead of an empty shell.
+  if (totalPages > 0 && page > totalPages) {
+    redirect(createPageLink(totalPages));
+  }
 
   const maxPageButtons = 5;
   const startPage = Math.max(1, page - 2);
