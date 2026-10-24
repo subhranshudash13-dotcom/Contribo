@@ -4,11 +4,18 @@ import { OrgCard } from '@/components/ui/OrgCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { OrgSearch } from '@/components/ui/OrgSearch';
 import { OrgMarquee } from '@/components/ui/OrgMarquee';
-import { FilterX, Building2, ChevronRight, Compass, Cpu, X } from 'lucide-react';
+import { redirect } from 'next/navigation';
+import { FilterX, Building2, ChevronLeft, ChevronRight, Compass, Cpu, X } from 'lucide-react';
 import { listOrganizations } from '@/lib/repositories/organizations';
 import { auth } from '@/auth';
 import { getUserItemStatus } from '@/lib/repositories/dashboard';
-import { getCachedFilterFacets, getCachedPrograms, getCachedDefaultOrganizations } from '@/lib/data-cache';
+import {
+  getCachedFilterFacets,
+  getCachedPrograms,
+  getCachedDefaultOrganizations,
+  ORGANIZATIONS_PAGE_SIZE,
+} from '@/lib/data-cache';
+import { pageCount, pageRange, pageWindow, parsePage } from '@/lib/pagination.mjs';
 
 export const metadata = {
   title: 'Organizations | Contribo',
@@ -18,16 +25,16 @@ type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-async function getOrganizationsPage(programId?: string, search?: string, category?: string) {
+async function getOrganizationsPage(page: number, programId?: string, search?: string, category?: string) {
   const orgPromise =
     !programId && !search && !category
-      ? getCachedDefaultOrganizations()
+      ? getCachedDefaultOrganizations(page)
       : listOrganizations({
           programId,
           search,
           category,
-          limit: 120,
-          skip: 0,
+          limit: ORGANIZATIONS_PAGE_SIZE,
+          skip: (page - 1) * ORGANIZATIONS_PAGE_SIZE,
           lean: true,
         });
 
@@ -59,22 +66,32 @@ export default async function OrganizationsDirectory({ searchParams }: Props) {
       ? params.search
       : undefined;
   const category = typeof params.category === 'string' ? params.category : undefined;
+  const page = parsePage(params.page);
 
   const [pageData, session] = await Promise.all([
-    getOrganizationsPage(programId, searchQuery, category),
+    getOrganizationsPage(page, programId, searchQuery, category),
     auth(),
   ]);
 
   const { organizations, total, programs, categories } = pageData;
 
-  const buildFilterUrl = (newParams: { programId?: string; q?: string; category?: string }) => {
+  const buildFilterUrl = (newParams: { programId?: string; q?: string; category?: string; page?: number }) => {
     const p = new URLSearchParams();
     if (newParams.programId && newParams.programId !== 'all') p.set('programId', newParams.programId);
     if (newParams.q) p.set('q', newParams.q);
     if (newParams.category) p.set('category', newParams.category);
+    if (newParams.page && newParams.page > 1) p.set('page', String(newParams.page));
     const query = p.toString();
     return query ? `/organizations?${query}` : '/organizations';
   };
+
+  const totalPages = pageCount(total, ORGANIZATIONS_PAGE_SIZE);
+  // A page past the end (old link, changed filters) goes to the last real page.
+  if (page > totalPages) {
+    redirect(buildFilterUrl({ programId, q: searchQuery, category, page: totalPages }));
+  }
+  const { start, end } = pageRange(page, ORGANIZATIONS_PAGE_SIZE, total);
+  const pageLink = (target: number) => buildFilterUrl({ programId, q: searchQuery, category, page: target });
 
   let savedOrgs: string[] = [];
   if (session?.user?.id && organizations.length > 0) {
@@ -188,7 +205,9 @@ export default async function OrganizationsDirectory({ searchParams }: Props) {
 
       <div className="flex items-center justify-between mb-6">
         <p className="text-sm text-muted font-mono">
-          {total.toLocaleString()} organizations
+          {totalPages > 1
+            ? `Showing ${start.toLocaleString()}–${end.toLocaleString()} of ${total.toLocaleString()} organizations`
+            : `${total.toLocaleString()} organizations`}
         </p>
         <Link href="/projects" className="text-sm text-accent font-mono inline-flex items-center gap-1">
           Browse projects <Cpu size={14} />
@@ -213,6 +232,59 @@ export default async function OrganizationsDirectory({ searchParams }: Props) {
             />
           ))}
         </div>
+      )}
+
+      {totalPages > 1 && (
+        <nav
+          aria-label="Organizations pages"
+          className="mt-8 pt-6 border-t border-hairline/60 flex flex-col sm:flex-row items-center justify-between gap-4"
+        >
+          <span className="text-xs text-muted font-mono uppercase tracking-wide">
+            Page {page} of {totalPages}
+          </span>
+          <div className="flex items-center gap-1.5">
+            {page > 1 ? (
+              <Link
+                href={pageLink(page - 1)}
+                className="w-9 h-9 rounded-xl border border-hairline bg-surface hover:bg-surface-raised flex items-center justify-center text-secondary transition-colors"
+                aria-label="Previous page"
+              >
+                <ChevronLeft size={16} />
+              </Link>
+            ) : (
+              <span className="w-9 h-9 rounded-xl border border-hairline/50 bg-page/50 flex items-center justify-center text-muted/40 cursor-not-allowed">
+                <ChevronLeft size={16} />
+              </span>
+            )}
+            {pageWindow(page, totalPages).map((p) => (
+              <Link
+                key={p}
+                href={pageLink(p)}
+                aria-current={p === page ? 'page' : undefined}
+                className={`w-9 h-9 rounded-xl border flex items-center justify-center text-xs font-mono transition-all ${
+                  p === page
+                    ? 'bg-accent/10 border-accent/40 text-accent font-bold'
+                    : 'border-hairline bg-surface hover:bg-surface-raised text-secondary'
+                }`}
+              >
+                {p}
+              </Link>
+            ))}
+            {page < totalPages ? (
+              <Link
+                href={pageLink(page + 1)}
+                className="w-9 h-9 rounded-xl border border-hairline bg-surface hover:bg-surface-raised flex items-center justify-center text-secondary transition-colors"
+                aria-label="Next page"
+              >
+                <ChevronRight size={16} />
+              </Link>
+            ) : (
+              <span className="w-9 h-9 rounded-xl border border-hairline/50 bg-page/50 flex items-center justify-center text-muted/40 cursor-not-allowed">
+                <ChevronRight size={16} />
+              </span>
+            )}
+          </div>
+        </nav>
       )}
 
       <div className="mt-12 rounded-2xl border border-hairline bg-surface p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
