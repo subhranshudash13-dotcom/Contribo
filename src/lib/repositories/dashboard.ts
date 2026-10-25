@@ -72,11 +72,12 @@ export async function saveItem(
   }
 
   const collection = await getCollection<SavedItem>(COLLECTIONS.savedItems);
-  const existing = await collection.findOne({
+  const filter = {
     userId: userIdFilter(userId),
     type: payload.type,
     targetId: { $in: [targetOid, payload.targetId] },
-  } as never);
+  };
+  const existing = await collection.findOne(filter as never);
 
   if (existing) {
     return serializeDoc(existing as unknown as Record<string, unknown>);
@@ -94,8 +95,19 @@ export async function saveItem(
     createdAt: new Date(),
   };
 
-  const result = await collection.insertOne(doc as never);
-  return serializeDoc({ ...doc, _id: result.insertedId } as unknown as Record<string, unknown>);
+  try {
+    const result = await collection.insertOne(doc as never);
+    return serializeDoc({ ...doc, _id: result.insertedId } as unknown as Record<string, unknown>);
+  } catch (error: unknown) {
+    // Another request may have inserted the same bookmark after our lookup.
+    if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
+      const existing = await collection.findOne(filter as never);
+      if (existing) {
+        return serializeDoc(existing as unknown as Record<string, unknown>);
+      }
+    }
+    throw error;
+  }
 }
 
 export async function unsaveItem(userId: string, savedItemId: string) {
