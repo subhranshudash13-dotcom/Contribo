@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
   BookOpen, 
   GitBranch, 
@@ -10,8 +10,11 @@ import {
   ShieldAlert,
   ChevronDown,
   ChevronUp,
-  Zap
+  Zap,
+  Clock
 } from 'lucide-react';
+import { CopyableSnippet } from '@/components/ui/CopyableSnippet';
+import { countWords, readingTimeLabel, textFromReactNode } from '@/lib/reading-time';
 
 interface ResourceGuide {
   id: string;
@@ -44,9 +47,11 @@ const RESOURCES: ResourceGuide[] = [
       title: "Real Excerpt from an Accepted GSoC Proposal Timeline",
       content: (
         <div className="space-y-3 font-mono text-xs text-secondary bg-surface-raised p-4 rounded-xl border border-hairline">
-          <p><strong className="text-accent">Week 1-2:</strong> Set up API routes in `src/app/api/matcher/route.ts`. Implement the MongoDB `$text` search index schema migration. Write initial unit tests using Jest.</p>
-          <p><strong className="text-accent">Week 3-4:</strong> Build the `ResultsGrid.tsx` React component. Hook the frontend state to the new API endpoint. Ensure loading skeletons are implemented for UX.</p>
-          <p><strong className="text-accent">Week 5 (Midterm):</strong> Polish the UI, resolve any TypeScript strict-mode warnings, and deploy to the staging branch for mentor review.</p>
+          <CopyableSnippet className="space-y-3 pt-10" label="proposal timeline">
+            <p><strong className="text-accent">Week 1-2:</strong> Set up API routes in `src/app/api/matcher/route.ts`. Implement the MongoDB `$text` search index schema migration. Write initial unit tests using Jest.</p>
+            <p><strong className="text-accent">Week 3-4:</strong> Build the `ResultsGrid.tsx` React component. Hook the frontend state to the new API endpoint. Ensure loading skeletons are implemented for UX.</p>
+            <p><strong className="text-accent">Week 5 (Midterm):</strong> Polish the UI, resolve any TypeScript strict-mode warnings, and deploy to the staging branch for mentor review.</p>
+          </CopyableSnippet>
           <div className="mt-4 p-2 bg-success/10 border border-success/20 rounded text-success text-[11px] font-sans">
             <strong>Why this worked:</strong> It names specific files, frameworks, and milestones rather than just saying &ldquo;I will write code.&rdquo;
           </div>
@@ -71,9 +76,12 @@ const RESOURCES: ResourceGuide[] = [
       content: (
         <div className="space-y-4 text-sm text-secondary">
           <p>Instead of manually browsing, use this exact query in the GitHub global search bar to find issues that are open, beginner-friendly, and not yet assigned or linked to a PR:</p>
-          <div className="bg-surface-raised p-3 rounded-lg border border-hairline font-mono text-xs text-brass break-all">
+          <CopyableSnippet
+            className="bg-surface-raised px-3 pt-9 pb-3 rounded-lg border border-hairline font-mono text-xs text-brass break-all"
+            label="GitHub search query"
+          >
             is:issue is:open label:&quot;good first issue&quot; no:assignee -linked:pr language:typescript
-          </div>
+          </CopyableSnippet>
           <div className="mt-2 p-3 bg-accent/5 border border-accent/10 rounded-lg">
             <strong className="text-primary block mb-1">Real Interaction Example:</strong>
             <p className="italic text-tertiary">&ldquo;Hi! I see this issue is open. I&apos;d like to fix the contrast bug by updating the `text-gray-900` class to `text-primary` in `Footer.tsx`. May I open a PR for this?&rdquo;</p>
@@ -96,7 +104,10 @@ const RESOURCES: ResourceGuide[] = [
     realLifeExample: {
       title: "Real Scenario: Squashing Commits for a Clean PR",
       content: (
-        <div className="space-y-3 font-mono text-xs text-secondary bg-surface-raised p-4 rounded-xl border border-hairline">
+        <CopyableSnippet
+          className="space-y-3 font-mono text-xs text-secondary bg-surface-raised px-4 pt-11 pb-4 rounded-xl border border-hairline"
+          label="git transcript"
+        >
           <p className="text-tertiary"># You made 3 messy commits while debugging:</p>
           <p>1. <span className="text-error">&ldquo;fix bug&rdquo;</span></p>
           <p>2. <span className="text-error">&ldquo;oops typo&rdquo;</span></p>
@@ -106,7 +117,7 @@ const RESOURCES: ResourceGuide[] = [
           <p className="text-brass font-bold">git rebase -i HEAD~3</p>
           <p className="text-tertiary mt-2"># You change the final commit message to:</p>
           <p className="text-success font-bold">&ldquo;fix(auth): resolve null pointer exception in login flow&rdquo;</p>
-        </div>
+        </CopyableSnippet>
       )
     }
   },
@@ -124,7 +135,10 @@ const RESOURCES: ResourceGuide[] = [
     realLifeExample: {
       title: "The Perfect Pull Request Description",
       content: (
-        <div className="space-y-3 text-sm text-secondary bg-surface-raised p-4 rounded-xl border border-hairline whitespace-pre-wrap font-sans">
+        <CopyableSnippet
+          className="space-y-3 text-sm text-secondary bg-surface-raised px-4 pt-11 pb-4 rounded-xl border border-hairline whitespace-pre-wrap font-sans"
+          label="pull request template"
+        >
           <strong className="text-primary block border-b border-hairline pb-2 mb-2">Fix Mobile Navigation Overflow (Fixes #204)</strong>
           <p><strong>What changes did you make?</strong><br/>
           Replaced the fixed width `w-64` on the sidebar with a responsive `w-full md:w-64` class to prevent horizontal scrolling on mobile devices.</p>
@@ -134,7 +148,7 @@ const RESOURCES: ResourceGuide[] = [
           3. Verify the screen no longer scrolls horizontally.</p>
           <p><strong>Screenshots:</strong><br/>
           *(Attached Before & After images)*</p>
-        </div>
+        </CopyableSnippet>
       )
     }
   },
@@ -206,6 +220,21 @@ function ResourceCard({ guide }: { guide: ResourceGuide }) {
   const [expanded, setExpanded] = useState(false);
   const Icon = guide.icon;
 
+  // Everything a reader actually works through: the summary, the takeaways and
+  // the real-life example. The title and category are labels, not prose.
+  const guideText = useMemo(
+    () =>
+      [
+        guide.description,
+        ...guide.keyPoints,
+        textFromReactNode(guide.realLifeExample.content),
+      ]
+        .filter(Boolean)
+        .join(' '),
+    [guide]
+  );
+  const readTime = useMemo(() => readingTimeLabel(guideText), [guideText]);
+
   return (
     <div className={`flex flex-col bg-surface border rounded-2xl overflow-hidden transition-all duration-300 ${expanded ? 'border-accent shadow-md' : 'border-hairline shadow-sm hover:border-tertiary'}`}>
       <div 
@@ -219,7 +248,16 @@ function ResourceCard({ guide }: { guide: ResourceGuide }) {
             </div>
             <div>
               <h3 className="text-lg font-bold text-primary leading-tight">{guide.title}</h3>
-              <span className="text-[10px] uppercase tracking-wider text-tertiary font-bold">{guide.category}</span>
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="text-[10px] uppercase tracking-wider text-tertiary font-bold">{guide.category}</span>
+                <span
+                  className="inline-flex items-center gap-1 rounded-full border border-hairline bg-surface-raised px-2 py-0.5 text-[10px] font-semibold text-tertiary whitespace-nowrap"
+                  title={`Estimated from about ${countWords(guideText)} words at 200 words per minute`}
+                >
+                  <Clock size={10} aria-hidden="true" />
+                  {readTime}
+                </span>
+              </div>
             </div>
           </div>
           <button className="p-1 rounded-full hover:bg-surface-raised text-tertiary transition-colors">
