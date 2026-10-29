@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test tests/unit-suite.test.mjs tests/organization-search.test.mjs tests/contributor-readiness.test.mjs tests/feedback-categories.test.mjs tests/application-milestones.test.mjs tests/proposal-sections.test.mjs tests/pagination.test.mjs tests/pagination-helpers.test.mjs tests/glossary-search.test.mjs",
+    "test": "node --test tests/unit-suite.test.mjs tests/organization-search.test.mjs tests/contributor-readiness.test.mjs tests/feedback-categories.test.mjs tests/application-milestones.test.mjs tests/proposal-sections.test.mjs tests/pagination.test.mjs tests/pagination-helpers.test.mjs tests/glossary-search.test.mjs tests/contributor-toolkit.test.mjs",
     "audit": "npm audit && node scripts/audit-coverage.js",
     "db:indexes": "node scripts/setup-indexes.js",
     "db:migrate-proposal-times": "node scripts/migrate-proposal-updated-at.js",
