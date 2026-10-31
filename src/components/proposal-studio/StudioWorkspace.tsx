@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import {
+  Check,
+  HardDrive,
   History,
   MessageSquarePlus,
   Plus,
   RefreshCw,
-  Save,
 } from 'lucide-react';
 import { STUDIO_NAV } from './constants';
 import { useProposalStudioContext } from './context/ProposalStudioContext';
@@ -111,26 +112,44 @@ export function StudioWorkspace() {
                 <span className="hidden xl:inline">Snapshots</span>
               </button>
 
-              <span className="hidden md:inline-flex items-center gap-2 rounded-2xl border border-hairline bg-page px-3.5 py-2 font-mono text-xs font-semibold text-muted">
-                {studio.saveStatus === 'saving' ? (
+              <span
+                className="hidden md:inline-flex items-center gap-2 rounded-2xl border border-hairline bg-page px-3.5 py-2 font-mono text-xs font-semibold text-muted"
+                data-testid="sync-status-pill"
+              >
+                {studio.syncState === 'saving' && (
                   <>
                     <RefreshCw size={12} className="animate-spin text-accent" />
                     <span>Saving…</span>
                   </>
-                ) : studio.saveStatus === 'offline' ? (
+                )}
+                {studio.syncState === 'cloud' && (
+                  <>
+                    <Check size={12} className="text-success" />
+                    <span className="text-success">Cloud synced</span>
+                  </>
+                )}
+                {studio.syncState === 'local' && (
+                  <>
+                    <HardDrive size={12} className="text-accent" />
+                    <span>Auto-saved locally{studio.localSaveLabel ? ` (${studio.localSaveLabel})` : ''}</span>
+                  </>
+                )}
+                {studio.syncState === 'offline' && (
+                  <>
+                    <HardDrive size={12} className="text-alert" />
+                    <span className="text-alert">Offline — saved on this device</span>
+                  </>
+                )}
+                {studio.syncState === 'error' && (
                   <>
                     <RefreshCw size={12} className="text-alert" />
-                    <span className="text-alert">Offline</span>
+                    <span className="text-alert">Save failed — kept locally</span>
                   </>
-                ) : studio.saveStatus === 'error' ? (
+                )}
+                {studio.syncState === 'idle' && (
                   <>
-                    <RefreshCw size={12} className="text-alert" />
-                    <span className="text-alert">Save failed</span>
-                  </>
-                ) : (
-                  <>
-                    <Save size={12} className="text-success" />
-                    <span>Autosaved</span>
+                    <HardDrive size={12} className="text-muted" />
+                    <span>Auto-saves as you type</span>
                   </>
                 )}
               </span>
@@ -187,6 +206,44 @@ export function StudioWorkspace() {
             })}
           </nav>
         </div>
+
+        {/*
+          Draft recovery: text this browser kept but the cloud never received.
+          Inside the sticky header on purpose — after a crash the browser
+          restores the scroll position, and a banner in normal flow would sit
+          off-screen exactly when it matters.
+        */}
+        {studio.recoveryCandidate && (
+          <div
+            role="region"
+            aria-label="Locally saved draft found"
+            data-testid="draft-recovery-banner"
+            className="border-t border-hairline bg-surface-raised"
+          >
+            <div className="mx-auto flex max-w-[1440px] flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12">
+              <p className="text-sm text-primary">
+                <span className="font-mono font-bold text-accent">Heads up:</span>{' '}
+                You have unsaved changes from a previous session.
+              </p>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={studio.restoreLocalDraft}
+                  className="inline-flex h-9 items-center rounded-2xl bg-accent px-4 font-mono text-xs font-bold uppercase text-white hover:bg-accent-hover transition-colors cursor-pointer"
+                >
+                  Restore Draft
+                </button>
+                <button
+                  type="button"
+                  onClick={studio.discardLocalDraft}
+                  className="inline-flex h-9 items-center rounded-2xl border border-hairline bg-page px-4 font-mono text-xs font-bold text-secondary hover:text-primary hover:bg-surface transition-colors cursor-pointer"
+                >
+                  Discard
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Studio Canvas */}
