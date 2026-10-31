@@ -137,13 +137,18 @@ export function StudioWorkspace() {
                 {studio.syncState === 'offline' && (
                   <>
                     <HardDrive size={12} className="text-alert" />
-                    <span className="text-alert">Offline — saved on this device</span>
+                    <span className="text-alert">
+                      {/* Only claim a local copy once one actually exists. */}
+                      {studio.localSaveLabel ? 'Offline — saved on this device' : 'Offline'}
+                    </span>
                   </>
                 )}
                 {studio.syncState === 'error' && (
                   <>
                     <RefreshCw size={12} className="text-alert" />
-                    <span className="text-alert">Save failed — kept locally</span>
+                    <span className="text-alert">
+                      {studio.localSaveLabel ? 'Save failed — kept locally' : 'Save failed'}
+                    </span>
                   </>
                 )}
                 {studio.syncState === 'idle' && (

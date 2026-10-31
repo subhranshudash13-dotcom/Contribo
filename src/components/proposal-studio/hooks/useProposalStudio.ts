@@ -32,6 +32,7 @@ import {
   hasNewerLocalWork,
   isoToDate,
   readLocalSnapshot,
+  sectionsSignature,
   type LocalDraftSnapshot,
 } from '@/lib/client/proposal-autosave';
 
@@ -119,7 +120,9 @@ export function useProposalStudio() {
   // moment the last cloud save was confirmed.
   const [recoveryCandidate, setRecoveryCandidate] = useState<LocalDraftSnapshot | null>(null);
   const [recoveryCheckedFor, setRecoveryCheckedFor] = useState<string | null>(null);
-  const [lastCloudSaveAt, setLastCloudSaveAt] = useState<number | null>(null);
+  // Signature of the exact text a PATCH confirmed on the server, or null while
+  // nothing has been saved in this session.
+  const [cloudSyncedSignature, setCloudSyncedSignature] = useState<string | null>(null);
 
   useEffect(() => {
     draftsRef.current = drafts;
@@ -292,7 +295,7 @@ export function useProposalStudio() {
         setSaveStatus('saved');
         setIsOfflineMode(false);
         // Only a resolved PATCH backs the "Cloud synced" claim.
-        setLastCloudSaveAt(Date.now());
+        setCloudSyncedSignature(sectionsSignature(draftId, updatedSections));
       } catch (e) {
         if (isApiError(e) && e.isOffline) {
           setSaveStatus('offline');
@@ -722,18 +725,25 @@ export function useProposalStudio() {
 
   const localSavedAtMs = isoToDate(lastLocalSaveAt)?.getTime() ?? null;
 
+  // Content, not clock order, decides whether the screen matches the server:
+  // the local buffer is written after a successful PATCH by design, so a
+  // timestamp comparison would drop a perfectly synced draft to "local".
+  const currentSignature = useMemo(
+    () => sectionsSignature(activeDraftId, sectionsState),
+    [activeDraftId, sectionsState]
+  );
+
   const syncState: StudioSyncState = useMemo(() => {
     if (saveStatus === 'saving') return 'saving';
-    if (
-      lastCloudSaveAt !== null &&
-      (localSavedAtMs === null || lastCloudSaveAt >= localSavedAtMs)
-    )
-      return 'cloud';
-    if (localSavedAtMs !== null) return 'local';
+    // Outage and failure outrank "safe on this device": the first thing worth
+    // saying is that the cloud copy is behind, even though the text is saved.
     if (saveStatus === 'offline') return 'offline';
     if (saveStatus === 'error') return 'error';
+    if (cloudSyncedSignature !== null && cloudSyncedSignature === currentSignature)
+      return 'cloud';
+    if (localSavedAtMs !== null) return 'local';
     return 'idle';
-  }, [saveStatus, lastCloudSaveAt, localSavedAtMs]);
+  }, [saveStatus, cloudSyncedSignature, currentSignature, localSavedAtMs]);
 
   const localSaveLabel = formatLocalSaveClock(lastLocalSaveAt);
 
