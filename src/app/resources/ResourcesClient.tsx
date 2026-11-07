@@ -23,6 +23,7 @@ import {
   X
 } from 'lucide-react';
 import { OpenSourceGlossary } from './components/OpenSourceGlossary';
+import { PrInteractiveLab } from './components/PrInteractiveLab';
 
 type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced';
 
@@ -592,6 +593,8 @@ function ResourceCard({ guide }: { guide: ResourceGuide }) {
 const QUICK_LINKS = [
   { id: 'guides', label: 'Guides' },
   { id: 'all-resources', label: 'All resources' },
+  { id: 'pr-interactive-lab', label: 'PR Lab' },
+  { id: 'glossary-heading', label: 'Glossary' },
 ];
 
 function QuickJump() {
@@ -705,7 +708,7 @@ export function ResourcesClient() {
   };
 
   return (
-    <div className="max-w-[1200px] mx-auto p-4 sm:p-6 lg:p-8 space-y-16 py-12">
+    <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-16 space-y-16">
       
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto space-y-4">
@@ -896,6 +899,8 @@ export function ResourcesClient() {
           </>
         )}
       </section>
+
+      <PrInteractiveLab />
 
       <OpenSourceGlossary />
 
