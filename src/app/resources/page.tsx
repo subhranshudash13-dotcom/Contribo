@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 
 export default function ResourcesPage() {
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background mt-16 sm:mt-20">
       <ResourcesClient />
     </main>
   );
