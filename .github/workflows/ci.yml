@@ -55,3 +55,11 @@ jobs:
 
       - name: Build Next.js Application
         run: npm run build
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E Tests
+        run: npx playwright test --project=chromium
+        env:
+          CI: true
