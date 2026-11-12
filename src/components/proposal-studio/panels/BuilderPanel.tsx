@@ -238,22 +238,41 @@ export function BuilderPanel() {
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              flushChanges();
-              void handleAiImprove(section.id);
-            }}
-            disabled={aiLoading === section.id}
-            className="inline-flex h-9 sm:h-10 items-center gap-2 rounded-xl bg-accent px-4 font-mono text-xs sm:text-sm font-bold uppercase tracking-wide text-white hover:bg-accent-hover disabled:opacity-60 transition-all cursor-pointer shadow-sm"
-          >
-            {aiLoading === section.id ? (
-              <RefreshCw size={14} className="animate-spin" />
-            ) : (
-              <Wand2 size={14} />
-            )}
-            <span>AI Improve Section</span>
-          </button>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Live Word & Character Counter Status Pill */}
+            <div
+              className="inline-flex items-center gap-2 rounded-xl border border-hairline bg-surface px-3 py-1.5 font-mono text-xs text-secondary shadow-xs tabular-nums"
+              title="Real-time section word count, character count (with/without spaces), and reading time"
+            >
+              <span className="font-bold text-primary">
+                {metrics.wordCount} {metrics.wordCount === 1 ? 'word' : 'words'}
+              </span>
+              <span className="text-muted/40 select-none">·</span>
+              <span title={`${metrics.charCount} with spaces, ${metrics.charCountNoSpaces} without spaces`}>
+                <span className="font-semibold text-primary">{metrics.charCount}</span> chars{' '}
+                <span className="hidden sm:inline text-muted">({metrics.charCountNoSpaces} no spaces)</span>
+              </span>
+              <span className="text-muted/40 select-none">·</span>
+              <span className="text-accent font-semibold">{metrics.readingTimeLabel}</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                flushChanges();
+                void handleAiImprove(section.id);
+              }}
+              disabled={aiLoading === section.id}
+              className="inline-flex h-9 sm:h-10 items-center gap-2 rounded-xl bg-accent px-4 font-mono text-xs sm:text-sm font-bold uppercase tracking-wide text-white hover:bg-accent-hover disabled:opacity-60 transition-all cursor-pointer shadow-sm"
+            >
+              {aiLoading === section.id ? (
+                <RefreshCw size={14} className="animate-spin" />
+              ) : (
+                <Wand2 size={14} />
+              )}
+              <span>AI Improve Section</span>
+            </button>
+          </div>
         </div>
 
         {/* Textarea Canvas */}
@@ -270,14 +289,17 @@ export function BuilderPanel() {
         {/* Textarea Footer Metrics with Live Word/Char Counter & Threshold Indicator */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-hairline bg-page/80 px-6 py-3.5 min-h-[52px]">
           {/* Live Word & Character Counters */}
-          <div className="flex items-center gap-2.5 font-mono text-xs sm:text-sm text-muted tabular-nums">
+          <div className="flex items-center gap-2 font-mono text-xs sm:text-sm text-muted tabular-nums flex-wrap">
             <span className="font-semibold text-primary">
               {metrics.charCount} {metrics.charCount === 1 ? 'char' : 'chars'}
             </span>
+            <span className="text-muted text-xs">({metrics.charCountNoSpaces} no spaces)</span>
             <span className="text-hairline select-none">·</span>
             <span className="font-semibold text-primary">
               {metrics.wordCount} {metrics.wordCount === 1 ? 'word' : 'words'}
             </span>
+            <span className="text-hairline select-none">·</span>
+            <span className="text-accent font-semibold">{metrics.readingTimeLabel}</span>
           </div>
 
           {/* Visual Progress & Threshold Indicator */}
