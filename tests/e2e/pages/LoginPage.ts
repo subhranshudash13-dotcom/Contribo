@@ -14,7 +14,7 @@ export class LoginPage {
     this.heading = page.getByRole('heading', { name: /sign in|welcome/i });
     this.emailInput = page.locator('input[type="email"]');
     this.passwordInput = page.locator('input[type="password"]');
-    this.submitButton = page.getByRole('button', { name: /log in|sign in|sign up|continue/i });
+    this.submitButton = page.locator('button[type="submit"]');
     this.githubButton = page.getByRole('button', { name: /github/i });
     this.errorMessage = page.locator('[role="alert"], .text-red-500');
   }
