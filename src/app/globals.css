@@ -207,6 +207,12 @@
   outline-offset: 2px;
 }
 
+/* Hidden on interactive screen, surfaced cleanly on print */
+.print-watermark-header,
+.print-watermark-footer {
+  display: none;
+}
+
 /* ==========================================================================
    Print Stylesheet for Clean Native Print-to-PDF (Ctrl+P / Cmd+P)
    ========================================================================== */
@@ -214,6 +220,12 @@
   @page {
     size: letter portrait;
     margin: 18mm 15mm 20mm 15mm;
+  }
+
+  /* Surfaced Contribo branding header and footer for print */
+  .print-watermark-header,
+  .print-watermark-footer {
+    display: flex !important;
   }
 
   /* Reset document background and typography for crisp print output */

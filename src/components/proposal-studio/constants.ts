@@ -33,7 +33,10 @@ export interface BuilderSectionDef {
 
 export interface SectionThresholdMetrics {
   charCount: number;
+  charCountNoSpaces: number;
   wordCount: number;
+  readingTimeMinutes: number;
+  readingTimeLabel: string;
   minChars: number;
   percentage: number;
   isThresholdMet: boolean;
@@ -42,21 +45,34 @@ export interface SectionThresholdMetrics {
 
 /**
  * Calculates live character metrics and threshold progress against recommended section length.
+ * Includes word count, characters with/without spaces, and estimated reading time.
  */
 export function calculateSectionThreshold(
   text: string,
   minChars: number
 ): SectionThresholdMetrics {
-  const charCount = text ? text.length : 0;
-  const trimmed = text ? text.trim() : '';
-  const wordCount = trimmed ? trimmed.split(/\s+/).length : 0;
+  const raw = text || '';
+  const charCount = raw.length;
+  const charCountNoSpaces = raw.replace(/\s/g, '').length;
+  const trimmed = raw.trim();
+  const wordCount = trimmed ? trimmed.split(/\s+/).filter(Boolean).length : 0;
   const safeMin = Math.max(1, minChars);
   const percentage = Math.min(100, Math.round((charCount / safeMin) * 100));
   const isThresholdMet = trimmed.length >= safeMin;
+  const readingTimeMinutes = Math.max(1, Math.ceil(wordCount / 200));
+  const readingTimeLabel =
+    wordCount === 0
+      ? '0 min read'
+      : wordCount < 100
+        ? '< 1 min read'
+        : `~${readingTimeMinutes} min read`;
 
   return {
     charCount,
+    charCountNoSpaces,
     wordCount,
+    readingTimeMinutes,
+    readingTimeLabel,
     minChars: safeMin,
     percentage,
     isThresholdMet,
