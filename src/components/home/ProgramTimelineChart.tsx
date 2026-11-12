@@ -58,17 +58,19 @@ export function ProgramTimelineChart({
             <div className="flex-1 grid grid-cols-12 gap-2 text-center font-mono text-[11px] md:text-xs uppercase tracking-widest text-secondary font-extrabold relative">
               {monthNames.map((m, idx) => {
                 const isCurrent = idx === currentMonthIndex;
+                const monthNum = String(idx + 1).padStart(2, '0');
                 return (
-                  <div
+                  <time
                     key={m}
-                    className={`py-1.5 rounded-lg transition-all ${
+                    dateTime={`2026-${monthNum}`}
+                    className={`block py-1.5 rounded-lg transition-all ${
                       isCurrent
                         ? 'bg-accent/15 text-accent border border-dashed border-accent/40 font-black scale-105 shadow-sm'
                         : ''
                     }`}
                   >
                     {m.slice(0, 3)}
-                  </div>
+                  </time>
                 );
               })}
             </div>
@@ -144,7 +146,12 @@ export function ProgramTimelineChart({
                           }`}
                           title={`${p.name} (${span.label}): ${monthNames[span.start - 1]} - ${monthNames[span.end - 1]}`}
                         >
-                          <span className="truncate leading-none">{span.label}</span>
+                          <time
+                            dateTime={`${p.year}-${String(span.start).padStart(2, '0')}/${p.year}-${String(span.end).padStart(2, '0')}`}
+                            className="truncate leading-none"
+                          >
+                            {span.label}
+                          </time>
                         </div>
                       );
                     })
