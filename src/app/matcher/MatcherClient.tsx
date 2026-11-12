@@ -17,6 +17,8 @@ import {
   ChevronDown,
   ChevronUp,
   FolderGit2,
+  Sparkles,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { SaveButton } from '@/components/ui/SaveTrackActions';
 import { OfflineState } from '@/components/ui/OfflineState';
@@ -140,6 +142,31 @@ export default function MatcherClient() {
   const [matchError, setMatchError] = useState<string | null>(null);
   const [matchOffline, setMatchOffline] = useState(false);
   const [expandedStats, setExpandedStats] = useState<Record<string, boolean>>({});
+
+  type SortOption = 'match' | 'projects' | 'recent' | 'name';
+  const [sortBy, setSortBy] = useState<SortOption>('match');
+
+  const sortedResults = React.useMemo(() => {
+    return [...results].sort((a, b) => {
+      if (sortBy === 'match') {
+        return (b.matchPercentage || 0) - (a.matchPercentage || 0);
+      }
+      if (sortBy === 'projects') {
+        const pA = a.projectCount || (a.yearlyStats?.reduce((s, i) => s + i.count, 0) ?? 0);
+        const pB = b.projectCount || (b.yearlyStats?.reduce((s, i) => s + i.count, 0) ?? 0);
+        return pB - pA;
+      }
+      if (sortBy === 'recent') {
+        const yA = a.latestYear || a.year || 0;
+        const yB = b.latestYear || b.year || 0;
+        return yB - yA;
+      }
+      if (sortBy === 'name') {
+        return (a.orgName || a.name || '').localeCompare(b.orgName || b.name || '');
+      }
+      return 0;
+    });
+  }, [results, sortBy]);
 
   const toggleOrgStats = (key: string) => {
     setExpandedStats((prev) => ({
@@ -630,6 +657,41 @@ export default function MatcherClient() {
                         );
                       })}
                     </div>
+
+                    {/* Sorter Controls */}
+                    {results.length > 0 && (
+                      <div className="pt-3 border-t border-hairline flex items-center justify-between flex-wrap gap-3">
+                        <div className="flex items-center gap-2">
+                          <SlidersHorizontal size={14} className="text-brass shrink-0" />
+                          <span className="text-xs font-mono font-bold uppercase tracking-wider text-primary">
+                            Sort Organizations:
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {(
+                            [
+                              { id: 'match' as const, label: 'Highest Match %' },
+                              { id: 'projects' as const, label: 'Most Projects' },
+                              { id: 'recent' as const, label: '2026 / Active First' },
+                              { id: 'name' as const, label: 'Alphabetical (A-Z)' },
+                            ]
+                          ).map((opt) => (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => setSortBy(opt.id)}
+                              className={`px-3 py-1 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
+                                sortBy === opt.id
+                                  ? 'bg-brass text-white shadow-xs'
+                                  : 'bg-page border border-hairline text-secondary hover:text-primary hover:bg-surface-raised'
+                              }`}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {matchOffline ? (
@@ -685,7 +747,7 @@ export default function MatcherClient() {
                     </div>
                   ) : !matchOffline && !matchError && results.length > 0 ? (
                     <>
-                      {results.slice(0, visibleCount).map((match, i) => {
+                      {sortedResults.slice(0, visibleCount).map((match, i) => {
                         const orgName = match.orgName || match.name || match.title || 'Organization';
                         const orgSlug = match.orgSlug || match.slug || '';
                         const cardKey = `match-${i}-${orgSlug || orgName}`;
@@ -736,7 +798,7 @@ export default function MatcherClient() {
                                       </span>
                                       {activeYear && (
                                         <span className="text-[11px] font-mono font-bold px-2 py-0.5 bg-accent/10 border border-accent/20 text-accent rounded-full">
-                                          {activeYear}
+                                          {activeYear} Active
                                         </span>
                                       )}
                                     </div>
@@ -746,27 +808,60 @@ export default function MatcherClient() {
                                   </div>
                                 </div>
 
-                                {/* Activity History Toggle */}
+                                {/* Activity History & Match Score */}
                                 <div className="flex items-center sm:flex-col sm:items-end gap-2 shrink-0">
-                                  <button
-                                    type="button"
-                                    onClick={() => toggleOrgStats(cardKey)}
-                                    className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-mono font-medium transition-all ${
-                                      isStatsOpen
-                                        ? 'bg-brass text-white shadow-xs'
-                                        : 'bg-page hover:bg-surface-raised border border-hairline text-muted hover:text-primary'
-                                    }`}
-                                    title="Inspect annual project volume from 2017 to 2026"
-                                  >
-                                    <BarChart3 size={13} className="shrink-0" />
-                                    <span>{isStatsOpen ? 'Hide History' : 'Activity History'}</span>
-                                    {isStatsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                                  </button>
+                                  {typeof match.matchPercentage === 'number' && (
+                                    <span
+                                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-mono font-bold border shadow-xs ${
+                                        match.matchPercentage >= 80
+                                          ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                                          : match.matchPercentage >= 60
+                                          ? 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                                          : 'border-brass/40 bg-brass/10 text-brass'
+                                      }`}
+                                      title={`Orbit AI Match Score: ${match.matchPercentage}%`}
+                                    >
+                                      <Sparkles size={13} className="shrink-0" />
+                                      <span>{match.matchPercentage}% Match</span>
+                                    </span>
+                                  )}
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleOrgStats(cardKey)}
+                                      className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-mono font-medium transition-all cursor-pointer ${
+                                        isStatsOpen
+                                          ? 'bg-brass text-white shadow-xs'
+                                          : 'bg-page hover:bg-surface-raised border border-hairline text-muted hover:text-primary'
+                                      }`}
+                                      title="Inspect annual project volume from 2017 to 2026"
+                                    >
+                                      <BarChart3 size={13} className="shrink-0" />
+                                      <span>{isStatsOpen ? 'Hide History' : 'Activity History'}</span>
+                                      {isStatsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                                    </button>
+                                  </div>
                                   <span className="text-[11px] font-mono text-muted">
                                     {match.programName || 'Open Source'}
+                                    {match.projectCount && match.projectCount > 0
+                                      ? ` · ${match.projectCount} project${match.projectCount === 1 ? '' : 's'}`
+                                      : ''}
                                   </span>
                                 </div>
                               </div>
+
+                              {/* ── ORBIT AI EVALUATION CALLOUT ── */}
+                              {match.reasoning && (
+                                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-accent/10 via-surface-raised to-surface border border-accent/25 shadow-xs">
+                                  <Sparkles size={16} className="text-accent shrink-0 mt-0.5" />
+                                  <div className="space-y-0.5 text-xs text-secondary leading-relaxed">
+                                    <span className="font-mono font-bold uppercase tracking-wider text-[10px] text-accent block">
+                                      Orbit AI Mentorship Evaluation:
+                                    </span>
+                                    <span>{match.reasoning}</span>
+                                  </div>
+                                </div>
+                              )}
 
                               {/* ── 2. TECH STACK & MATCHED SKILLS BADGES ── */}
                               <div className="space-y-2 pt-1">
@@ -878,20 +973,20 @@ export default function MatcherClient() {
                       })}
 
                       {/* ── VIEW MORE / SHOW LESS CONTROLS ── */}
-                      {results.length > visibleCount && (
+                      {sortedResults.length > visibleCount && (
                         <div className="pt-3 text-center">
                           <button
                             type="button"
-                            onClick={() => setVisibleCount((prev) => Math.min(prev + 8, results.length))}
-                            className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-surface border border-brass/40 hover:border-brass text-primary font-heading font-bold text-sm hover:bg-surface-raised transition-all shadow-xs hover:shadow-md group"
+                            onClick={() => setVisibleCount((prev) => Math.min(prev + 8, sortedResults.length))}
+                            className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-surface border border-brass/40 hover:border-brass text-primary font-heading font-bold text-sm hover:bg-surface-raised transition-all shadow-xs hover:shadow-md group cursor-pointer"
                           >
                             <ChevronDown size={17} className="text-brass group-hover:translate-y-0.5 transition-transform" />
-                            <span>View More Organizations ({results.length - visibleCount} remaining)</span>
+                            <span>View More Organizations ({sortedResults.length - visibleCount} remaining)</span>
                           </button>
                         </div>
                       )}
 
-                      {results.length > 10 && visibleCount >= results.length && (
+                      {sortedResults.length > 10 && visibleCount >= sortedResults.length && (
                         <div className="pt-3 text-center">
                           <button
                             type="button"
@@ -899,7 +994,7 @@ export default function MatcherClient() {
                               setVisibleCount(10);
                               window.scrollTo({ top: 300, behavior: 'smooth' });
                             }}
-                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-surface border border-hairline hover:border-muted text-muted hover:text-primary font-mono text-xs font-medium transition-all"
+                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-surface border border-hairline hover:border-muted text-muted hover:text-primary font-mono text-xs font-medium transition-all cursor-pointer"
                           >
                             <ChevronUp size={14} className="text-muted" />
                             <span>Show Less (Collapse to 10)</span>
