@@ -9,6 +9,7 @@ import { NetworkProvider } from "@/components/ui/NetworkProvider";
 import { NavigationProgressBar } from "@/components/ui/NavigationProgressBar";
 import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 // Self-hosted via next/font — no render-blocking Google Fonts CSS request
@@ -21,9 +22,28 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: SITE_URL,
+  applicationName: "Contribo",
   title: "Contribo | Open Source Programs",
   description:
     "The one place to find, understand, and apply to every paid open-source program in the world.",
+  openGraph: {
+    type: "website",
+    siteName: "Contribo",
+    title: "Contribo | Open Source Programs",
+    description:
+      "The one place to find, understand, and apply to every paid open-source program in the world.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Contribo | Open Source Programs",
+    description:
+      "The one place to find, understand, and apply to every paid open-source program in the world.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     icon: "/icon.svg?v=3",
   },

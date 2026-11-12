@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ClipboardCopy,
   Code,
@@ -29,6 +29,32 @@ export function ExportPanel() {
   const [isPdfGenerating, setIsPdfGenerating] = useState(false);
   const [pdfFailed, setPdfFailed] = useState(false);
   const [viewMode, setViewMode] = useState<'sheet' | 'raw'>('sheet');
+
+  const totalStats = useMemo(() => {
+    let totalChars = 0;
+    let totalCharsNoSpaces = 0;
+    let totalWords = 0;
+    BUILDER_SECTIONS.forEach((sec) => {
+      const text = sectionsState[sec.id] || '';
+      totalChars += text.length;
+      totalCharsNoSpaces += text.replace(/\s/g, '').length;
+      const trimmed = text.trim();
+      if (trimmed) totalWords += trimmed.split(/\s+/).filter(Boolean).length;
+    });
+    const readingTime = Math.max(1, Math.ceil(totalWords / 200));
+    return {
+      totalChars,
+      totalCharsNoSpaces,
+      totalWords,
+      readingTimeMinutes: readingTime,
+      readingTimeLabel:
+        totalWords === 0
+          ? '0 min read'
+          : totalWords < 100
+            ? '< 1 min read'
+            : `~${readingTime} min read`,
+    };
+  }, [sectionsState]);
 
   if (!draft) return null;
 
@@ -132,7 +158,15 @@ export function ExportPanel() {
           </div>
 
           {/* Quick Metrics */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3 shrink-0 flex-wrap">
+            <div className="rounded-2xl border border-hairline bg-page px-4 py-2.5 text-center">
+              <p className="font-mono text-[10px] font-bold uppercase text-muted">Words</p>
+              <p className="font-mono text-lg font-bold text-primary">{totalStats.totalWords}</p>
+            </div>
+            <div className="rounded-2xl border border-hairline bg-page px-4 py-2.5 text-center">
+              <p className="font-mono text-[10px] font-bold uppercase text-muted">Reading Time</p>
+              <p className="font-mono text-lg font-bold text-accent">{totalStats.readingTimeLabel}</p>
+            </div>
             <div className="rounded-2xl border border-hairline bg-page px-4 py-2.5 text-center">
               <p className="font-mono text-[10px] font-bold uppercase text-muted">Completion</p>
               <p className="font-mono text-lg font-bold text-accent">{progress}%</p>
@@ -351,6 +385,18 @@ export function ExportPanel() {
         {/* Preview Body */}
         {viewMode === 'sheet' ? (
           <div className="p-6 sm:p-12 space-y-8 bg-white dark:bg-[#1E1714] text-neutral-900 dark:text-neutral-100 min-h-[500px]">
+            {/* Contribo Watermark Header for Print */}
+            <div className="print-watermark-header items-center justify-between border-b-2 border-neutral-300 pb-3 mb-6 font-mono text-xs text-neutral-600">
+              <div className="flex items-center gap-2">
+                <span className="font-bold uppercase tracking-wider text-black">Contribo Proposal Studio</span>
+                <span>·</span>
+                <span>Official Candidate Submission Draft</span>
+              </div>
+              <div className="text-right">
+                <span>{draft.programName}</span> · <span>Target: {draft.orgName}</span>
+              </div>
+            </div>
+
             {/* Sheet Cover Block */}
             <div className="proposal-print-section border-b-2 border-hairline pb-6 space-y-3">
               <div className="flex flex-wrap items-center gap-2 font-mono text-xs uppercase text-muted">
@@ -363,6 +409,15 @@ export function ExportPanel() {
               <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-primary">
                 {draft.projectTitle}
               </h1>
+              {/* Proposal Length Metrics Pill */}
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-hairline bg-page px-2.5 py-1 font-mono text-xs text-secondary">
+                  <strong>{totalStats.totalWords}</strong> words · <strong>{totalStats.totalChars}</strong> chars ({totalStats.totalCharsNoSpaces} no spaces)
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-accent/20 bg-accent/10 px-2.5 py-1 font-mono text-xs font-semibold text-accent">
+                  {totalStats.readingTimeLabel}
+                </span>
+              </div>
             </div>
 
             {/* Section Blocks */}
@@ -389,6 +444,12 @@ export function ExportPanel() {
                   </div>
                 );
               })}
+            </div>
+
+            {/* Contribo Watermark Footer for Print */}
+            <div className="print-watermark-footer items-center justify-between border-t border-neutral-300 pt-4 mt-8 font-mono text-[11px] text-neutral-500">
+              <span>Drafted & Verified with Contribo Proposal Studio (https://contribo.dev)</span>
+              <span>Exported on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
             </div>
           </div>
         ) : (

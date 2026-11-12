@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import type { Sort } from 'mongodb';
 import type { Project } from '@/../types';
 import { COLLECTIONS, getCollection } from '@/lib/db';
 import { serializeDocs, serializeDoc, toObjectId } from '@/lib/serialize';
@@ -69,7 +70,9 @@ export async function listProjects(query: ProjectListQuery) {
   }
 
   if (query.tech && query.tech !== 'all') {
-    filter.techStack = { $regex: new RegExp(`^${escapeRegex(query.tech)}$`, 'i') };
+    const tag = { $regex: new RegExp(`^${escapeRegex(query.tech)}$`, 'i') };
+    // Keep tag selection separate from the text-search fallback's $or.
+    filter.$and = [{ $or: [{ techStack: tag }, { topics: tag }] }];
   }
 
   if (query.year) {
@@ -93,21 +96,27 @@ export async function listProjects(query: ProjectListQuery) {
 
   const lean = query.lean !== false;
   const baseProjection = lean ? { ...LEAN_PROJECT_PROJECTION } : undefined;
+  let explicitSort: Sort | undefined;
+  if (query.sortBy === 'stars') {
+    explicitSort = { stars: -1, year: -1 };
+  } else if (query.sortBy === 'title') {
+    explicitSort = { title: 1 };
+  } else if (query.sortBy === 'newest' || query.sortBy === 'year') {
+    explicitSort = { year: -1, stars: -1 };
+  }
 
   try {
     // Run count + page fetch in parallel when not using text score projection quirks
     const cursor = collection.find(filter, baseProjection ? { projection: baseProjection } : undefined);
 
     if (useTextScore) {
-      cursor
-        .project({ ...(baseProjection || {}), score: { $meta: 'textScore' } })
-        .sort({ score: { $meta: 'textScore' } });
-    } else if (query.sortBy === 'stars') {
-      cursor.sort({ stars: -1, year: -1 });
-    } else if (query.sortBy === 'title') {
-      cursor.sort({ title: 1 });
-    } else if (query.sortBy === 'newest' || query.sortBy === 'year') {
-      cursor.sort({ year: -1, stars: -1 });
+      cursor.project({ ...(baseProjection || {}), score: { $meta: 'textScore' } });
+    }
+
+    if (explicitSort) {
+      cursor.sort(explicitSort);
+    } else if (useTextScore) {
+      cursor.sort({ score: { $meta: 'textScore' } });
     } else {
       cursor.sort({ year: -1, stars: -1 });
     }
@@ -133,7 +142,7 @@ export async function listProjects(query: ProjectListQuery) {
         collection.countDocuments(filter),
         collection
           .find(filter, baseProjection ? { projection: baseProjection } : undefined)
-          .sort({ year: -1, stars: -1 })
+          .sort(explicitSort ?? { year: -1, stars: -1 })
           .skip(Math.max(0, query.skip))
           .limit(query.limit)
           .toArray(),

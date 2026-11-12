@@ -139,6 +139,39 @@ Populate the program and sample project database:
 npm run db:setup
 ```
 
+### Sync Hacktoberfest partners and projects
+
+After configuring a development database in `.env`, run either command from the repository root:
+
+```bash
+npm run db:sync-hacktoberfest
+# Equivalent:
+node scripts/sync-hacktoberfest.js
+```
+
+The script reads `.env` with dotenv; existing shell variables take precedence. It uses
+`MONGODB_DB` first, then the database in `MONGODB_URI`, and refuses an implicit database.
+For local development, set `MONGODB_DB=contribo_dev` and use your local MongoDB URI.
+Verify the target before running; do not use production credentials. Never share the URI.
+
+The sync upserts the Hacktoberfest program, 14 partner organizations, and 14 verified
+repository projects for 2026. Organizations are keyed by program and slug; projects
+by program, organization, title, and year. Repeating the command retains the same IDs
+and values. It preserves other programs, historical projects, and existing curated
+fields such as stars, difficulty, and mentors. It does not delete legacy catalog entries.
+Unknown metrics and participation history are not invented. Gauge (withgauge.com)
+is a confirmed sponsor but has no verified public project repository in this catalog.
+Repository inclusion provides ecosystem learning resources, not automatic challenge eligibility.
+
+Metadata was checked on 2026-10-24 against the [official sponsor wall](https://hacktoberfest.com/)
+and each linked project repository. The roadmap follows the [participant FAQs](https://hacktoberfest.com/questions/),
+[Fest directory](https://hacktoberfest.com/fests/), [DEV Challenges](https://dev.to/challenges),
+[Global Hack Week](https://ghw.mlh.com/events/open-source), and [sticker milestones](https://hacktoberfest.com/online/).
+The issue's former `/participation/` URL returns 404, so the roadmap uses `/questions/`.
+The GHW URL now names the October event "Hacktoberfest". The 3/10/15 milestones count
+virtual stickers: a physical pack, a bonus holographic sticker, then Completionist status
+and raffle entry. They are not physical pack sizes.
+
 ### 6. Run Development Server
 ```bash
 npm run dev
