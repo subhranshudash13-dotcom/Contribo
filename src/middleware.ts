@@ -25,6 +25,12 @@ export async function middleware(req: NextRequest) {
   const clientIp = getClientIp(req);
   const responseHeaders = new Headers();
 
+  // Generate or propagate unique X-Request-Id across all edge responses
+  const requestId =
+    req.headers.get('x-request-id') ||
+    `req_${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36).slice(-4)}`;
+  responseHeaders.set('X-Request-Id', requestId);
+
   // Content Security Policy & Standard Edge Security Headers
   const cspHeader = `
     default-src 'self';
@@ -72,6 +78,7 @@ export async function middleware(req: NextRequest) {
         {
           error: 'Rate limit exceeded. Please wait before retrying.',
           code: 'rate_limited',
+          requestId,
           retryAfter: rateResult.retryAfter,
         },
         {
