@@ -25,6 +25,17 @@ import {
   type StudioMode,
   type StudioTab,
 } from '../constants';
+import { useProposalAutoSave } from './useProposalAutoSave';
+import {
+  clearLocalSnapshot,
+  cloudChangedSinceSnapshot,
+  formatLocalSaveClock,
+  hasRecoverableLocalWork,
+  isoToDate,
+  readLocalSnapshot,
+  sectionsSignature,
+  type LocalDraftSnapshot,
+} from '@/lib/client/proposal-autosave';
 
 const VALID_TABS: StudioTab[] = [
   'builder',
@@ -50,6 +61,13 @@ function normalizeTab(value: string | null): StudioTab {
 function sectionFilled(value: string | undefined, minChars: number) {
   return (value || '').trim().length >= minChars;
 }
+
+/**
+ * What the header pill is allowed to claim. `cloud` only after a PATCH has
+ * actually resolved; `local` means the text is safe in this browser but has
+ * not been confirmed by the server.
+ */
+export type StudioSyncState = 'idle' | 'saving' | 'cloud' | 'local' | 'offline' | 'error';
 
 export function useProposalStudio() {
   const searchParams = useSearchParams();
@@ -94,8 +112,35 @@ export function useProposalStudio() {
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
 
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveTimer = useRef<{
+    draftId: string;
+    handle: ReturnType<typeof setTimeout>;
+  } | null>(null);
+  const cloudRevisionByDraftRef = useRef<Map<string, string>>(
+    new Map(
+      DRAFT_PROPOSALS.map((draft) => [
+        draft.id,
+        sectionsSignature(draft.id, draft.sections),
+      ])
+    )
+  );
   const seededFromQuery = useRef(false);
+  // Latest draft list, readable from effects that must not re-run on every
+  // keystroke (the recovery check compares against the cloud copy on it).
+  const draftsRef = useRef(drafts);
+  // Text that survived in this browser but never reached MongoDB, plus the
+  // moment the last cloud save was confirmed.
+  const [recoveryCandidate, setRecoveryCandidate] = useState<
+    (LocalDraftSnapshot & { cloudChangedSinceSnapshot: boolean }) | null
+  >(null);
+  const [recoveryCheckedFor, setRecoveryCheckedFor] = useState<string | null>(null);
+  // Signature of the exact text a PATCH confirmed on the server, or null while
+  // nothing has been saved in this session.
+  const [cloudSyncedSignature, setCloudSyncedSignature] = useState<string | null>(null);
+
+  useEffect(() => {
+    draftsRef.current = drafts;
+  }, [drafts]);
 
   const activeDraft = useMemo(() => {
     return drafts.find((d) => d.id === activeDraftId) || drafts[0];
@@ -119,6 +164,12 @@ export function useProposalStudio() {
         const res = await fetchProposals();
         if (!cancelled && res?.proposals && res.proposals.length > 0) {
           loaded = res.proposals;
+          for (const draft of res.proposals) {
+            cloudRevisionByDraftRef.current.set(
+              draft.id,
+              sectionsSignature(draft.id, draft.sections)
+            );
+          }
           setDrafts(res.proposals);
           if (!draftParam) {
             setActiveDraftId(res.proposals[0].id);
@@ -171,6 +222,10 @@ export function useProposalStudio() {
               programName: 'Google Summer of Code',
             });
             if (!cancelled && created?.proposal) {
+              cloudRevisionByDraftRef.current.set(
+                created.proposal.id,
+                sectionsSignature(created.proposal.id, created.proposal.sections)
+              );
               setDrafts((prev) => [created.proposal, ...prev]);
               setActiveDraftId(created.proposal.id);
               setMode('workspace');
@@ -257,12 +312,18 @@ export function useProposalStudio() {
           setIsOfflineMode(true);
           return;
         }
-        await updateProposalDraft(draftId, {
+        const response = await updateProposalDraft(draftId, {
           sections: updatedSections,
           progress,
         });
+        cloudRevisionByDraftRef.current.set(
+          draftId,
+          sectionsSignature(draftId, response?.proposal?.sections ?? updatedSections)
+        );
         setSaveStatus('saved');
         setIsOfflineMode(false);
+        // Only a resolved PATCH backs the "Cloud synced" claim.
+        setCloudSyncedSignature(sectionsSignature(draftId, updatedSections));
       } catch (e) {
         if (isApiError(e) && e.isOffline) {
           setSaveStatus('offline');
@@ -289,10 +350,12 @@ export function useProposalStudio() {
         const updated = { ...current.sections, [sectionId]: value };
         const progress = computeProgress(updated);
 
-        if (saveTimer.current) clearTimeout(saveTimer.current);
-        saveTimer.current = setTimeout(() => {
+        if (saveTimer.current) clearTimeout(saveTimer.current.handle);
+        const timer = setTimeout(() => {
+          if (saveTimer.current?.handle === timer) saveTimer.current = null;
           void persistSectionEdit(draftId, updated, progress);
         }, 450);
+        saveTimer.current = { draftId, handle: timer };
 
         return prevDrafts.map((d) =>
           d.id === draftId
@@ -309,6 +372,85 @@ export function useProposalStudio() {
     [activeDraftId, persistSectionEdit]
   );
 
+
+  // Look for a local buffer worth offering once per draft, after the cloud
+  // copy has finished loading. Deferred a tick so the read never runs during
+  // the same effect that mounted the panel.
+  useEffect(() => {
+    if (isBootstrapping || !activeDraftId) return;
+    const draftIdAtCheck = activeDraftId;
+    let cancelled = false;
+    const check = window.setTimeout(() => {
+      if (cancelled) return;
+      const cloud = draftsRef.current.find((d) => d.id === draftIdAtCheck);
+      const local = readLocalSnapshot(draftIdAtCheck);
+      const currentCloudSignature = cloud
+        ? sectionsSignature(draftIdAtCheck, cloud.sections)
+        : null;
+      setRecoveryCandidate(
+        local && hasRecoverableLocalWork(local, cloud?.sections)
+          ? {
+              ...local,
+              cloudChangedSinceSnapshot: cloudChangedSinceSnapshot(
+                local,
+                currentCloudSignature
+              ),
+            }
+          : null
+      );
+      setRecoveryCheckedFor(draftIdAtCheck);
+    }, 0);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(check);
+    };
+  }, [isBootstrapping, activeDraftId]);
+
+  const {
+    lastLocalSaveAt,
+    flushNow: flushLocalDraft,
+    discardPending: discardPendingLocalSave,
+  } = useProposalAutoSave({
+    draftId: activeDraftId,
+    sections: sectionsState,
+    baseCloudSignature:
+      cloudRevisionByDraftRef.current.get(activeDraftId) ??
+      sectionsSignature(activeDraftId, activeDraft?.sections),
+    // Disabled until the recovery check for this draft has run and come up
+    // empty: writing while a prompt is open would destroy the buffer on offer.
+    enabled:
+      !isBootstrapping &&
+      recoveryCheckedFor === activeDraftId &&
+      recoveryCandidate === null,
+  });
+
+  const restoreLocalDraft = useCallback(() => {
+    const snapshot = recoveryCandidate;
+    if (!snapshot || snapshot.draftId !== activeDraftId || !activeDraft) return;
+    if (saveTimer.current?.draftId === activeDraftId) {
+      clearTimeout(saveTimer.current.handle);
+      saveTimer.current = null;
+    }
+    discardPendingLocalSave(activeDraftId);
+    const merged = { ...activeDraft.sections, ...snapshot.sections };
+    const progress = computeProgress(merged);
+    setDrafts((prev) =>
+      prev.map((d) =>
+        d.id === activeDraftId ? { ...d, sections: merged, progress } : d
+      )
+    );
+    setRecoveryCandidate(null);
+    void persistSectionEdit(activeDraftId, merged, progress);
+    showToast('Restored your locally saved text');
+  }, [recoveryCandidate, activeDraft, activeDraftId, discardPendingLocalSave, persistSectionEdit, showToast]);
+
+  const discardLocalDraft = useCallback(() => {
+    const snapshot = recoveryCandidate;
+    if (!snapshot) return;
+    clearLocalSnapshot(snapshot.draftId);
+    setRecoveryCandidate(null);
+    showToast('Discarded the locally saved copy');
+  }, [recoveryCandidate, showToast]);
 
   const insertMarkdownFormatting = useCallback(
     (sectionId: string, format: 'bold' | 'italic' | 'code' | 'list') => {
@@ -576,6 +718,10 @@ export function useProposalStudio() {
           programName: payload?.programName || 'GSoC 2026',
         });
         if (created?.proposal) {
+          cloudRevisionByDraftRef.current.set(
+            created.proposal.id,
+            sectionsSignature(created.proposal.id, created.proposal.sections)
+          );
           setDrafts((prev) => [created.proposal, ...prev]);
           setActiveDraftId(created.proposal.id);
           setMode('workspace');
@@ -602,6 +748,12 @@ export function useProposalStudio() {
           return;
         }
         await deleteProposalDraft(draftId);
+        // The draft is gone; its local buffer must not resurface as a
+        // recovery prompt, and a still-running debounce must not rewrite it.
+        discardPendingLocalSave(draftId);
+        cloudRevisionByDraftRef.current.delete(draftId);
+        clearLocalSnapshot(draftId);
+        if (recoveryCandidate?.draftId === draftId) setRecoveryCandidate(null);
         setDrafts((prev) => {
           const next = prev.filter((d) => d.id !== draftId);
           if (activeDraftId === draftId && next.length > 0) {
@@ -614,7 +766,7 @@ export function useProposalStudio() {
         showToast(friendlyApiMessage(e, 'Failed to delete draft'));
       }
     },
-    [activeDraftId, showToast]
+    [activeDraftId, recoveryCandidate, discardPendingLocalSave, showToast]
   );
 
   const openWorkspace = useCallback(
@@ -637,6 +789,30 @@ export function useProposalStudio() {
     setMobileNavOpen(false);
   }, []);
 
+  const localSavedAtMs = isoToDate(lastLocalSaveAt)?.getTime() ?? null;
+
+  // Content, not clock order, decides whether the screen matches the server:
+  // the local buffer is written after a successful PATCH by design, so a
+  // timestamp comparison would drop a perfectly synced draft to "local".
+  const currentSignature = useMemo(
+    () => sectionsSignature(activeDraftId, sectionsState),
+    [activeDraftId, sectionsState]
+  );
+
+  const syncState: StudioSyncState = useMemo(() => {
+    if (saveStatus === 'saving') return 'saving';
+    // Outage and failure outrank "safe on this device": the first thing worth
+    // saying is that the cloud copy is behind, even though the text is saved.
+    if (saveStatus === 'offline') return 'offline';
+    if (saveStatus === 'error') return 'error';
+    if (cloudSyncedSignature !== null && cloudSyncedSignature === currentSignature)
+      return 'cloud';
+    if (localSavedAtMs !== null) return 'local';
+    return 'idle';
+  }, [saveStatus, cloudSyncedSignature, currentSignature, localSavedAtMs]);
+
+  const localSaveLabel = formatLocalSaveClock(lastLocalSaveAt);
+
   return {
     mode,
     drafts,
@@ -653,6 +829,12 @@ export function useProposalStudio() {
     isFeedbackModalOpen,
     sectionsState,
     saveStatus,
+    syncState,
+    localSaveLabel,
+    recoveryCandidate,
+    restoreLocalDraft,
+    discardLocalDraft,
+    flushLocalDraft,
     aiLoading,
     toastMessage,
     isBootstrapping,
