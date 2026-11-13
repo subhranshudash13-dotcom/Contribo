@@ -6,8 +6,17 @@
  * multi-tier reminder alarms (VALARM), and direct calendar web intents.
  */
 
-import type { Program } from '../../../types';
-import type { ProgramCalendarData } from './programs-data';
+export interface CalendarProgramInput {
+  slug: string;
+  name: string;
+  organizer?: string;
+  officialWebsite?: string;
+  timeline?: {
+    event: string;
+    date: string | Date;
+    description?: string;
+  }[];
+}
 
 export interface CalendarEvent {
   uid?: string;
@@ -264,7 +273,7 @@ export function serializeIcalendar(options: CalendarOptions): string {
  * Build RFC 5545 iCalendar for a single program.
  */
 export function generateProgramIcal(
-  program: Program | ProgramCalendarData,
+  program: CalendarProgramInput,
   options?: { baseUrl?: string }
 ): string {
   const baseUrl = options?.baseUrl || 'https://contribo.org';
@@ -296,7 +305,7 @@ export function generateProgramIcal(
  * Build RFC 5545 iCalendar consolidated across all tracked open source programs.
  */
 export function generateConsolidatedIcal(
-  programs: (Program | ProgramCalendarData)[],
+  programs: CalendarProgramInput[],
   options?: { baseUrl?: string }
 ): string {
   const baseUrl = options?.baseUrl || 'https://contribo.org';

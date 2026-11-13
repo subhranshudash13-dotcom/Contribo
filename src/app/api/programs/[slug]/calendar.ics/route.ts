@@ -1,10 +1,8 @@
 import { NextRequest } from 'next/server';
 import { getProgramBySlug } from '@/lib/repositories/programs';
-import { generateProgramIcal } from '@/lib/calendar/ical-generator';
+import { generateProgramIcal, type CalendarProgramInput } from '@/lib/calendar/ical-generator';
 import { FALLBACK_PROGRAMS_CALENDAR } from '@/lib/calendar/programs-data';
 import { safeLogError } from '@/lib/security';
-import type { Program } from '../../../../../types';
-import type { ProgramCalendarData } from '@/lib/calendar/programs-data';
 
 export async function GET(
   req: NextRequest,
@@ -19,11 +17,11 @@ export async function GET(
     }
 
     // Try repository first
-    let program: Program | ProgramCalendarData | null = null;
+    let program: CalendarProgramInput | null = null;
     try {
       const dbProgram = await getProgramBySlug(normalized);
       if (dbProgram) {
-        program = dbProgram as unknown as Program;
+        program = dbProgram as unknown as CalendarProgramInput;
       }
     } catch (err) {
       safeLogError('Failed to query program from database, falling back to static calendar:', err);

@@ -1,18 +1,17 @@
 import { NextRequest } from 'next/server';
 import { listPrograms } from '@/lib/repositories/programs';
-import { generateConsolidatedIcal } from '@/lib/calendar/ical-generator';
+import { generateConsolidatedIcal, type CalendarProgramInput } from '@/lib/calendar/ical-generator';
 import { FALLBACK_PROGRAMS_CALENDAR } from '@/lib/calendar/programs-data';
 import { safeLogError } from '@/lib/security';
-import type { Program } from '../../../../types';
 
 export async function GET(req: NextRequest) {
   try {
-    let programs: (Program | (typeof FALLBACK_PROGRAMS_CALENDAR)[number])[] = [];
+    let programs: CalendarProgramInput[] = [];
 
     try {
       const dbPrograms = await listPrograms();
       if (Array.isArray(dbPrograms) && dbPrograms.length > 0) {
-        programs = dbPrograms as unknown as Program[];
+        programs = dbPrograms as unknown as CalendarProgramInput[];
       }
     } catch (err) {
       safeLogError('Failed to fetch programs from database for calendar, using fallback:', err);
