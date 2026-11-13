@@ -541,11 +541,18 @@ export function useProposalStudio() {
 
   const copyProposalToClipboard = useCallback(() => {
     if (!activeDraft) return;
-    const fullText = BUILDER_SECTIONS.map(
-      (s) => `## ${s.title}\n\n${sectionsState[s.id] || '(Not specified)'}\n`
-    ).join('\n---\n\n');
+    const header =
+      `# Proposal: ${activeDraft.projectTitle} (${activeDraft.programName})\n\n` +
+      `**Target Organization**: ${activeDraft.orgName}\n` +
+      `**Deadline**: ${activeDraft.deadline || 'N/A'}\n\n` +
+      `---\n\n`;
+    const fullText =
+      header +
+      BUILDER_SECTIONS.map(
+        (s) => `## ${s.title}\n\n${sectionsState[s.id] || '_(Section not yet filled)_'}\n`
+      ).join('\n---\n\n');
     void navigator.clipboard.writeText(fullText);
-    showToast('Proposal markdown copied');
+    showToast('Proposal markdown copied to clipboard');
   }, [activeDraft, sectionsState, showToast]);
 
   const downloadMarkdownFile = useCallback(() => {
@@ -570,17 +577,22 @@ export function useProposalStudio() {
       `**Deadline**: ${activeDraft.deadline}\n\n` +
       BUILDER_SECTIONS.map(
         (s) =>
-          `## ${s.title}\n\n${sectionsState[s.id] || '(Not specified)'}\n`
+          `## ${s.title}\n\n${sectionsState[s.id] || '_(Section not yet filled)_'}\n`
       ).join('\n---\n\n');
+
+    const sanitizedTitle = (activeDraft.projectTitle || activeDraft.projectSlug || 'proposal')
+      .replace(/[/\\?%*:|"<>]/g, '')
+      .trim();
+    const fileName = `${sanitizedTitle || 'proposal'}.md`;
 
     const blob = new Blob([fullText], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Proposal_${activeDraft.projectSlug || 'draft'}.md`;
+    a.download = fileName;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Markdown downloaded with YAML frontmatter');
+    showToast(`Downloaded ${fileName}`);
   }, [activeDraft, sectionsState, showToast]);
 
   const downloadPdfFile = useCallback(async (): Promise<boolean> => {

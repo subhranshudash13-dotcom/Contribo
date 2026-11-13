@@ -106,7 +106,8 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
   const programId = typeof params.programId === 'string' ? params.programId : undefined;
   const orgSlug = typeof params.orgSlug === 'string' ? params.orgSlug : undefined;
   const tech = typeof params.tech === 'string' ? params.tech : undefined;
-  const sortBy = typeof params.sortBy === 'string' ? params.sortBy : 'newest';
+  const selectedSort = typeof params.sortBy === 'string' ? params.sortBy : undefined;
+  const sortBy = selectedSort || 'newest';
   const requestedPage = parsePage(params.page);
   const limit = 24; // 24 projects per page
   
@@ -117,7 +118,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
       difficulty,
       tech,
       q,
-      sortBy,
+      sortBy: q ? selectedSort : sortBy,
       page: requestedPage,
       limit
     }),
@@ -156,7 +157,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
     if (programId) urlParams.set('programId', programId);
     if (orgSlug) urlParams.set('orgSlug', orgSlug);
     if (tech) urlParams.set('tech', tech);
-    if (sortBy) urlParams.set('sortBy', sortBy);
+    if (!q || selectedSort) urlParams.set('sortBy', sortBy);
     urlParams.set('page', pageNumber.toString());
     return `/projects?${urlParams.toString()}`;
   };
