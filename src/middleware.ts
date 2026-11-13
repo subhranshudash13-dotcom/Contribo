@@ -4,6 +4,7 @@ import {
   getClientIp,
   attachRateLimitHeaders,
   RATE_LIMIT_TIERS,
+  type RateLimitOptions,
 } from '@/lib/rate-limit';
 
 /**
@@ -53,7 +54,7 @@ export async function middleware(req: NextRequest) {
   // Distributed Rate Limiting for API routes
   if (pathname.startsWith('/api/')) {
     // Determine appropriate tier
-    let tier = RATE_LIMIT_TIERS.PUBLIC_READ;
+    let tier: RateLimitOptions = RATE_LIMIT_TIERS.PUBLIC_READ;
     let identifier = `ip:${clientIp}:${pathname}`;
 
     if (
