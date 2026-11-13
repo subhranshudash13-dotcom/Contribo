@@ -105,6 +105,7 @@ export interface Application {
   programName?: string;
   status: ApplicationStatus;
   notes?: string;
+  completedMilestoneIds?: string[];
   deadline?: Date | string | null;
   createdAt: Date | string;
   updatedAt: Date | string;

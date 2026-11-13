@@ -27,8 +27,13 @@ export interface ProposalDraft {
   acceptedExamplesCount: number;
   communityContributionsCount: number;
   sections: Record<string, string>;
-  updatedAt: string;
-  createdAt?: string;
+  /**
+   * Real modification time. A `Date` straight from MongoDB, an ISO string after
+   * a JSON round trip, or `null` for legacy rows that only ever stored prose.
+   * Render it with `formatRelativeTime()` — never persist a phrase here.
+   */
+  updatedAt: Date | string | null;
+  createdAt?: Date | string;
 }
 
 export interface AcceptedProposal {
@@ -73,6 +78,11 @@ export interface ProjectGuide {
   commonMistakes: string[];
 }
 
+/** Demo drafts are dated relative to module load so their "updated" labels age. */
+function hoursAgo(hours: number): Date {
+  return new Date(Date.now() - hours * 60 * 60 * 1000);
+}
+
 export const DRAFT_PROPOSALS: ProposalDraft[] = [
   {
     id: 'draft-superset-gsoc',
@@ -91,7 +101,7 @@ export const DRAFT_PROPOSALS: ProposalDraft[] = [
     difficulty: 'Intermediate',
     acceptedExamplesCount: 4,
     communityContributionsCount: 7,
-    updatedAt: '2 hours ago',
+    updatedAt: hoursAgo(2),
     sections: {
       summary:
         'Integration of dynamic ECharts-based geospatial visualization modules and caching optimization in Apache Superset for large-scale analytical dashboards.',
@@ -128,7 +138,7 @@ export const DRAFT_PROPOSALS: ProposalDraft[] = [
     difficulty: 'Advanced',
     acceptedExamplesCount: 3,
     communityContributionsCount: 4,
-    updatedAt: 'Yesterday',
+    updatedAt: hoursAgo(26),
     sections: {
       summary: 'Automated ring-buffer trace telemetry for containerized Linux kernel subsystems via eBPF.',
       problemStatement: 'Monitoring kernel tracepoints under high IOPS causes overhead exceeding 8% CPU time.',

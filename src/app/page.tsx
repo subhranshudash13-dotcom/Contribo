@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import type { Metadata } from 'next';
 import { ProgramLogo } from '@/components/ui/ProgramLogos';
 import {
   ArrowRight,
@@ -12,7 +13,7 @@ import { Hero } from '@/components/hero/Hero';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 import { auth } from '@/auth';
 import { getUserItemStatus } from '@/lib/repositories/dashboard';
-import { getCachedHomeBundle, getCachedPrograms } from '@/lib/data-cache';
+import { getCachedHomeBundle, getCachedPrograms, getCachedFeaturedOrganizations } from '@/lib/data-cache';
 import {
   DeferredHeroStats,
   DeferredProposalStudioSection,
@@ -36,13 +37,87 @@ const PROGRAM_IMAGES: Record<string, string> = {
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80';
 
+export async function generateMetadata(): Promise<Metadata> {
+  let projectCount = 0;
+  let orgCount = 0;
+
+  try {
+    const [{ stats }, featuredOrgs] = await Promise.all([
+      getCachedHomeBundle(),
+      getCachedFeaturedOrganizations(),
+    ]);
+    if (stats?.projects) projectCount = stats.projects;
+    if (featuredOrgs?.total) orgCount = featuredOrgs.total;
+  } catch (err) {
+    console.error('Error generating homepage metadata:', err);
+  }
+
+  const projectSegment =
+    projectCount > 0 ? `${projectCount.toLocaleString()}+ Projects` : 'Curated Projects';
+  const orgSegment =
+    orgCount > 0 ? `${orgCount.toLocaleString()}+ Organizations` : 'Global Foundations';
+
+  const title = `Contribo · Discover ${projectSegment} across ${orgSegment} & Mentorship Programs`;
+  const description = `Aggregating open source mentorship programs including GSoC, Outreachy, LFX Mentorship, and NSoC. Explore curated starter issues, track application deadlines, and craft winning proposals.`;
+
+  return {
+    title,
+    description,
+    keywords: [
+      'open source mentorship',
+      'Google Summer of Code',
+      'GSoC 2026',
+      'LFX Mentorship',
+      'Outreachy',
+      'Nexus Spring of Code',
+      'NSoC 2026',
+      'open source internship',
+      'good first issues',
+      'proposal templates',
+      'software engineering fellowship',
+    ],
+    authors: [{ name: 'Contribo Community' }],
+    alternates: {
+      canonical: '/',
+    },
+    openGraph: {
+      title,
+      description,
+      url: 'https://contribo.dev',
+      siteName: 'Contribo',
+      type: 'website',
+      images: [
+        {
+          url: 'https://contribo.dev/contribo_dashboard_mockup.png',
+          width: 1200,
+          height: 630,
+          alt: 'Contribo Open Source Mentorship Platform',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['https://contribo.dev/contribo_dashboard_mockup.png'],
+      creator: '@contribodev',
+    },
+  };
+}
+
 export default async function Home() {
-  // Parallel fetch: catalog + session + programs (cached)
-  const [{ stats, trending }, session, allProgramsRaw] = await Promise.all([
+  // Parallel fetch: catalog + session + programs + org showcase (cached)
+  const [{ stats, trending }, session, allProgramsRaw, featuredOrgs] = await Promise.all([
     getCachedHomeBundle(),
     auth(),
     getCachedPrograms(),
+    getCachedFeaturedOrganizations(),
   ]);
+
+  // One organization total for the whole page. estimatedDocumentCount (what the
+  // stats band uses) and a real count can disagree; the directory quote below
+  // is exact, so every mention of the number derives from it.
+  const orgTotal = featuredOrgs.total;
 
   let savedProjects: string[] = [];
   let trackedProjects: string[] = [];
@@ -100,8 +175,89 @@ export default async function Home() {
     },
   ];
 
+  const websiteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': 'https://contribo.dev/#website',
+    url: 'https://contribo.dev',
+    name: 'Contribo',
+    description:
+      'Universal open-source mentorship program aggregator, proposal studio, and contributor matchmaking platform.',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://contribo.dev/projects?q={search_term_string}',
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
+  const organizationJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': 'https://contribo.dev/#organization',
+    name: 'Contribo',
+    url: 'https://contribo.dev',
+    logo: 'https://contribo.dev/icon.png',
+    sameAs: ['https://github.com/subhranshudash13-dotcom/Contribo'],
+  };
+
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Is Contribo free to use?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes, Contribo is 100% free and open-source. We aim to support contributors globally in finding, preparing for, and tracking mentorship programs.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How does the AI Matcher work?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Our AI Matcher analyzes your technical skills, difficulty preferences, and topics of interest, comparing them with thousands of projects in our database to recommend the most suitable opportunities.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Are stipends guaranteed?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Stipends are paid directly by the organizing foundations (Google, CNCF, etc.) to accepted contributors who successfully complete their project milestones.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Can I track multiple programs at once?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes! Your personal dashboard is unified across all programs. You can save projects, log proposal drafts, and track deadlines for GSoC, ESoC, LFX, and Outreachy simultaneously.',
+        },
+      },
+    ],
+  };
+
   return (
     <main className="flex flex-col min-h-screen w-full bg-noise">
+      {/* Structured JSON-LD Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+
       {/* Above-the-fold — critical path */}
       <Hero />
 
@@ -214,7 +370,7 @@ export default async function Home() {
 
 
         {/* LIVE STATS */}
-        <DeferredHeroStats stats={stats} />
+        <DeferredHeroStats stats={{ ...stats, orgs: orgTotal }} />
 
         {/* HOW IT WORKS */}
         <ScrollReveal animation="slide-up">
@@ -306,6 +462,7 @@ export default async function Home() {
           projects={trending}
           savedProjects={savedProjects}
           trackedProjects={trackedProjects}
+          projectTotal={stats?.projects}
         />
 
         {/* YEAR TIMELINE — deferred */}
@@ -341,16 +498,16 @@ export default async function Home() {
               href="/organizations"
               className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl border border-hairline bg-surface hover:bg-surface-raised text-primary text-xs sm:text-sm font-semibold transition-all shrink-0 self-start sm:self-auto"
             >
-              Browse all 1,250+
+              {orgTotal > 0 ? `Browse all ${orgTotal.toLocaleString()}` : 'Browse all'}
               <ArrowRight size={14} />
             </Link>
           </div>
-          <DeferredPopularOrgs />
+          <DeferredPopularOrgs organizations={featuredOrgs.organizations} total={orgTotal} />
         </section>
 
         {/* ROADMAP — Bento Grid UI */}
         <ScrollReveal animation="slide-up">
-          <ContributorRoadmapBento />
+          <ContributorRoadmapBento organizationCount={orgTotal} />
         </ScrollReveal>
 
         {/* RESOURCES — static */}

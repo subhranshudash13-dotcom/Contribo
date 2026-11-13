@@ -2,7 +2,7 @@ import { cache } from 'react';
 import type { Organization } from '@/../types';
 import { COLLECTIONS, getCollection } from '@/lib/db';
 import { serializeDocs, serializeDoc } from '@/lib/serialize';
-import { resolveProgramFilter } from '@/lib/repositories/programs';
+import { resolveProgramFilter, listPrograms } from '@/lib/repositories/programs';
 import { ORGANIZATION_DOMAIN_GROUPS } from '@/lib/repositories/filters';
 import { expandSkillToTokens } from '@/lib/repositories/projects';
 
@@ -132,70 +132,42 @@ export async function listOrganizations(query: OrgListQuery) {
   let organizations: Record<string, unknown>[];
 
   if (gsocProgramId) {
-    if (query.skip === 0 && !query.programId && !query.programSlug) {
-      // First 5-6 organizations from GSoC, next from other programs, followed by remaining GSoC
-      const [totalCount, gsocDocs, otherDocs] = await Promise.all([
-        collection.countDocuments(filter),
-        collection
-          .find({ ...filter, programId: gsocProgramId } as never, findOpts)
-          .sort({ is2026: -1, name: 1 })
-          .limit(6)
-          .toArray(),
-        collection
-          .find({ ...filter, programId: { $ne: gsocProgramId } } as never, findOpts)
-          .sort({ is2026: -1, name: 1 })
-          .limit(query.limit)
-          .toArray(),
-      ]);
-      total = totalCount;
-      const combined = [...gsocDocs, ...otherDocs];
-      if (combined.length < query.limit) {
-        const remainingNeeded = query.limit - combined.length;
-        const moreGsoc = await collection
-          .find({ ...filter, programId: gsocProgramId } as never, findOpts)
-          .sort({ is2026: -1, name: 1 })
-          .skip(6)
-          .limit(remainingNeeded)
-          .toArray();
-        combined.push(...moreGsoc);
-      }
-      organizations = combined as unknown as Record<string, unknown>[];
-    } else {
-      const pipeline: Record<string, unknown>[] = [
-        { $match: filter },
-        {
-          $addFields: {
-            isGsoc: {
-              $cond: [{ $eq: ['$programId', gsocProgramId] }, 1, 0],
-            },
+    // A single sort order is required for skip/limit pagination. Sorting GSoC
+    // first only on page one makes the offset meaningless on later pages.
+    const pipeline: Record<string, unknown>[] = [
+      { $match: filter },
+      {
+        $addFields: {
+          isGsoc: {
+            $cond: [{ $eq: ['$programId', gsocProgramId] }, 1, 0],
           },
         },
-        {
-          $sort: {
-            isGsoc: -1,
-            is2026: -1,
-            name: 1,
-          },
+      },
+      {
+        $sort: {
+          isGsoc: -1,
+          is2026: -1,
+          name: 1,
         },
-      ];
+      },
+    ];
 
-      if (lean) {
-        pipeline.push({ $project: LEAN_ORG_PROJECTION });
-      }
-
-      const [totalCount, docs] = await Promise.all([
-        collection.countDocuments(filter),
-        collection
-          .aggregate([
-            ...pipeline,
-            { $skip: query.skip },
-            { $limit: query.limit },
-          ])
-          .toArray(),
-      ]);
-      total = totalCount;
-      organizations = docs as unknown as Record<string, unknown>[];
+    if (lean) {
+      pipeline.push({ $project: LEAN_ORG_PROJECTION });
     }
+
+    const [totalCount, docs] = await Promise.all([
+      collection.countDocuments(filter),
+      collection
+        .aggregate([
+          ...pipeline,
+          { $skip: query.skip },
+          { $limit: query.limit },
+        ])
+        .toArray(),
+    ]);
+    total = totalCount;
+    organizations = docs as unknown as Record<string, unknown>[];
   } else {
     const [totalCount, docs] = await Promise.all([
       collection.countDocuments(filter),
@@ -214,6 +186,148 @@ export async function listOrganizations(query: OrgListQuery) {
     organizations: serializeDocs(organizations),
     total,
   };
+}
+
+/**
+ * Short labels for the program pills on organization cards. Keyed by program
+ * slug; anything not listed falls back to the program's own name, so a newly
+ * seeded program still shows something truthful rather than a made-up tag.
+ */
+const PROGRAM_SHORT_LABELS: Record<string, string> = {
+  gsoc: 'GSoC',
+  outreachy: 'Outreachy',
+  lfx: 'LFX',
+  hacktoberfest: 'Hacktoberfest',
+  'summer-of-bitcoin': 'Summer of Bitcoin',
+  'mlh-fellowship': 'MLH',
+  gssoc: 'GSSoC',
+  nsoc: 'NSoC',
+  esoc: 'ESoC',
+};
+
+export function programShortLabel(
+  program: { slug?: unknown; name?: unknown } | undefined
+): string | null {
+  if (!program) return null;
+  const slug = typeof program.slug === 'string' ? program.slug.trim().toLowerCase() : '';
+  if (slug && PROGRAM_SHORT_LABELS[slug]) return PROGRAM_SHORT_LABELS[slug];
+  const name = typeof program.name === 'string' ? program.name.trim() : '';
+  return name || null;
+}
+
+export interface FeaturedOrganization {
+  name: string;
+  slug: string;
+  category: string;
+  description: string;
+  logoUrl: string;
+  backgroundColor: string;
+  technologies: string[];
+  programs: string[];
+  /** Projects this site actually lists for the organization. */
+  projectCount: number;
+  latestYear: number | null;
+  is2026: boolean;
+}
+
+/**
+ * Rank organizations by the number of projects present in the catalog, so the
+ * "popular" showcase is derived from stored data instead of a static list.
+ * Ties break alphabetically for a stable order across requests.
+ */
+export function rankOrganizationsByProjectCount<T extends { projectCount: number; name: string }>(
+  orgs: T[]
+): T[] {
+  return [...orgs].sort(
+    (a, b) => b.projectCount - a.projectCount || a.name.localeCompare(b.name)
+  );
+}
+
+/**
+ * The home page showcase: the organizations this site really has the most
+ * listed projects for, plus the true total the page quotes next to them.
+ */
+export async function listFeaturedOrganizations(
+  limit = 16
+): Promise<{ organizations: FeaturedOrganization[]; total: number }> {
+  try {
+    const [orgsCol, projectsCol, programs] = await Promise.all([
+      getCollection<Organization>(COLLECTIONS.organizations),
+      getCollection(COLLECTIONS.projects),
+      listPrograms(),
+    ]);
+
+    const labelByProgramId = new Map<string, string>();
+    for (const program of programs) {
+      const id = program._id === undefined || program._id === null ? '' : String(program._id);
+      const label = programShortLabel(program);
+      if (id && label) labelByProgramId.set(id, label);
+    }
+
+    const [total, orgDocs] = await Promise.all([
+      orgsCol.countDocuments({}),
+      orgsCol
+        .find({}, { projection: LEAN_ORG_PROJECTION })
+        .sort({ name: 1 })
+        .limit(2000)
+        .toArray(),
+    ]);
+
+    // Ground truth for "how active is this org": the projects already indexed.
+    const countsByOrgSlug = new Map<string, number>();
+    try {
+      const rows = await projectsCol
+        .aggregate<{ _id: string; count: number }>([
+          { $group: { _id: '$orgSlug', count: { $sum: 1 } } },
+        ])
+        .toArray();
+      for (const row of rows) {
+        if (typeof row._id === 'string' && row._id) {
+          countsByOrgSlug.set(row._id.toLowerCase().trim(), row.count);
+        }
+      }
+    } catch (err) {
+      console.warn('Project count aggregation failed, showcasing orgs without counts:', err);
+    }
+
+    const cards: FeaturedOrganization[] = [];
+    for (const org of orgDocs as unknown as Record<string, unknown>[]) {
+      const slug = typeof org.slug === 'string' ? org.slug.trim() : '';
+      const name = typeof org.name === 'string' ? org.name.trim() : '';
+      // No slug means no /organizations/<slug> route to land on; such a card
+      // would be a guaranteed 404, so it cannot appear in the showcase.
+      if (!slug || !name) continue;
+
+      const years = Array.isArray(org.years)
+        ? org.years.filter((y): y is number => typeof y === 'number' && Number.isFinite(y))
+        : [];
+      const programId = org.programId === undefined ? '' : String(org.programId);
+
+      cards.push({
+        name,
+        slug,
+        category: typeof org.category === 'string' ? org.category : '',
+        description: typeof org.description === 'string' ? org.description : '',
+        logoUrl: typeof org.logoUrl === 'string' ? org.logoUrl : '',
+        backgroundColor: typeof org.backgroundColor === 'string' ? org.backgroundColor : '',
+        technologies: Array.isArray(org.technologies)
+          ? org.technologies.filter((t): t is string => typeof t === 'string' && !!t.trim()).slice(0, 4)
+          : [],
+        programs: labelByProgramId.get(programId) ? [labelByProgramId.get(programId) as string] : [],
+        projectCount: countsByOrgSlug.get(slug.toLowerCase().trim()) || 0,
+        latestYear: years.length ? Math.max(...years) : null,
+        is2026: org.is2026 === true,
+      });
+    }
+
+    return {
+      organizations: rankOrganizationsByProjectCount(cards).slice(0, limit),
+      total,
+    };
+  } catch (err) {
+    console.warn('listFeaturedOrganizations failed:', err);
+    return { organizations: [], total: 0 };
+  }
 }
 
 export async function suggestOrganizations(

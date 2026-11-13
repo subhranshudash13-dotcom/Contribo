@@ -5,7 +5,6 @@ import { FeedbackModal } from '@/components/ui/FeedbackModal';
 import { ProposalStudioProvider, useProposalStudioContext } from './context/ProposalStudioContext';
 import { StudioToast } from './ui/StudioToast';
 
-import { UnderDevelopmentOverlay } from './ui/UnderDevelopmentOverlay';
 
 const StudioWorkspace = dynamic(
   () => import('./StudioWorkspace').then((m) => ({ default: m.StudioWorkspace })),
@@ -24,7 +23,7 @@ function StudioContent() {
   const studio = useProposalStudioContext();
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)] overflow-hidden">
+    <div className="relative min-h-[calc(100vh-4rem)]">
       <StudioToast message={studio.toastMessage} />
       {studio.isFeedbackModalOpen && (
         <FeedbackModal
@@ -32,17 +31,7 @@ function StudioContent() {
           onClose={() => studio.setIsFeedbackModalOpen(false)}
         />
       )}
-      
-      {/* Blurred background content */}
-      <div 
-        className="filter blur-md md:blur-lg opacity-35 select-none pointer-events-none max-h-[85vh] overflow-hidden" 
-        aria-hidden="true"
-      >
-        <StudioWorkspace />
-      </div>
-
-      {/* Foreground overlay informing users of ongoing development */}
-      <UnderDevelopmentOverlay />
+      <StudioWorkspace />
     </div>
   );
 }

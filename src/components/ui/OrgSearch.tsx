@@ -88,6 +88,8 @@ export function OrgSearch() {
     } else {
       params.delete('q');
     }
+    // a new search starts from the first page of its results
+    params.delete('page');
     startTransition(() => {
       router.push(`/organizations?${params.toString()}`);
     });

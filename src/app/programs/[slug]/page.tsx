@@ -25,9 +25,7 @@ import {
 import { ProgramLogo } from '@/components/ui/ProgramLogos';
 import { getProgramBySlug } from '@/lib/repositories/programs';
 import { getProgramGuide } from '@/lib/program-guides';
-
-/** Programs that get the full org explorer treatment */
-const EXPLORER_ENABLED_SLUGS = new Set(['gsoc', 'lfx', 'esoc', 'outreachy', 'sob', 'mlh-fellowship', 'mlh']);
+import { EXPLORER_ENABLED_SLUGS } from '@/lib/programs/explorer';
 
 export const revalidate = 600;
 

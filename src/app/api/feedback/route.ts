@@ -7,17 +7,9 @@ import {
   privateNoStoreHeaders,
 } from '@/lib/api';
 import { auth } from '@/auth';
+import { normalizeFeedbackCategory } from '@/lib/feedback-categories.mjs';
 import { COLLECTIONS, getCollection } from '@/lib/db';
 import { safeLogError } from '@/lib/security';
-
-const ALLOWED_TYPES = new Set([
-  'Feature Request',
-  'Bug Report',
-  'General Feedback',
-  'UI/UX',
-  'Data Issue',
-  'Other',
-]);
 
 /**
  * POST /api/feedback
@@ -29,8 +21,10 @@ export async function POST(req: Request) {
     const body = await parseMutationBody(req);
     if (isNextResponse(body)) return body;
 
-    const rawType = typeof body.type === 'string' ? body.type.trim() : 'Feature Request';
-    const feedbackType = ALLOWED_TYPES.has(rawType) ? rawType : 'Other';
+    const feedbackType = normalizeFeedbackCategory(body.type);
+    if (feedbackType === null) {
+      return apiError('Invalid feedback category', 400);
+    }
 
     const subject =
       typeof body.subject === 'string'

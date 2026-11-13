@@ -157,11 +157,17 @@ AI_PROVIDER=gemini
 ```
 > **Security Note:** Never commit `.env` or real API keys to version control. All secrets are strictly ignored by `.gitignore`.
 
+> [!IMPORTANT]
+> **OAuth providers are only enabled with real credentials.** A provider whose credentials are missing — or still hold the `your_*_here` placeholder values — is never registered server-side, and its button is hidden on `/login` (there is no "or continue with" section if no provider is enabled). Leaving `AUTH_GITHUB_*` / `AUTH_GOOGLE_*` placeholders in place is perfectly fine; configuring only GitHub gives you a GitHub-only social section. For GitHub OAuth, set the OAuth app's **Authorization callback URL** to `http://localhost:3000/api/auth/callback/github` (in dev) — a mismatch shows GitHub's *"The redirect_uri is not associated with this application."*
+
 ### 4. Seed Database (Optional)
 Seed default open-source programs and sample projects:
 ```bash
 npm run db:setup
 ```
+
+> [!WARNING]
+> **Existing databases must run `npm run db:indexes` once after pulling this change.** The legacy unique-sparse `email_1` index on `users.email` rejected GitHub accounts with no public email (NextAuth's MongoDB adapter writes `email: null`, and `sparse` does not exempt explicit `null` values → `E11000 duplicate key: { email: null }` on sign-up). The script now drops that index and creates `email_lookup` — a partial unique index that enforces uniqueness only for string emails (`partialFilterExpression: { email: { $type: "string" } }`), so email-less GitHub accounts can sign up while duplicate real emails stay blocked.
 
 ### 5. Run Development Server
 ```bash

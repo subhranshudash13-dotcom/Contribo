@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ArrowRight,
   BookOpen,
   CheckCircle2,
   Clock,
   FileCheck2,
+  History,
   MessageSquarePlus,
   Plus,
   RefreshCw,
@@ -15,6 +16,8 @@ import {
   Trash2,
   Wand2,
 } from 'lucide-react';
+import { formatRelativeTime, sortNewestFirst, updatedAtOrCreated } from '@/lib/time';
+import { useMinuteClock } from '@/lib/client/use-minute-clock';
 import { HUB_CAPABILITIES } from './constants';
 import { ProgressMeter } from './ui/ProgressMeter';
 import { useProposalStudioContext } from './context/ProposalStudioContext';
@@ -38,6 +41,13 @@ export function StudioHub() {
 
   const soonestDays =
     drafts.length > 0 ? Math.min(...drafts.map((d) => d.daysLeft)) : undefined;
+
+  // Ordered by real modification time, newest first — not by whatever string a
+  // draft happened to store in `updatedAt`.
+  const recentDrafts = useMemo(() => sortNewestFirst(drafts, updatedAtOrCreated), [drafts]);
+
+  // 0 until hydrated, so the relative labels below never disagree with the server.
+  const now = useMinuteClock();
 
   // Interactive Live Hero Graphic State
   const [heroSection, setHeroSection] = useState<'summary' | 'timeline' | 'arch' | 'ai'>('arch');
@@ -401,7 +411,10 @@ export function StudioHub() {
             </div>
           ) : (
             <div className="divide-y divide-hairline/60">
-              {drafts.map((d) => (
+              {recentDrafts.map((d) => {
+                const updatedLabel =
+                  now > 0 ? formatRelativeTime(updatedAtOrCreated(d), new Date(now)) : null;
+                return (
                 <div
                   key={d.id}
                   className="group flex flex-col md:flex-row md:items-center justify-between gap-4 py-5 px-3 rounded-2xl hover:bg-surface/80 transition-all"
@@ -415,6 +428,11 @@ export function StudioHub() {
                       <span className="inline-flex items-center gap-1 font-mono text-xs font-bold text-muted">
                         <Clock size={13} /> {d.daysLeft}d left
                       </span>
+                      {updatedLabel && (
+                        <span className="inline-flex items-center gap-1 font-mono text-xs text-muted">
+                          <History size={13} /> Updated {updatedLabel}
+                        </span>
+                      )}
                     </div>
 
                     <h3 className="font-heading text-lg sm:text-xl font-bold text-primary group-hover:text-accent transition-colors truncate">
@@ -460,7 +478,8 @@ export function StudioHub() {
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>

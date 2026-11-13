@@ -57,7 +57,7 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
   }
 
   return (
-    <header className="fixed left-0 right-0 top-2.5 z-50 flex justify-center px-2.5 pointer-events-none sm:top-3 sm:px-4 lg:px-6">
+    <header className="print:hidden fixed left-0 right-0 top-2.5 z-50 flex justify-center px-2.5 pointer-events-none sm:top-3 sm:px-4 lg:px-6">
       <div
         className={`relative z-50 flex w-full max-w-[1400px] items-center justify-between gap-2 rounded-full border border-hairline bg-surface/85 px-3 py-2 shadow-[0_8px_30px_rgba(0,0,0,0.03)] backdrop-blur-md transition-all pointer-events-auto dark:bg-[#18110D]/85 dark:shadow-[0_8px_30px_rgba(0,0,0,0.25)] sm:px-5 sm:py-1.5 lg:px-5 ${
           isScrolled

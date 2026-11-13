@@ -5,9 +5,12 @@ import {
   Building2,
   Clock,
   Code2,
+  History,
   Target,
   UserCheck,
 } from 'lucide-react';
+import { formatRelativeTime, updatedAtOrCreated } from '@/lib/time';
+import { useMinuteClock } from '@/lib/client/use-minute-clock';
 import { BUILDER_SECTIONS, STUDIO_NAV, type StudioTab } from '../constants';
 import { ProgressMeter } from '../ui/ProgressMeter';
 import { ScoreRing } from '../ui/ScoreRing';
@@ -24,10 +27,15 @@ export function OverviewPanel() {
     selectTab,
   } = useProposalStudioContext();
 
+  // 0 until hydrated, so the "last edited" label never disagrees with the server.
+  const now = useMinuteClock();
+
   if (!draft) return null;
 
   const score = scoreData.totalScore;
   const filled = sectionStatus.filter((s) => s.filled).length;
+  const lastEdited =
+    now > 0 ? formatRelativeTime(updatedAtOrCreated(draft), new Date(now)) : null;
   const nextIncomplete = BUILDER_SECTIONS.find(
     (s) => !sectionStatus.find((st) => st.id === s.id)?.filled
   );
@@ -50,6 +58,11 @@ export function OverviewPanel() {
                   <span className="text-muted"> · </span>
                   {draft.programName}
                 </p>
+                {lastEdited && (
+                  <p className="mt-1 inline-flex items-center gap-1.5 font-mono text-xs text-muted">
+                    <History size={13} /> Last edited {lastEdited}
+                  </p>
+                )}
               </div>
               <p className="max-w-2xl text-base text-secondary leading-relaxed">
                 {nextIncomplete

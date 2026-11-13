@@ -1,11 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import {
+  ChevronDown,
+  ClipboardCopy,
+  Download,
+  ExternalLink,
+  FileCode,
+  FileDown,
   History,
   MessageSquarePlus,
   Plus,
+  Printer,
   RefreshCw,
   Save,
 } from 'lucide-react';
@@ -51,6 +58,29 @@ export function StudioWorkspace() {
   const studio = useProposalStudioContext();
   const draft = studio.activeDraft;
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setIsExportMenuOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setIsExportMenuOpen(false);
+      }
+    }
+    if (isExportMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isExportMenuOpen]);
 
   if (!draft) {
     return (
@@ -70,7 +100,7 @@ export function StudioWorkspace() {
   return (
     <div className="min-h-screen w-full bg-noise flex flex-col">
       {/* Sticky Studio Top Navigation Header */}
-      <header className="sticky top-0 z-40 w-full border-b border-hairline bg-surface/95 backdrop-blur-md shadow-xs">
+      <header className="print:hidden sticky top-0 z-40 w-full border-b border-hairline bg-surface/95 backdrop-blur-md shadow-xs">
         <div className="mx-auto max-w-[1440px] px-4 sm:px-8 lg:px-12">
           <div className="flex h-16 sm:h-18 items-center justify-between gap-4">
             {/* Left: Active Draft Selector + New Draft Button */}
@@ -99,8 +129,160 @@ export function StudioWorkspace() {
               </div>
             </div>
 
-            {/* Right Actions: History + Sync status + Feedback */}
+            {/* Right Actions: Export Menu + History + Sync status + Feedback */}
             <div className="flex items-center gap-2.5 shrink-0">
+              {/* Proposal Export Dropdown */}
+              <div className="relative" ref={exportMenuRef}>
+                <button
+                  type="button"
+                  id="proposal-export-dropdown-btn"
+                  aria-haspopup="true"
+                  aria-expanded={isExportMenuOpen}
+                  onClick={() => setIsExportMenuOpen((prev) => !prev)}
+                  className="inline-flex h-10 items-center gap-2 rounded-2xl bg-accent px-3.5 sm:px-4 font-mono text-xs sm:text-sm font-bold text-white hover:bg-accent-hover active:scale-[0.99] transition-all shadow-xs cursor-pointer"
+                  title="Export proposal as Markdown (.md), PDF, or copy to clipboard"
+                >
+                  <Download size={15} />
+                  <span>Export</span>
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform duration-200 ${isExportMenuOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                {isExportMenuOpen && (
+                  <div
+                    role="menu"
+                    aria-orientation="vertical"
+                    aria-labelledby="proposal-export-dropdown-btn"
+                    className="absolute right-0 mt-2 w-72 sm:w-80 rounded-2xl border border-hairline bg-surface p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150"
+                  >
+                    <div className="px-3 py-2 border-b border-hairline/60">
+                      <p className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted">
+                        Export Proposal
+                      </p>
+                      <p className="font-heading text-xs font-bold text-primary truncate">
+                        {draft.projectTitle}
+                      </p>
+                    </div>
+
+                    <div className="py-1 space-y-0.5">
+                      {/* Export Markdown */}
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          studio.downloadMarkdownFile();
+                          setIsExportMenuOpen(false);
+                        }}
+                        className="w-full flex items-start gap-3 rounded-xl p-2.5 text-left hover:bg-surface-raised transition-colors cursor-pointer group"
+                      >
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-accent/20 bg-accent/10 text-accent group-hover:bg-accent group-hover:text-white transition-colors shrink-0">
+                          <FileCode size={16} />
+                        </span>
+                        <div>
+                          <p className="font-mono text-xs font-bold text-primary">
+                            Download Markdown (.md)
+                          </p>
+                          <p className="text-[11px] text-muted">
+                            Clean .md file with standard YAML frontmatter
+                          </p>
+                        </div>
+                      </button>
+
+                      {/* Export Official PDF */}
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          void studio.downloadPdfFile();
+                          setIsExportMenuOpen(false);
+                        }}
+                        className="w-full flex items-start gap-3 rounded-xl p-2.5 text-left hover:bg-surface-raised transition-colors cursor-pointer group"
+                      >
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-accent/20 bg-accent/10 text-accent group-hover:bg-accent group-hover:text-white transition-colors shrink-0">
+                          <FileDown size={16} />
+                        </span>
+                        <div>
+                          <p className="font-mono text-xs font-bold text-primary">
+                            Export as PDF
+                          </p>
+                          <p className="text-[11px] text-muted">
+                            Formatted vector PDF via ReportLab engine
+                          </p>
+                        </div>
+                      </button>
+
+                      {/* Print to PDF */}
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setIsExportMenuOpen(false);
+                          if (studio.activeTab !== 'export') {
+                            studio.selectTab('export');
+                            setTimeout(() => window.print(), 200);
+                          } else {
+                            window.print();
+                          }
+                        }}
+                        className="w-full flex items-start gap-3 rounded-xl p-2.5 text-left hover:bg-surface-raised transition-colors cursor-pointer group"
+                      >
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-accent/20 bg-accent/10 text-accent group-hover:bg-accent group-hover:text-white transition-colors shrink-0">
+                          <Printer size={16} />
+                        </span>
+                        <div>
+                          <p className="font-mono text-xs font-bold text-primary">
+                            Print to PDF (Ctrl+P)
+                          </p>
+                          <p className="text-[11px] text-muted">
+                            Clean print layout without studio interface
+                          </p>
+                        </div>
+                      </button>
+
+                      {/* Copy Formatted Proposal */}
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          studio.copyProposalToClipboard();
+                          setIsExportMenuOpen(false);
+                        }}
+                        className="w-full flex items-start gap-3 rounded-xl p-2.5 text-left hover:bg-surface-raised transition-colors cursor-pointer group"
+                      >
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-accent/20 bg-accent/10 text-accent group-hover:bg-accent group-hover:text-white transition-colors shrink-0">
+                          <ClipboardCopy size={16} />
+                        </span>
+                        <div>
+                          <p className="font-mono text-xs font-bold text-primary">
+                            Copy to Clipboard
+                          </p>
+                          <p className="text-[11px] text-muted">
+                            Instant formatted markdown with section headers
+                          </p>
+                        </div>
+                      </button>
+                    </div>
+
+                    <div className="border-t border-hairline/60 pt-1 mt-1">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          studio.selectTab('export');
+                          setIsExportMenuOpen(false);
+                        }}
+                        className="w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs font-mono font-bold text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                      >
+                        <span>Open Full Export Center</span>
+                        <ExternalLink size={13} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <button
                 type="button"
                 onClick={() => setShowHistoryModal(true)}

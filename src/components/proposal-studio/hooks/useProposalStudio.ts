@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { calculateProposalProgress as computeProgress } from '@/lib/proposal-studio/sections';
 import {
   DRAFT_PROPOSALS,
   ORG_PROPOSALS_CATALOG,
@@ -48,13 +49,6 @@ function normalizeTab(value: string | null): StudioTab {
 
 function sectionFilled(value: string | undefined, minChars: number) {
   return (value || '').trim().length >= minChars;
-}
-
-function computeProgress(sections: Record<string, string>) {
-  const filledCount = BUILDER_SECTIONS.filter((s) =>
-    sectionFilled(sections[s.id], s.minChars)
-  ).length;
-  return Math.round((filledCount / BUILDER_SECTIONS.length) * 100);
 }
 
 export function useProposalStudio() {
@@ -306,7 +300,7 @@ export function useProposalStudio() {
                 ...d,
                 sections: updated,
                 progress,
-                updatedAt: 'Just now',
+                updatedAt: new Date().toISOString(),
               }
             : d
         );
@@ -391,7 +385,7 @@ export function useProposalStudio() {
       setDrafts((prevDrafts) =>
         prevDrafts.map((d) =>
           d.id === activeDraftId
-            ? { ...d, sections: updated, progress, updatedAt: 'Just now' }
+            ? { ...d, sections: updated, progress, updatedAt: new Date().toISOString() }
             : d
         )
       );
@@ -424,7 +418,8 @@ export function useProposalStudio() {
         difficulty: 'Intermediate',
         acceptedExamplesCount: 4,
         communityContributionsCount: 2,
-        updatedAt: 'Just now',
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         sections: {
           summary: proposal.summary,
           problemStatement: `Based on accepted proposal structure:\n${proposal.summary}`,
@@ -453,36 +448,62 @@ export function useProposalStudio() {
 
   const copyProposalToClipboard = useCallback(() => {
     if (!activeDraft) return;
-    const fullText = BUILDER_SECTIONS.map(
-      (s) => `## ${s.title}\n\n${sectionsState[s.id] || '(Not specified)'}\n`
-    ).join('\n---\n\n');
+    const header =
+      `# Proposal: ${activeDraft.projectTitle} (${activeDraft.programName})\n\n` +
+      `**Target Organization**: ${activeDraft.orgName}\n` +
+      `**Deadline**: ${activeDraft.deadline || 'N/A'}\n\n` +
+      `---\n\n`;
+    const fullText =
+      header +
+      BUILDER_SECTIONS.map(
+        (s) => `## ${s.title}\n\n${sectionsState[s.id] || '_(Section not yet filled)_'}\n`
+      ).join('\n---\n\n');
     void navigator.clipboard.writeText(fullText);
-    showToast('Proposal markdown copied');
+    showToast('Proposal markdown copied to clipboard');
   }, [activeDraft, sectionsState, showToast]);
 
   const downloadMarkdownFile = useCallback(() => {
     if (!activeDraft) return;
+    const author = 'Contributor';
+    const dateStr = new Date().toISOString().split('T')[0];
+
+    const yamlFrontmatter =
+      `---\n` +
+      `title: "${activeDraft.projectTitle.replace(/"/g, '\\"')}"\n` +
+      `program: "${activeDraft.programName.replace(/"/g, '\\"')}"\n` +
+      `organization: "${activeDraft.orgName.replace(/"/g, '\\"')}"\n` +
+      `author: "${author}"\n` +
+      `date: "${dateStr}"\n` +
+      `deadline: "${(activeDraft.deadline || '').replace(/"/g, '\\"')}"\n` +
+      `---\n\n`;
+
     const fullText =
-      `# Proposal: ${activeDraft.projectTitle} (${activeDraft.programName})\n` +
-      `**Organization**: ${activeDraft.orgName}\n` +
+      yamlFrontmatter +
+      `# Proposal: ${activeDraft.projectTitle} (${activeDraft.programName})\n\n` +
+      `**Organization**: ${activeDraft.orgName}\n\n` +
       `**Deadline**: ${activeDraft.deadline}\n\n` +
       BUILDER_SECTIONS.map(
         (s) =>
-          `## ${s.title}\n\n${sectionsState[s.id] || '(Not specified)'}\n`
+          `## ${s.title}\n\n${sectionsState[s.id] || '_(Section not yet filled)_'}\n`
       ).join('\n---\n\n');
 
-    const blob = new Blob([fullText], { type: 'text/markdown' });
+    const sanitizedTitle = (activeDraft.projectTitle || activeDraft.projectSlug || 'proposal')
+      .replace(/[/\\?%*:|"<>]/g, '')
+      .trim();
+    const fileName = `${sanitizedTitle || 'proposal'}.md`;
+
+    const blob = new Blob([fullText], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Proposal_${activeDraft.projectSlug || 'draft'}.md`;
+    a.download = fileName;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Markdown downloaded');
+    showToast(`Downloaded ${fileName}`);
   }, [activeDraft, sectionsState, showToast]);
 
-  const downloadPdfFile = useCallback(async () => {
-    if (!activeDraft) return;
+  const downloadPdfFile = useCallback(async (): Promise<boolean> => {
+    if (!activeDraft) return false;
     try {
       showToast('Generating PDF via Python ReportLab engine...');
       const payload = {
@@ -511,7 +532,14 @@ export function useProposalStudio() {
       });
 
       if (!res.ok) {
-        throw new Error(`PDF generation failed: ${res.statusText}`);
+        let errMessage = res.statusText;
+        try {
+          const errJson = await res.json();
+          if (errJson?.error) errMessage = errJson.error;
+        } catch {
+          // ignore json parse error
+        }
+        throw new Error(errMessage || `Server returned ${res.status}`);
       }
 
       const blob = await res.blob();
@@ -522,9 +550,11 @@ export function useProposalStudio() {
       a.click();
       URL.revokeObjectURL(url);
       showToast('PDF downloaded successfully!');
+      return true;
     } catch (err) {
       console.error(err);
-      showToast('Failed to export PDF via Python engine');
+      showToast('PDF engine unavailable — use Print to PDF (Ctrl+P) or download Markdown (.md).');
+      return false;
     }
   }, [activeDraft, sectionsState, calculatedProgress, showToast]);
 

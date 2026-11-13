@@ -84,6 +84,7 @@ async function main() {
     await ensureIndex(orgsCollection, { programId: 1, is2026: -1, name: 1 });
     await ensureIndex(orgsCollection, { category: 1, is2026: -1 });
     await ensureIndex(orgsCollection, { technologies: 1 });
+    await ensureIndex(orgsCollection, { programId: 1, technologies: 1, is2026: -1 });
     await ensureIndex(orgsCollection, { years: 1 });
     await ensureIndex(orgsCollection, { projectCount: -1, is2026: -1, name: 1 });
 
@@ -101,6 +102,8 @@ async function main() {
     await ensureIndex(projectsCollection, { programId: 1, year: -1, stars: -1 });
     await ensureIndex(projectsCollection, { orgSlug: 1, year: -1 });
     await ensureIndex(projectsCollection, { difficulty: 1, year: -1 });
+    await ensureIndex(projectsCollection, { programId: 1, techStack: 1, year: -1 });
+    await ensureIndex(projectsCollection, { programId: 1, difficulty: 1, techStack: 1 });
     await ensureIndex(projectsCollection, { year: -1, stars: -1, createdAt: -1 });
     await ensureIndex(
       projectsCollection,
@@ -144,7 +147,31 @@ async function main() {
     // 4. users (auth + profile)
     console.log("\nConfiguring indexes for 'users'...");
     const usersCollection = db.collection('users');
-    await ensureIndex(usersCollection, { email: 1 }, { unique: true, sparse: true });
+    // Drop the legacy unique sparse email_1 index. `sparse` only omits docs
+    // where the field is ABSENT, but the NextAuth MongoDB adapter writes
+    // `email: null` for GitHub accounts with no public email — so every
+    // subsequent email-less account failed with E11000 dup key { email: null }.
+    try {
+      await usersCollection.dropIndex('email_1');
+      console.log('- dropped legacy unique sparse index: email_1');
+    } catch (err) {
+      if (err && err.codeName === 'IndexNotFound') {
+        console.log('- no legacy email_1 index to drop');
+      } else {
+        console.warn(`- could not drop email_1: ${err.message}`);
+      }
+    }
+    // Partial unique index: enforces uniqueness only for string emails,
+    // so null/missing emails (private GitHub accounts) no longer collide.
+    await ensureIndex(
+      usersCollection,
+      { email: 1 },
+      {
+        unique: true,
+        name: 'email_lookup',
+        partialFilterExpression: { email: { $type: 'string' } },
+      }
+    );
 
     // 5. saved_items (dashboard bookmarks)
     console.log("\nConfiguring indexes for 'saved_items'...");

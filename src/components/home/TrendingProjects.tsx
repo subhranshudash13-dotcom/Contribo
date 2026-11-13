@@ -37,6 +37,8 @@ interface TrendingProjectsProps {
   projects: TrendingProject[];
   savedProjects?: string[];
   trackedProjects?: string[];
+  /** Rows in the projects collection; used instead of an invented total. */
+  projectTotal?: number;
 }
 
 type Domain = 'all' | 'web' | 'ai' | 'systems';
@@ -219,7 +221,16 @@ export function TrendingProjects({
   projects,
   savedProjects = [],
   trackedProjects = [],
+  projectTotal,
 }: TrendingProjectsProps) {
+  // This section used to advertise a fixed rounded-up total of its own while
+  // the stats band on the same page printed the real count from the database.
+  // Without a count there is nothing to claim, so the link just says "All
+  // projects".
+  const allProjectsLabel =
+    typeof projectTotal === 'number' && Number.isFinite(projectTotal) && projectTotal > 0
+      ? `All ${projectTotal.toLocaleString()}`
+      : 'All projects';
   const [domain, setDomain] = useState<Domain>('all');
   const [showAll, setShowAll] = useState(false);
 
@@ -276,7 +287,7 @@ export function TrendingProjects({
             href="/projects?sortBy=stars"
             className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl border border-hairline bg-surface hover:bg-surface-raised text-primary text-xs sm:text-sm font-semibold transition-all cursor-pointer"
           >
-            All 13.4k+
+            {allProjectsLabel}
             <ArrowRight size={14} />
           </Link>
         </div>
@@ -326,7 +337,11 @@ export function TrendingProjects({
       {projects.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-hairline bg-surface/50 p-12 text-center">
           <Compass size={24} className="mx-auto text-muted mb-2 opacity-50" />
-          <p className="text-primary font-medium text-sm">No curated projects found</p>
+          <p className="text-primary font-medium text-sm">
+            {domain === 'all'
+              ? 'No curated projects found'
+              : 'No projects match the selected domain yet'}
+          </p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-hairline bg-surface/50 p-10 text-center">
@@ -525,7 +540,9 @@ export function TrendingProjects({
                 href="/projects?sortBy=stars"
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brass hover:bg-brass-hover text-white text-xs font-semibold transition-all shadow-xs"
               >
-                All 13.4k+ Projects
+                {projectTotal && projectTotal > 0
+                  ? `${allProjectsLabel} Projects`
+                  : allProjectsLabel}
                 <ArrowRight size={13} />
               </Link>
             </div>

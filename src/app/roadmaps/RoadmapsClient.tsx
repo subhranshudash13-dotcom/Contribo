@@ -112,8 +112,9 @@ export default function RoadmapsClient() {
     () => true,
     () => false
   );
-  const [activeTrackId, setActiveTrackId] = useState(() => ROADMAP_TRACKS[0].id);
-  const [activeStageId, setActiveStageId] = useState(() => ROADMAP_TRACKS[0].stages[0].id);
+  const initialTrack = ROADMAP_TRACKS.find((track) => track.id === searchParams.get('track')) ?? ROADMAP_TRACKS[0];
+  const [activeTrackId, setActiveTrackId] = useState(() => initialTrack.id);
+  const [activeStageId, setActiveStageId] = useState(() => initialTrack.stages[0].id);
   const [progress, setProgress] = useState<ProgressMap>(() => loadProgress());
 
   // Synchronize track selection from URL search params when changed
@@ -284,7 +285,7 @@ export default function RoadmapsClient() {
               Choose your goal
             </h2>
             <p className="text-sm text-secondary mt-1">
-              Four independent tracks — switch anytime. Progress is saved per track.
+              {ROADMAP_TRACKS.length} independent tracks — switch anytime. Progress is saved per track.
             </p>
           </div>
         </div>

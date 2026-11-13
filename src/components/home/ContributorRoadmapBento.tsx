@@ -4,7 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
-export function ContributorRoadmapBento() {
+export function ContributorRoadmapBento({
+  organizationCount,
+}: {
+  organizationCount?: number;
+} = {}) {
   return (
     <section className="space-y-4 sm:space-y-5">
       {/* Header */}
@@ -93,7 +97,9 @@ export function ContributorRoadmapBento() {
             </div>
 
             <div className="text-[11px] font-mono text-[#065F46] dark:text-[#A7F3D0] text-right font-medium">
-              1,250+ mentoring organizations
+              {typeof organizationCount === 'number' && organizationCount > 0
+                ? `${organizationCount.toLocaleString()} mentoring organizations indexed`
+                : 'Mentoring organizations indexed'}
             </div>
           </div>
 

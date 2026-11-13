@@ -28,12 +28,15 @@ export async function GET() {
   } catch {
     // Do not log raw connection errors (may include URI fragments).
     console.error('GET /api/health failed: database unreachable');
-    return apiError('Service unhealthy', 503, {
+    const response = apiError('Service unhealthy', 503, {
       status: 'error',
       mongodb: 'down',
       latencyMs: Date.now() - started,
       timestamp: new Date().toISOString(),
     });
+    response.headers.set('Cache-Control', 'no-store, max-age=0');
+    response.headers.set('Pragma', 'no-cache');
+    return response;
   }
 }
 

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { MessageSquarePlus, X, Send, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { friendlyApiMessage, submitUserFeedback } from '@/lib/client/api';
+import { FEEDBACK_CATEGORIES } from '@/lib/feedback-categories.mjs';
 
 export function FeedbackModal({
   isOpen,
@@ -106,11 +107,11 @@ export function FeedbackModal({
                 onChange={(e) => setType(e.target.value)}
                 className="w-full bg-page border border-hairline rounded-xl px-3.5 py-2.5 text-xs font-mono text-primary font-semibold focus:outline-none focus:border-accent cursor-pointer"
               >
-                <option value="Feature Request">✨ Feature Request</option>
-                <option value="New Program Proposal">🚀 Suggest New Mentorship Program (GSoC/LFX/C4GT/etc.)</option>
-                <option value="Proposal Library Addition">📚 Suggest Proposal Sample for Library</option>
-                <option value="Bug Report">🐛 Bug Report</option>
-                <option value="General Feedback">💬 General Feedback</option>
+                {FEEDBACK_CATEGORIES.map((category) => (
+                  <option key={category.value} value={category.value}>
+                    {category.label}
+                  </option>
+                ))}
               </select>
             </div>
 

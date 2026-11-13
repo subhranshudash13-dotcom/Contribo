@@ -2,6 +2,8 @@ import { ObjectId } from 'mongodb';
 import type { Application, ApplicationStatus, SavedItem, SavedItemType } from '@/../types';
 import { COLLECTIONS, getCollection } from '@/lib/db';
 import { serializeDocs, serializeDoc, toObjectId } from '@/lib/serialize';
+import { getProgramById, getProgramBySlug } from '@/lib/repositories/programs';
+import { createApplicationMilestones, normalizeCompletedMilestoneIds } from '@/lib/application-milestones.mjs';
 
 function userIdFilter(userId: string) {
   const oid = toObjectId(userId);
@@ -70,11 +72,12 @@ export async function saveItem(
   }
 
   const collection = await getCollection<SavedItem>(COLLECTIONS.savedItems);
-  const existing = await collection.findOne({
+  const filter = {
     userId: userIdFilter(userId),
     type: payload.type,
     targetId: { $in: [targetOid, payload.targetId] },
-  } as never);
+  };
+  const existing = await collection.findOne(filter as never);
 
   if (existing) {
     return serializeDoc(existing as unknown as Record<string, unknown>);
@@ -92,8 +95,19 @@ export async function saveItem(
     createdAt: new Date(),
   };
 
-  const result = await collection.insertOne(doc as never);
-  return serializeDoc({ ...doc, _id: result.insertedId } as unknown as Record<string, unknown>);
+  try {
+    const result = await collection.insertOne(doc as never);
+    return serializeDoc({ ...doc, _id: result.insertedId } as unknown as Record<string, unknown>);
+  } catch (error: unknown) {
+    // Another request may have inserted the same bookmark after our lookup.
+    if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
+      const existing = await collection.findOne(filter as never);
+      if (existing) {
+        return serializeDoc(existing as unknown as Record<string, unknown>);
+      }
+    }
+    throw error;
+  }
 }
 
 export async function unsaveItem(userId: string, savedItemId: string) {
@@ -323,6 +337,7 @@ export async function updateApplication(
     notes?: string;
     deadline?: string | null;
     projectTitle?: string;
+    completedMilestoneIds?: string[];
   }
 ) {
   const itemOid = toObjectId(applicationId);
@@ -350,6 +365,55 @@ export async function updateApplication(
   }
 
   const collection = await getCollection<Application>(COLLECTIONS.applications);
+
+  if (updates.completedMilestoneIds !== undefined) {
+    const existing = await collection.findOne({
+      _id: itemOid,
+      userId: userIdFilter(userId),
+    } as never);
+
+    if (!existing) return null;
+
+    const programById =
+      existing.programId != null
+        ? await getProgramById(String(existing.programId))
+        : null;
+    const program =
+      programById ||
+      (typeof existing.programSlug === 'string'
+        ? await getProgramBySlug(existing.programSlug)
+        : null);
+
+    const programSlug =
+      typeof program?.slug === 'string'
+        ? program.slug
+        : typeof existing.programSlug === 'string'
+          ? existing.programSlug
+          : 'program';
+
+    const applicationSteps = Array.isArray(program?.applicationSteps)
+      ? program.applicationSteps.filter(
+          (step): step is string => typeof step === 'string'
+        )
+      : [];
+
+    const validMilestoneIds = createApplicationMilestones(
+      programSlug,
+      applicationSteps
+    ).map((milestone) => milestone.id);
+
+    const completedMilestoneIds = normalizeCompletedMilestoneIds(
+      updates.completedMilestoneIds,
+      validMilestoneIds
+    );
+
+    if (completedMilestoneIds === null) {
+      throw new Error('Invalid completed milestone IDs');
+    }
+
+    $set.completedMilestoneIds = completedMilestoneIds;
+  }
+
   const result = await collection.findOneAndUpdate(
     { _id: itemOid, userId: userIdFilter(userId) } as never,
     { $set },

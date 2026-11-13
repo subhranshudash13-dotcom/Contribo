@@ -1,4 +1,7 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { parsePage } from '@/lib/pagination';
+import hacktoberfestTags from '@/lib/hacktoberfest-tags.json';
 import Script from 'next/script';
 import { Project } from '../../../types';
 import { ProjectCard } from '@/components/ui/ProjectCard';
@@ -84,7 +87,7 @@ async function getProjectsData(options: {
       name: p.name as string,
       slug: p.slug as string,
     })),
-    technologies: techFromDb.length > 0 ? techFromDb : FALLBACK_TECH,
+    technologies: [...new Set([...(techFromDb.length > 0 ? techFromDb : FALLBACK_TECH), ...hacktoberfestTags])],
     difficulties:
       facets.difficulties?.length > 0
         ? facets.difficulties
@@ -103,8 +106,9 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
   const programId = typeof params.programId === 'string' ? params.programId : undefined;
   const orgSlug = typeof params.orgSlug === 'string' ? params.orgSlug : undefined;
   const tech = typeof params.tech === 'string' ? params.tech : undefined;
-  const sortBy = typeof params.sortBy === 'string' ? params.sortBy : 'newest';
-  const page = typeof params.page === 'string' ? parseInt(params.page, 10) : 1;
+  const selectedSort = typeof params.sortBy === 'string' ? params.sortBy : undefined;
+  const sortBy = selectedSort || 'newest';
+  const requestedPage = parsePage(params.page);
   const limit = 24; // 24 projects per page
   
   const [data, session] = await Promise.all([
@@ -114,8 +118,8 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
       difficulty,
       tech,
       q,
-      sortBy,
-      page,
+      sortBy: q ? selectedSort : sortBy,
+      page: requestedPage,
       limit
     }),
     auth(),
@@ -140,6 +144,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
   }
   
   const totalPages = Math.ceil(total / limit);
+  const page = requestedPage;
   const startOffset = total > 0 ? (page - 1) * limit + 1 : 0;
   const endOffset = Math.min(total, page * limit);
   
@@ -152,10 +157,15 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
     if (programId) urlParams.set('programId', programId);
     if (orgSlug) urlParams.set('orgSlug', orgSlug);
     if (tech) urlParams.set('tech', tech);
-    if (sortBy) urlParams.set('sortBy', sortBy);
+    if (!q || selectedSort) urlParams.set('sortBy', sortBy);
     urlParams.set('page', pageNumber.toString());
     return `/projects?${urlParams.toString()}`;
   };
+
+  // Page past the end: send the user to the last real page instead of an empty shell.
+  if (totalPages > 0 && page > totalPages) {
+    redirect(createPageLink(totalPages));
+  }
 
   const maxPageButtons = 5;
   const startPage = Math.max(1, page - 2);
@@ -286,7 +296,7 @@ export default async function ProjectsDirectory({ searchParams }: Props) {
 
             {/* Tech Tags Cloud — live facets from /api/meta/filters */}
             <div className="space-y-3 pt-4 border-t border-hairline/60">
-              <label className="text-xs font-mono uppercase tracking-wider text-muted font-bold block">Popular Stacks</label>
+              <label className="text-xs font-mono uppercase tracking-wider text-muted font-bold block">Stacks & Hacktoberfest Tracks</label>
               <div className="flex flex-wrap gap-1.5">
                 {technologies.map(t => {
                   const isActive = tech?.toLowerCase() === t.toLowerCase();

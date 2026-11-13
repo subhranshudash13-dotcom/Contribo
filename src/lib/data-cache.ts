@@ -3,7 +3,7 @@ import { getPlatformStats } from '@/lib/repositories/stats';
 import { listPrograms } from '@/lib/repositories/programs';
 import { getFilterFacets } from '@/lib/repositories/filters';
 import { getTrendingProjects } from '@/lib/repositories/trending';
-import { listOrganizations } from '@/lib/repositories/organizations';
+import { listOrganizations, listFeaturedOrganizations } from '@/lib/repositories/organizations';
 import { listProjects } from '@/lib/repositories/projects';
 
 /** Platform stats — short TTL, high traffic. */
@@ -72,15 +72,24 @@ export const getCachedHomeBundle = unstable_cache(
   { revalidate: 180 }
 );
 
-/** Default organizations catalog page (first 120 orgs, no filters). */
+export const ORGANIZATIONS_PAGE_SIZE = 120;
+
+/** One page of the default organizations catalog (no filters), cached per page. */
 export const getCachedDefaultOrganizations = unstable_cache(
-  async () =>
+  async (page: number = 1) =>
     listOrganizations({
-      limit: 120,
-      skip: 0,
+      limit: ORGANIZATIONS_PAGE_SIZE,
+      skip: (page - 1) * ORGANIZATIONS_PAGE_SIZE,
       lean: true,
     }),
-  ['default-organizations-v6'],
+  ['default-organizations-v7'],
+  { revalidate: 300 }
+);
+
+/** Home page org showcase + the real total it is allowed to advertise. */
+export const getCachedFeaturedOrganizations = unstable_cache(
+  async () => listFeaturedOrganizations(16),
+  ['featured-organizations-v1'],
   { revalidate: 300 }
 );
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { 
   BookOpen, 
   GitBranch, 
@@ -11,17 +11,33 @@ import {
   ChevronDown,
   ChevronUp,
   Zap,
-  Clock
+  GitFork,
+  MessageSquareQuote,
+  GitPullRequest,
+  GitMerge,
+  Globe,
+  Bug,
+  ShieldCheck,
+  Clock,
+  Search,
+  X
 } from 'lucide-react';
 import { CopyableSnippet } from '@/components/ui/CopyableSnippet';
 import { countWords, readingTimeLabel, textFromReactNode } from '@/lib/reading-time';
+import { OpenSourceGlossary } from './components/OpenSourceGlossary';
+import { PrInteractiveLab } from './components/PrInteractiveLab';
+
+type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced';
 
 interface ResourceGuide {
   id: string;
+  aliases?: string[];
   title: string;
   category: string;
   icon: React.ElementType;
   description: string;
+  difficulty: Difficulty;
+  readTime: string;
   keyPoints: string[];
   realLifeExample: {
     title: string;
@@ -30,11 +46,37 @@ interface ResourceGuide {
   isHighlight?: boolean;
 }
 
+const DIFFICULTY_STYLES: Record<Difficulty, string> = {
+  Beginner: 'text-success bg-success/10 border-success/20',
+  Intermediate: 'text-accent bg-accent/10 border-accent/20',
+  Advanced: 'text-error bg-error/10 border-error/20',
+};
+
+function DiffBlock({ code }: { code: string }) {
+  return (
+    <pre className="overflow-x-auto rounded-xl border border-hairline bg-surface-raised p-4 font-mono text-xs leading-relaxed">
+      {code.split('\n').map((line, i) => (
+        <div
+          key={i}
+          className={
+            line.startsWith('+') ? 'text-success' : line.startsWith('-') ? 'text-error' : 'text-secondary'
+          }
+        >
+          {line || ' '}
+        </div>
+      ))}
+    </pre>
+  );
+}
+
 const RESOURCES: ResourceGuide[] = [
   {
     id: "proposal-writing",
+    aliases: ["timeline-planner", "mentor-outreach-guide"],
     title: "How to write proposals",
     category: "Mentorship Application",
+    difficulty: "Intermediate",
+    readTime: "5 min read",
     icon: BookOpen,
     isHighlight: true,
     description: "Learn how to formulate and present winning project proposals for GSoC, Outreachy, LFX, and ESoC.",
@@ -61,8 +103,11 @@ const RESOURCES: ResourceGuide[] = [
   },
   {
     id: "finding-first-issues",
+    aliases: ["readiness-checklist"],
     title: "Finding Good First Issues",
     category: "Discovery",
+    difficulty: "Beginner",
+    readTime: "3 min read",
     icon: Compass,
     isHighlight: true,
     description: "Struggling to find where to start? Use our curated paths to discover beginner issues.",
@@ -94,6 +139,8 @@ const RESOURCES: ResourceGuide[] = [
     id: "git-guide",
     title: "Git Guide",
     category: "Version Control",
+    difficulty: "Intermediate",
+    readTime: "4 min read",
     icon: GitBranch,
     description: "Master the git workflows, branches, commits, forks, and rebase conventions used in open source.",
     keyPoints: [
@@ -125,6 +172,8 @@ const RESOURCES: ResourceGuide[] = [
     id: "github-guide",
     title: "GitHub Guide",
     category: "Developer Platform",
+    difficulty: "Beginner",
+    readTime: "4 min read",
     icon: Terminal,
     description: "Find your way around repositories, issues, discussions, projects, and pull requests.",
     keyPoints: [
@@ -156,6 +205,8 @@ const RESOURCES: ResourceGuide[] = [
     id: "resume-tips",
     title: "Resume Tips",
     category: "Career Support",
+    difficulty: "Beginner",
+    readTime: "3 min read",
     icon: Award,
     description: "Optimize your resume to highlight open-source contributions and grab reviewer attention.",
     keyPoints: [
@@ -191,6 +242,8 @@ const RESOURCES: ResourceGuide[] = [
     id: "interview-tips",
     title: "Interview Tips",
     category: "Career Support",
+    difficulty: "Advanced",
+    readTime: "5 min read",
     icon: ShieldAlert,
     description: "Nail behavioral screening and technical walkthrough interviews for premium fellowships.",
     keyPoints: [
@@ -213,12 +266,283 @@ const RESOURCES: ResourceGuide[] = [
         </div>
       )
     }
+  },
+    {
+    id: "what-is-open-source",
+    title: "What is Open Source & Why Does It Matter?",
+    category: "Foundations",
+    difficulty: "Beginner",
+    readTime: "4 min read",
+    icon: Globe,
+    isHighlight: true,
+    description: "Understand the difference between building solo tutorial clones and collaborating on real production software used by thousands of people.",
+    keyPoints: [
+      "Open source means the code is public, so anyone can read it, use it, and propose improvements.",
+      "Real projects have users, tests, CI, and maintainers, so your code must hold up outside your laptop.",
+      "Every merged contribution is public proof of your skills that you can link on a resume."
+    ],
+    realLifeExample: {
+      title: "Real Scenario: Tutorial Clone vs. Real Contribution",
+      content: (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+          <div className="p-4 bg-error/5 border border-error/20 rounded-xl">
+            <h4 className="text-error text-xs font-bold uppercase tracking-wider mb-2">Solo Tutorial Clone</h4>
+            <p className="text-sm text-secondary">
+              You follow a video and build a todo app.<br/>
+              • No one reviews your code.<br/>
+              • Nothing breaks, because nobody uses it.<br/>
+              • You never learn why decisions were made.
+            </p>
+          </div>
+          <div className="p-4 bg-success/5 border border-success/20 rounded-xl">
+            <h4 className="text-success text-xs font-bold uppercase tracking-wider mb-2">Real Collaboration</h4>
+            <p className="text-sm text-secondary">
+              You fix a bug in a repo used by thousands.<br/>
+              • A maintainer questions your approach.<br/>
+              • CI runs tests on every change you push.<br/>
+              • You learn code style, communication, and shipping.
+            </p>
+          </div>
+        </div>
+      )
+    }
+  },
+  {
+    id: "demystifying-pull-requests",
+    aliases: ["pr-starter-guide", "first-pr"],
+    title: "Demystifying Pull Requests",
+    category: "Collaboration",
+    difficulty: "Beginner",
+    readTime: "5 min read",
+    icon: GitPullRequest,
+    isHighlight: true,
+    description: "Learn why it is called a pull request and how every PR adds real engineering and business value to a project.",
+    keyPoints: [
+      "You are asking the maintainer to pull your changes into their repository, which is why it is a pull request.",
+      "Review catches bugs before users see them, and CI proves the change works.",
+      "A PR leaves a permanent record of what changed and why, which helps future developers."
+    ],
+    realLifeExample: {
+      title: "Real Scenario: A Small PR with Real Value",
+      content: (
+        <div className="space-y-4 text-sm text-secondary">
+          <p>This tiny change stops the app from showing &ldquo;Invalid Date&rdquo; to users:</p>
+          <DiffBlock
+            code={`@@ -1,3 +1,5 @@
+ export function formatDate(input: string) {
+-  return new Date(input).toLocaleDateString();
++  const date = new Date(input);
++  if (Number.isNaN(date.getTime())) return 'Unknown date';
++  return date.toLocaleDateString();
+ }`}
+          />
+          <div className="p-3 bg-success/10 border border-success/20 rounded-lg text-success text-[11px]">
+            <strong>Engineering value:</strong> a bug is fixed and a reviewer double-checked it.<br/>
+            <strong>Business value:</strong> fewer broken pages, fewer support complaints, happier users.
+          </div>
+        </div>
+      )
+    }
+  },
+  {
+    id: "issues-and-bug-reports",
+    title: "Mastering Issues & Bug Reports",
+    category: "Collaboration",
+    difficulty: "Beginner",
+    readTime: "4 min read",
+    icon: Bug,
+    description: "Most project momentum starts in the issue tracker, before any code is written. Learn to write issues that get fixed.",
+    keyPoints: [
+      "Search existing issues first so you do not file a duplicate.",
+      "Give steps to reproduce, expected result, actual result, and your environment.",
+      "A clear issue lets maintainers decide, assign, and plan work without a back-and-forth."
+    ],
+    realLifeExample: {
+      title: "Real Scenario: Bad vs. Good Bug Report",
+      content: (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+          <div className="p-4 bg-error/5 border border-error/20 rounded-xl">
+            <h4 className="text-error text-xs font-bold uppercase tracking-wider mb-2">Bad Report</h4>
+            <p className="text-sm text-secondary">
+              <strong>Title:</strong> Login broken<br/>
+              <strong>Body:</strong> It does not work. Please fix.
+            </p>
+          </div>
+          <div className="p-4 bg-success/5 border border-success/20 rounded-xl">
+            <h4 className="text-success text-xs font-bold uppercase tracking-wider mb-2">Good Report</h4>
+            <div className="text-xs text-secondary font-mono whitespace-pre-wrap">
+              {`Title: Login returns 500 when email contains "+"
+
+Steps:
+1. Open /login
+2. Enter a+test@mail.com
+3. Click Sign in
+
+Expected: user is logged in
+Actual: 500 error
+Env: Chrome 130, Windows 11`}
+            </div>
+          </div>
+        </div>
+      )
+    }
+  },
+  {
+    id: "code-review-etiquette",
+    title: "Code Review Etiquette",
+    category: "Collaboration",
+    difficulty: "Intermediate",
+    readTime: "5 min read",
+    icon: MessageSquareQuote,
+    description: "Learn how to read maintainer feedback and survive a Request Changes review without taking it personally.",
+    keyPoints: [
+      "Request Changes is a normal step in review, not a rejection of you.",
+      "Reply to every comment, even if it is only a short confirmation after the fix.",
+      "Ask a clarifying question if feedback is unclear, and push fixes as new commits."
+    ],
+    realLifeExample: {
+      title: "Real Scenario: Responding to Request Changes",
+      content: (
+        <div className="space-y-4 text-sm text-secondary p-4 bg-surface-raised rounded-xl border border-hairline">
+          <p><strong>Maintainer:</strong> &ldquo;This fetches users inside a loop, which makes one request per user. Could we batch it? Please also add a test.&rdquo;</p>
+          <div className="pl-4 border-l-2 border-error">
+            <strong className="text-error">Weak reply:</strong>
+            <p className="mt-1 italic">&ldquo;It works on my machine.&rdquo;</p>
+          </div>
+          <div className="pl-4 border-l-2 border-accent">
+            <strong className="text-primary">Strong reply:</strong>
+            <p className="mt-1 italic">&ldquo;Good catch, thanks! I batched the calls and added a test. Please let me know if the naming works.&rdquo;</p>
+          </div>
+          <DiffBlock
+            code={`-  for (const id of ids) {
+-    users.push(await getUser(id));
+-  }
++  const users = await getUsersByIds(ids);`}
+          />
+        </div>
+      )
+    }
+  },
+  {
+    id: "security-and-licensing",
+    title: "Security Hygiene & Licensing",
+    category: "Best Practices",
+    difficulty: "Intermediate",
+    readTime: "6 min read",
+    icon: ShieldCheck,
+    description: "Know the difference between permissive and copyleft licenses, and keep secrets like .env credentials out of your commits.",
+    keyPoints: [
+      "MIT is permissive: reuse is easy, and you keep the copyright notice.",
+      "GPL is copyleft: distributed derivative work must stay open under the same license.",
+      "Never commit .env files. If a secret leaks, rotate it immediately, because deleting the file is not enough."
+    ],
+    realLifeExample: {
+      title: "Real Scenario: Keeping Secrets Out of Git",
+      content: (
+        <div className="space-y-4 text-sm text-secondary">
+          <p>Ignore real secrets and commit only a safe template:</p>
+          <DiffBlock
+            code={`# .gitignore
++.env
++.env.local
+ node_modules/
+
+# .env.example (safe to commit)
++DATABASE_URL=
++JWT_SECRET=`}
+          />
+          <p>If you already committed a secret: rotate the key first, then run <code className="font-mono text-xs">git rm --cached .env</code> and push a new commit.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3 bg-surface-raised border border-hairline rounded-lg">
+              <strong className="text-primary block mb-1">MIT (permissive)</strong>
+              Use, modify, and redistribute freely, even in closed-source products.
+            </div>
+            <div className="p-3 bg-surface-raised border border-hairline rounded-lg">
+              <strong className="text-primary block mb-1">GPL (copyleft)</strong>
+              Distributed modifications must also be released as GPL with source code.
+            </div>
+          </div>
+        </div>
+      )
+    }
   }
 ];
 
+interface LifecycleStep {
+  step: string;
+  title: string;
+  description: string;
+  tags: string[];
+  icon: React.ElementType;
+}
+
+const LIFECYCLE_STEPS: LifecycleStep[] = [
+  {
+    step: '01',
+    title: 'Lurk & Explore',
+    description: 'Inspecting commit velocity, reviewing recent PR activity, and reading CONTRIBUTING.md to understand the workflow and community expectations.',
+    tags: ['Commit Velocity', 'CONTRIBUTING.md', 'Issue Triage'],
+    icon: Compass,
+  },
+  {
+    step: '02',
+    title: 'Fork & Setup',
+    description: 'Forking repo, setting upstream remote, installing dependencies, and running test suites locally to ensure a stable baseline.',
+    tags: ['Fork Repo', 'git remote add upstream', 'Local Setup'],
+    icon: GitFork,
+  },
+  {
+    step: '03',
+    title: 'Reproduce & Discuss',
+    description: 'Confirming the bug or proposing approach on the issue discussion before writing code. Wait for official assignment before starting.',
+    tags: ['Reproduce Bug', 'Discuss Approach', 'Wait for Assignment'],
+    icon: MessageSquareQuote,
+  },
+  {
+    step: '04',
+    title: 'Branch & Implement',
+    description: 'Creating a feature branch from main and writing atomic code with tests, adhering strictly to codebase conventions and standards.',
+    tags: ['Feature Branch', 'Atomic Commits', 'Type Safety'],
+    icon: GitBranch,
+  },
+  {
+    step: '05',
+    title: 'Open PR & Pass CI',
+    description: 'Submitting structured description referencing the issue, providing reproduction proof, and watching CI turns green.',
+    tags: ['Structured PR', 'Fixes #issue', 'Pass CI'],
+    icon: GitPullRequest,
+  },
+  {
+    step: '06',
+    title: 'Review & Merge',
+    description: 'Iterating constructively on maintainer review feedback, rebasing or squashing commits, and celebrating the merged milestone.',
+    tags: ['Address Feedback', 'Rebase / Squash', 'Merged Milestone 🎉'],
+    icon: GitMerge,
+  },
+];
+
 function ResourceCard({ guide }: { guide: ResourceGuide }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hash = window.location.hash.slice(1);
+      return hash === guide.id || Boolean(guide.aliases?.includes(hash));
+    }
+    return false;
+  });
   const Icon = guide.icon;
+  const panelId = `scenario-${guide.id}`;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash === guide.id || Boolean(guide.aliases?.includes(hash))) {
+        setExpanded(true);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [guide.id, guide.aliases]);
 
   // Everything a reader actually works through: the summary, the takeaways and
   // the real-life example. The title and category are labels, not prose.
@@ -236,7 +560,18 @@ function ResourceCard({ guide }: { guide: ResourceGuide }) {
   const readTime = useMemo(() => readingTimeLabel(guideText), [guideText]);
 
   return (
-    <div className={`flex flex-col bg-surface border rounded-2xl overflow-hidden transition-all duration-300 ${expanded ? 'border-accent shadow-md' : 'border-hairline shadow-sm hover:border-tertiary'}`}>
+    <article
+      id={guide.id}
+      className={`scroll-mt-24 relative flex flex-col bg-surface border rounded-2xl overflow-hidden transition-all duration-300 motion-reduce:transition-none ${expanded ? 'border-accent shadow-md' : 'border-hairline shadow-sm hover:border-tertiary'}`}
+    >
+      {guide.aliases?.map((alias) => (
+        <span
+          key={alias}
+          id={alias}
+          className="scroll-mt-24 absolute -top-24 pointer-events-none"
+          aria-hidden="true"
+        />
+      ))}
       <div 
         className="p-6 cursor-pointer select-none flex-1"
         onClick={() => setExpanded(!expanded)}
@@ -260,9 +595,26 @@ function ResourceCard({ guide }: { guide: ResourceGuide }) {
               </div>
             </div>
           </div>
-          <button className="p-1 rounded-full hover:bg-surface-raised text-tertiary transition-colors">
+          <button
+            type="button"
+            aria-expanded={expanded}
+            aria-controls={panelId}
+            aria-label={expanded ? `Hide scenario for ${guide.title}` : `Show scenario for ${guide.title}`}
+            className="p-1 rounded-full hover:bg-surface-raised text-tertiary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
             {expanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
           </button>
+        </div>
+
+        {/* Difficulty + read time */}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md border ${DIFFICULTY_STYLES[guide.difficulty]}`}>
+            {guide.difficulty}
+          </span>
+          <span className="inline-flex items-center gap-1 text-[11px] font-mono text-tertiary bg-surface-raised border border-hairline/60 px-2 py-1 rounded-md">
+            <Clock size={12} aria-hidden="true" />
+            {guide.readTime}
+          </span>
         </div>
         
         <p className="text-sm text-secondary leading-relaxed mb-6">
@@ -282,26 +634,151 @@ function ResourceCard({ guide }: { guide: ResourceGuide }) {
         </div>
       </div>
 
-      {/* Real-Life Example Dropdown */}
-      <div className={`border-t transition-all duration-300 ease-in-out ${expanded ? 'border-hairline bg-surface/50 opacity-100 max-h-[1000px]' : 'border-transparent bg-surface opacity-0 max-h-0 hidden'}`}>
-        <div className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Zap size={16} className="text-brass" />
-            <h4 className="font-bold text-primary">{guide.realLifeExample.title}</h4>
+      {/* Real-world scenario (smooth expand/collapse) */}
+      <div
+        id={panelId}
+        role="region"
+        aria-hidden={!expanded}
+        className={`grid transition-[grid-template-rows] duration-300 ease-in-out motion-reduce:transition-none ${expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+      >
+        <div className="overflow-hidden">
+          <div className={`border-t ${expanded ? 'border-hairline bg-surface/50' : 'border-transparent'}`}>
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Zap size={16} className="text-brass" />
+                <h4 className="font-bold text-primary">{guide.realLifeExample.title}</h4>
+              </div>
+              {guide.realLifeExample.content}
+            </div>
           </div>
-          {guide.realLifeExample.content}
         </div>
       </div>
-    </div>
+    </article>
+  );
+}
+
+// Sections on this page that can be jumped to. Add an entry here (and an
+// id on the section) when a new section such as the PR Lab, lifecycle,
+// toolkit or glossary lands, so no pill ever points at a missing section.
+const QUICK_LINKS = [
+  { id: 'guides', label: 'Guides' },
+  { id: 'all-resources', label: 'All resources' },
+  { id: 'pr-interactive-lab', label: 'PR Lab' },
+  { id: 'glossary-heading', label: 'Glossary' },
+];
+
+function QuickJump() {
+  const jump = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    const target = document.getElementById(id);
+    if (!target) return;
+    e.preventDefault();
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    window.history.replaceState(null, '', `#${id}`);
+  };
+
+  return (
+    <nav
+      aria-label="Jump to a section"
+      className="sticky top-20 z-30 mx-auto w-fit max-w-full rounded-full border border-hairline bg-surface/85 p-1.5 shadow-sm backdrop-blur-md"
+    >
+      <ul className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+        {QUICK_LINKS.map(l => (
+          <li key={l.id} className="shrink-0">
+            <a
+              href={`#${l.id}`}
+              onClick={e => jump(e, l.id)}
+              className="block rounded-full px-4 py-1.5 text-sm font-medium text-secondary transition-colors hover:bg-surface-raised hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              {l.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 }
 
 export function ResourcesClient() {
-  const highlights = RESOURCES.filter(r => r.isHighlight);
-  const others = RESOURCES.filter(r => !r.isHighlight);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [urlReady, setUrlReady] = useState(false);
+
+  // Restore filters from the URL and support browser back/forward navigation.
+  useEffect(() => {
+    const syncFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      setSearchQuery(params.get('q') ?? '');
+      setSelectedCategory(params.get('category') ?? '');
+      setUrlReady(true);
+    };
+
+    syncFromUrl();
+    window.addEventListener('popstate', syncFromUrl);
+    return () => window.removeEventListener('popstate', syncFromUrl);
+  }, []);
+
+  // Keep the current filters shareable through URL query parameters.
+  useEffect(() => {
+    if (!urlReady) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const query = searchQuery.trim();
+
+    if (query) params.set('q', query);
+    else params.delete('q');
+
+    if (selectedCategory) params.set('category', selectedCategory);
+    else params.delete('category');
+
+    const queryString = params.toString();
+    const nextUrl =
+      `${window.location.pathname}` +
+      `${queryString ? `?${queryString}` : ''}` +
+      `${window.location.hash}`;
+    const currentUrl =
+      `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+    if (nextUrl !== currentUrl) {
+      window.history.replaceState(window.history.state, '', nextUrl);
+    }
+  }, [searchQuery, selectedCategory, urlReady]);
+
+  const categories = Array.from(
+    new Set(RESOURCES.map((resource) => resource.category))
+  ).sort((a, b) => a.localeCompare(b));
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+
+  const filteredResources = RESOURCES.filter((guide) => {
+    const matchesCategory =
+      !selectedCategory || guide.category === selectedCategory;
+
+    const searchableText = [
+      guide.title,
+      guide.category,
+      guide.description,
+      ...guide.keyPoints,
+      guide.realLifeExample.title,
+    ].join(' ').toLowerCase();
+
+    const matchesQuery =
+      !normalizedQuery || searchableText.includes(normalizedQuery);
+
+    return matchesCategory && matchesQuery;
+  });
+
+  const highlights = filteredResources.filter((resource) => resource.isHighlight);
+  const others = filteredResources.filter((resource) => !resource.isHighlight);
+  const hasActiveFilters = Boolean(searchQuery.trim() || selectedCategory);
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('');
+  };
 
   return (
-    <div className="max-w-[1200px] mx-auto p-4 sm:p-6 lg:p-8 space-y-16 py-12">
+    <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-16 space-y-16">
       
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto space-y-4">
@@ -313,31 +790,189 @@ export function ResourcesClient() {
         </p>
       </div>
 
-      {/* Resources to level up */}
+      {/* Contributor Lifecycle */}
       <section>
-        <div className="flex items-center gap-3 mb-8">
-          <div className="h-8 w-1.5 bg-accent rounded-full" />
-          <h2 className="text-2xl font-bold text-primary">Resources to level up</h2>
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-8">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-8 w-1.5 bg-accent rounded-full" />
+              <h2 className="text-2xl font-bold text-primary">Contributor Lifecycle</h2>
+            </div>
+            <p className="text-sm text-secondary max-w-2xl">
+              The 6-step path every open-source contributor takes from zero to a merged PR.
+            </p>
+          </div>
+          <span className="text-xs font-mono text-tertiary uppercase tracking-wider self-start sm:self-end">
+            Roadmap · 6 Steps
+          </span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {highlights.map(guide => (
-            <ResourceCard key={guide.id} guide={guide} />
-          ))}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {LIFECYCLE_STEPS.map((step) => {
+            const Icon = step.icon;
+            return (
+              <div
+                key={step.step}
+                className="group relative flex flex-col bg-surface border border-hairline rounded-2xl p-6 transition-all duration-300 hover:border-accent/40 hover:shadow-md hover:-translate-y-0.5 overflow-hidden"
+              >
+                {/* Top Accent Line */}
+                <div className="absolute top-0 left-0 right-0 h-[3px] bg-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                {/* Header: Step Number Pill & Icon */}
+                <div className="flex items-center justify-between mb-4">
+                  <span className="font-mono text-xs font-bold text-accent bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-md">
+                    STEP {step.step}
+                  </span>
+                  <div className="p-2.5 rounded-xl bg-surface-raised border border-hairline text-primary group-hover:text-accent group-hover:bg-accent/10 transition-colors">
+                    <Icon size={20} />
+                  </div>
+                </div>
+
+                {/* Title */}
+                <h3 className="text-lg font-bold text-primary mb-2 group-hover:text-accent transition-colors">
+                  {step.title}
+                </h3>
+
+                {/* Description */}
+                <p className="text-sm text-secondary leading-relaxed mb-4 flex-1">
+                  {step.description}
+                </p>
+
+                {/* Action Tags */}
+                <div className="flex flex-wrap gap-1.5 pt-3 border-t border-hairline/60 mt-auto">
+                  {step.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-[11px] font-mono text-tertiary bg-surface-raised px-2 py-0.5 rounded border border-hairline/60"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
+      </section>
+      <QuickJump />
+
+      {/* Search and category filters */}
+      <section
+        aria-label="Search and filter resources"
+        className="max-w-4xl mx-auto w-full space-y-4"
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_240px_auto] gap-3 items-center">
+          <div className="relative">
+            <label htmlFor="resource-search" className="sr-only">
+              Search resources
+            </label>
+            <Search
+              size={18}
+              aria-hidden="true"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary"
+            />
+            <input
+              id="resource-search"
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search resources..."
+              className="w-full rounded-xl border border-hairline bg-surface py-3 pl-10 pr-4 text-sm text-primary placeholder:text-tertiary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="resource-category" className="sr-only">
+              Filter by category
+            </label>
+            <select
+              id="resource-category"
+              value={selectedCategory}
+              onChange={(event) => setSelectedCategory(event.target.value)}
+              className="w-full rounded-xl border border-hairline bg-surface px-3 py-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+            >
+              <option value="">All categories</option>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            type="button"
+            onClick={clearFilters}
+            disabled={!hasActiveFilters}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-hairline px-4 py-3 text-sm font-semibold text-primary transition-colors hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <X size={16} aria-hidden="true" />
+            Clear filters
+          </button>
+        </div>
+
+        <p className="text-sm text-secondary" aria-live="polite">
+          Showing {filteredResources.length} of {RESOURCES.length} resources
+        </p>
       </section>
 
-      {/* All Resources */}
-      <section>
-        <div className="flex items-center gap-3 mb-8">
-          <div className="h-8 w-1.5 bg-tertiary rounded-full" />
-          <h2 className="text-2xl font-bold text-primary">All resources</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-          {others.map(guide => (
-            <ResourceCard key={guide.id} guide={guide} />
-          ))}
-        </div>
+      {filteredResources.length === 0 && (
+        <section
+          className="rounded-2xl border border-dashed border-hairline bg-surface p-8 sm:p-12 text-center space-y-3"
+          aria-live="polite"
+        >
+          <Search size={28} className="mx-auto text-tertiary" aria-hidden="true" />
+          <h2 className="text-xl font-bold text-primary">No resources found</h2>
+          <p className="text-sm text-secondary">
+            Try another keyword or category, or clear your filters to see all resources.
+          </p>
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          >
+            <X size={16} aria-hidden="true" />
+            Clear filters
+          </button>
+        </section>
+      )}
+
+      {/* Keep these section IDs for the upstream QuickJump navigation. */}
+      <section id="guides" className="scroll-mt-40">
+        {highlights.length > 0 && (
+          <>
+            <div className="flex items-center gap-3 mb-8">
+              <div className="h-8 w-1.5 bg-accent rounded-full" />
+              <h2 className="text-2xl font-bold text-primary">Resources to level up</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {highlights.map((guide) => (
+                <ResourceCard key={guide.id} guide={guide} />
+              ))}
+            </div>
+          </>
+        )}
       </section>
+
+      <section id="all-resources" className="scroll-mt-40">
+        {others.length > 0 && (
+          <>
+            <div className="flex items-center gap-3 mb-8">
+              <div className="h-8 w-1.5 bg-tertiary rounded-full" />
+              <h2 className="text-2xl font-bold text-primary">All resources</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {others.map((guide) => (
+                <ResourceCard key={guide.id} guide={guide} />
+              ))}
+            </div>
+          </>
+        )}
+      </section>
+
+      <PrInteractiveLab />
+
+      <OpenSourceGlossary />
 
     </div>
   );

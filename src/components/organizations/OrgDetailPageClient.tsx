@@ -122,8 +122,12 @@ export function OrgDetailPageClient({
     }
   };
 
-  const programName = program?.name || 'Google Summer of Code';
-  const programAccent = program?.accentColor || '#3B82F6';
+  const projectProgram = projects.find(
+    (project) => typeof project.programName === 'string' && project.programName.trim().length > 0
+  );
+
+  const programName = program?.name || projectProgram?.programName || 'Open Source Mentorship';
+  const programAccent = program?.accentColor || projectProgram?.programColor || '#3B82F6';
 
   return (
     <div className="w-full pb-16">

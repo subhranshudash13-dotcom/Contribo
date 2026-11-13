@@ -90,48 +90,34 @@ export async function getTrendingProjects(options?: {
 
   const collection = await getCollection<Project>(COLLECTIONS.projects);
 
+  const sortOrder = { stars: -1, year: -1, createdAt: -1 } as const;
+  let activeFilter = filter;
   let projects = await collection
-    .find(filter)
-    .sort({ stars: -1, year: -1, createdAt: -1 })
+    .find(activeFilter)
+    .sort(sortOrder)
     .limit(limit)
     .toArray();
 
-  // If domain filter is too sparse, relax year and refill
+  // If the domain filter is too sparse, relax only the year constraint.
+  // The domain and program constraints always stay in place.
   if (projects.length < Math.min(6, limit) && domain !== 'all') {
     const relaxed = { ...filter };
     delete relaxed.year;
-    const more = await collection
-      .find(relaxed)
-      .sort({ stars: -1, year: -1 })
+    activeFilter = relaxed;
+    projects = await collection
+      .find(activeFilter)
+      .sort(sortOrder)
       .limit(limit)
       .toArray();
-    const seen = new Set(projects.map((p) => String(p._id)));
-    for (const p of more) {
-      const id = String(p._id);
-      if (!seen.has(id)) {
-        projects.push(p);
-        seen.add(id);
-      }
-      if (projects.length >= limit) break;
-    }
   }
 
-  // Final fallback: top starred overall
-  if (projects.length === 0) {
-    const fallbackFilter: Record<string, unknown> = {};
-    if (program.programId !== undefined) {
-      fallbackFilter.programId = program.programId;
-    }
-    projects = await collection
-      .find(fallbackFilter as never)
-      .sort({ stars: -1, year: -1 })
-      .limit(limit)
-      .toArray();
-  }
+  // Count against the filter that produced the returned page. No fallback to
+  // unrelated top-starred projects when a domain has no matches.
+  const total = await collection.countDocuments(activeFilter);
 
   return {
     projects: serializeDocs(projects as unknown as Record<string, unknown>[]),
-    total: projects.length,
+    total,
     domain: domain || 'all',
   };
 }

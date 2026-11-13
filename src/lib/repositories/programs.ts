@@ -30,18 +30,24 @@ export const listPrograms = cache(async (options?: { tier?: number }) => {
 });
 
 export const getProgramBySlug = cache(async (slug: string) => {
-  if (!slug) return null;
+  const normalized = slug?.trim().toLowerCase();
+  if (!normalized) return null;
 
   // Check in-memory list first if available
   if (inMemoryPrograms && Date.now() - inMemoryPrograms.at < PROGRAMS_CACHE_TTL) {
     const found = inMemoryPrograms.data.find(
-      (p) => typeof p.slug === 'string' && p.slug.toLowerCase() === slug.toLowerCase()
+      (p) => typeof p.slug === 'string' && p.slug.toLowerCase() === normalized
     );
     if (found) return found;
   }
 
   const collection = await getCollection<Program>(COLLECTIONS.programs);
-  const program = await collection.findOne({ slug });
+  // Use the same case-insensitive rule as the in-memory path. Without this,
+  // the behavior changed after the five-minute catalog cache expired.
+  const program = await collection.findOne(
+    { slug: normalized },
+    { collation: { locale: 'en', strength: 2 } }
+  );
   return serializeDoc(program as unknown as Record<string, unknown> | null);
 });
 

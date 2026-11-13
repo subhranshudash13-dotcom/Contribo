@@ -112,6 +112,17 @@ export async function PATCH(req: Request) {
       return apiError('Invalid status', 400);
     }
 
+    if (
+      body.completedMilestoneIds !== undefined &&
+      (!Array.isArray(body.completedMilestoneIds) ||
+        body.completedMilestoneIds.length > 100 ||
+        body.completedMilestoneIds.some(
+          (id) => typeof id !== 'string' || id.length > 300
+        ))
+    ) {
+      return apiError('Invalid completed milestone IDs', 400);
+    }
+
     try {
       const application = await updateApplication(authResult.userId, body.id, {
         status: isValidApplicationStatus(body.status) ? body.status : undefined,
@@ -121,6 +132,9 @@ export async function PATCH(req: Request) {
             ? (body.deadline as string | null)
             : undefined,
         projectTitle: typeof body.projectTitle === 'string' ? body.projectTitle : undefined,
+        completedMilestoneIds: Array.isArray(body.completedMilestoneIds)
+          ? body.completedMilestoneIds as string[]
+          : undefined,
       });
 
       if (!application) {
@@ -129,7 +143,10 @@ export async function PATCH(req: Request) {
 
       return apiOk({ application }, 200, privateNoStoreHeaders());
     } catch (e) {
-      if (e instanceof Error && e.message === 'Invalid application status') {
+      if (
+        e instanceof Error &&
+        ['Invalid application status', 'Invalid completed milestone IDs'].includes(e.message)
+      ) {
         return apiError(e.message, 400);
       }
       throw e;

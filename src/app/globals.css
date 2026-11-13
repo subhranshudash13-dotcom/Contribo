@@ -206,3 +206,110 @@
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* Hidden on interactive screen, surfaced cleanly on print */
+.print-watermark-header,
+.print-watermark-footer {
+  display: none;
+}
+
+/* ==========================================================================
+   Print Stylesheet for Clean Native Print-to-PDF (Ctrl+P / Cmd+P)
+   ========================================================================== */
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 18mm 15mm 20mm 15mm;
+  }
+
+  /* Surfaced Contribo branding header and footer for print */
+  .print-watermark-header,
+  .print-watermark-footer {
+    display: flex !important;
+  }
+
+  /* Reset document background and typography for crisp print output */
+  html, body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+    zoom: 1 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Hide app chrome, navigation bars, footers, feedback overlays, and interactive buttons */
+  header,
+  footer,
+  nav,
+  [role="status"],
+  #mobile-navigation,
+  .under-development-overlay,
+  button,
+  select,
+  input {
+    display: none !important;
+  }
+
+  /* Remove fixed padding and constraints applied by layout */
+  .flex-1.w-full.pt-16.px-1,
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Proposal printable sheet formatting */
+  .proposal-print-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .proposal-print-section {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 1.25rem !important;
+    padding-bottom: 1rem !important;
+  }
+
+  /* Clean up border styling and link decorations for print */
+  .proposal-print-section a {
+    text-decoration: underline !important;
+    color: #111827 !important;
+  }
+
+  /* Force dark text and high contrast on paper */
+  h1, h2, h3, h4, p, span, div {
+    color: #111827 !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+
+  .text-accent,
+  .text-primary,
+  .text-secondary,
+  .text-muted {
+    color: #1f2937 !important;
+  }
+
+  .border-accent,
+  .border-hairline {
+    border-color: #d1d5db !important;
+  }
+
+  /* Ensure preformatted code blocks wrap and do not overflow pages */
+  pre, code {
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+    background: #f9fafb !important;
+    border: 1px solid #e5e7eb !important;
+    color: #111827 !important;
+  }
+}
+

@@ -7,12 +7,11 @@ import { listOrganizations } from '@/lib/repositories/organizations';
 import { getOrgYearsForProgram, getOrgTechnologiesForProgram } from '@/lib/repositories/filters';
 import { ProgramOrgExplorer } from '@/components/ui/ProgramOrgExplorer';
 import { ProgramLogo } from '@/components/ui/ProgramLogos';
+import { EXPLORER_ENABLED_SLUGS } from '@/lib/programs/explorer';
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
-
-const EXPLORER_ENABLED_SLUGS = new Set(['gsoc', 'lfx', 'esoc', 'outreachy', 'sob', 'mlh-fellowship', 'mlh']);
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;

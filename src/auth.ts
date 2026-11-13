@@ -3,8 +3,9 @@ import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import clientPromise, { getDb, resolveDatabaseName } from "@/lib/db";
+import { getClient, getDb, resolveDatabaseName } from "@/lib/db";
 import { verifyPassword } from "@/lib/hash";
+import { isProviderConfigured } from "@/lib/auth-providers";
 
 /**
  * Resolve the JWT signing secret. Never fall back to a hardcoded default
@@ -29,7 +30,7 @@ function resolveAuthSecret(): string | undefined {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: resolveAuthSecret(),
-  adapter: MongoDBAdapter(clientPromise, {
+  adapter: MongoDBAdapter(getClient, {
     databaseName: resolveDatabaseName(),
   }),
   session: { 
@@ -44,16 +45,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: "/login",
   },
   providers: [
-    GitHub({
-      clientId: process.env.AUTH_GITHUB_ID,
-      clientSecret: process.env.AUTH_GITHUB_SECRET,
-      allowDangerousEmailAccountLinking: true,
-    }),
-    Google({
-      clientId: process.env.AUTH_GOOGLE_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET,
-      allowDangerousEmailAccountLinking: true,
-    }),
+    // Only register OAuth providers whose credentials are actually configured.
+    // Registering with missing/placeholder values advertises the provider and
+    // builds an authorize URL with an empty client_id → Configuration 500.
+    ...(isProviderConfigured(process.env, "github")
+      ? [
+          GitHub({
+            clientId: process.env.AUTH_GITHUB_ID,
+            clientSecret: process.env.AUTH_GITHUB_SECRET,
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
+    ...(isProviderConfigured(process.env, "google")
+      ? [
+          Google({
+            clientId: process.env.AUTH_GOOGLE_ID,
+            clientSecret: process.env.AUTH_GOOGLE_SECRET,
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
     Credentials({
       name: "Credentials",
       credentials: {

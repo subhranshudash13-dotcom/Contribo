@@ -5,7 +5,7 @@ import { ArrowRight, LayoutDashboard, Compass } from 'lucide-react';
 
 export function UnderDevelopmentOverlay() {
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center p-4 sm:p-6 pointer-events-auto">
+    <div className="print:hidden fixed inset-0 z-40 flex items-center justify-center p-4 sm:p-6 pointer-events-auto">
       {/* Subtle background overlay */}
       <div className="absolute inset-0 bg-page/60 backdrop-blur-[2px] pointer-events-none" />
 

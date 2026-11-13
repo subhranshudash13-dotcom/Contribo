@@ -1,13 +1,14 @@
 'use client';
 
+import React, { Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { LazySection } from '@/components/ui/LazySection';
 import { SectionSkeleton } from '@/components/ui/SectionSkeleton';
 import type { TrendingProject } from '@/components/home/TrendingProjects';
+import type { FeaturedOrganization } from '@/lib/repositories/organizations';
 
 /**
- * Client-only deferred home sections.
- * Uses ssr:false + LazySection so heavy interactive UI loads near the viewport.
+ * Server-rendered & streaming home sections with Suspense boundaries.
+ * SSR-hydrated without blocking main-thread waterfalls or search engine crawlers.
  */
 
 const OpenSourceExplainer = dynamic(
@@ -15,7 +16,7 @@ const OpenSourceExplainer = dynamic(
     import('@/components/programs/OpenSourceExplainer').then((m) => ({
       default: m.OpenSourceExplainer,
     })),
-  { ssr: false, loading: () => <SectionSkeleton variant="cards" count={3} /> }
+  { loading: () => <SectionSkeleton variant="cards" count={3} /> }
 );
 
 const ProposalStudioSection = dynamic(
@@ -23,7 +24,7 @@ const ProposalStudioSection = dynamic(
     import('@/components/home/ProposalStudioSection').then((m) => ({
       default: m.ProposalStudioSection,
     })),
-  { ssr: false, loading: () => <SectionSkeleton variant="cards" count={3} /> }
+  { loading: () => <SectionSkeleton variant="cards" count={3} /> }
 );
 
 const ProgramTimelineChart = dynamic(
@@ -31,7 +32,7 @@ const ProgramTimelineChart = dynamic(
     import('@/components/home/ProgramTimelineChart').then((m) => ({
       default: m.ProgramTimelineChart,
     })),
-  { ssr: false, loading: () => <SectionSkeleton variant="chart" /> }
+  { loading: () => <SectionSkeleton variant="chart" /> }
 );
 
 const PopularOrgsGrid = dynamic(
@@ -39,7 +40,7 @@ const PopularOrgsGrid = dynamic(
     import('@/components/ui/PopularOrgsGrid').then((m) => ({
       default: m.PopularOrgsGrid,
     })),
-  { ssr: false, loading: () => <SectionSkeleton variant="grid" count={8} /> }
+  { loading: () => <SectionSkeleton variant="grid" count={8} /> }
 );
 
 const FaqAccordion = dynamic(
@@ -47,7 +48,7 @@ const FaqAccordion = dynamic(
     import('@/components/home/FaqAccordion').then((m) => ({
       default: m.FaqAccordion,
     })),
-  { ssr: false, loading: () => <SectionSkeleton variant="faq" count={5} /> }
+  { loading: () => <SectionSkeleton variant="faq" count={5} /> }
 );
 
 const TrendingProjects = dynamic(
@@ -66,33 +67,27 @@ const HeroStats = dynamic(
 
 export function DeferredOpenSourceExplainer() {
   return (
-    <LazySection
-      fallback={<SectionSkeleton variant="cards" count={3} />}
-      minHeight={420}
-      
-    >
+    <Suspense fallback={<SectionSkeleton variant="cards" count={3} />}>
       <OpenSourceExplainer />
-    </LazySection>
+    </Suspense>
   );
 }
 
 export function DeferredHeroStats({ stats }: { stats: Record<string, number> }) {
   return (
     <section className="hidden sm:block">
-      <HeroStats stats={stats} />
+      <Suspense fallback={<SectionSkeleton variant="stats" />}>
+        <HeroStats stats={stats} />
+      </Suspense>
     </section>
   );
 }
 
 export function DeferredProposalStudioSection() {
   return (
-    <LazySection
-      fallback={<SectionSkeleton variant="cards" count={3} />}
-      minHeight={480}
-      
-    >
+    <Suspense fallback={<SectionSkeleton variant="cards" count={3} />}>
       <ProposalStudioSection />
-    </LazySection>
+    </Suspense>
   );
 }
 
@@ -100,46 +95,51 @@ export function DeferredTrendingProjects({
   projects,
   savedProjects,
   trackedProjects,
+  projectTotal,
 }: {
   projects: TrendingProject[];
   savedProjects: string[];
   trackedProjects: string[];
+  projectTotal?: number;
 }) {
   return (
-    <LazySection
-      fallback={<SectionSkeleton variant="cards" count={6} />}
-      minHeight={520}
-      
-    >
+    <Suspense fallback={<SectionSkeleton variant="cards" count={6} />}>
       <TrendingProjects
         projects={projects}
         savedProjects={savedProjects}
         trackedProjects={trackedProjects}
+        projectTotal={projectTotal}
       />
-    </LazySection>
+    </Suspense>
   );
 }
 
 export function DeferredProgramTimeline({ initialMonthIndex }: { initialMonthIndex: number }) {
   return (
-    <LazySection fallback={<SectionSkeleton variant="chart" />} minHeight={280}>
+    <Suspense fallback={<SectionSkeleton variant="chart" />}>
       <ProgramTimelineChart initialMonthIndex={initialMonthIndex} />
-    </LazySection>
+    </Suspense>
   );
 }
 
-export function DeferredPopularOrgs() {
+export function DeferredPopularOrgs({
+  organizations,
+  total,
+}: {
+  organizations: FeaturedOrganization[];
+  total: number;
+}) {
   return (
-    <LazySection fallback={<SectionSkeleton variant="grid" count={8} />} minHeight={160}>
-      <PopularOrgsGrid />
-    </LazySection>
+    <Suspense fallback={<SectionSkeleton variant="grid" count={8} />}>
+      <PopularOrgsGrid organizations={organizations} total={total} />
+    </Suspense>
   );
 }
 
 export function DeferredFaq() {
   return (
-    <LazySection fallback={<SectionSkeleton variant="faq" count={5} />} minHeight={280}>
+    <Suspense fallback={<SectionSkeleton variant="faq" count={5} />}>
       <FaqAccordion />
-    </LazySection>
+    </Suspense>
   );
 }

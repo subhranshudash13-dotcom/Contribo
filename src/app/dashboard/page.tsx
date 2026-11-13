@@ -3,6 +3,7 @@ import nextDynamic from 'next/dynamic';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { getDashboardSummary } from '@/lib/repositories/dashboard';
+import { listPrograms } from '@/lib/repositories/programs';
 import { getUserProfile } from '@/lib/repositories/users';
 import type { DashboardApp, DashboardSaved } from '@/components/dashboard/DashboardClient';
 import type { ApplicationStatus } from '@/../types';
@@ -35,9 +36,10 @@ export default async function DashboardPage() {
     redirect('/login?callbackUrl=/dashboard');
   }
 
-  const [summary, profile] = await Promise.all([
+  const [summary, profile, programs] = await Promise.all([
     getDashboardSummary(session.user.id),
     getUserProfile(session.user.id),
+    listPrograms(),
   ]);
 
   const displayName =
@@ -45,6 +47,7 @@ export default async function DashboardPage() {
 
   const applications = (summary.applications as Array<{
     _id?: string;
+    programId?: string;
     programName?: string;
     programSlug?: string;
     projectTitle: string;
@@ -52,18 +55,37 @@ export default async function DashboardPage() {
     status: ApplicationStatus | string;
     deadline?: string | Date | null;
     notes?: string;
-  }>).map(
-    (a): DashboardApp => ({
+    completedMilestoneIds?: string[];
+  }>).map((a): DashboardApp => {
+    const program =
+      (a.programId
+        ? programs.find((item) => String(item._id) === String(a.programId))
+        : undefined) ||
+      programs.find((item) => item.slug === a.programSlug);
+
+    return {
       _id: a._id,
-      programName: a.programName,
-      programSlug: a.programSlug,
+      programName: a.programName || (typeof program?.name === 'string' ? program.name : undefined),
+      programSlug: typeof program?.slug === 'string'
+        ? program.slug
+        : a.programSlug,
       projectTitle: a.projectTitle,
       orgName: a.orgName,
       status: a.status,
       deadline: a.deadline,
       notes: a.notes,
-    })
-  );
+      applicationSteps: Array.isArray(program?.applicationSteps)
+        ? program.applicationSteps.filter(
+            (step): step is string => typeof step === 'string'
+          )
+        : [],
+      completedMilestoneIds: Array.isArray(a.completedMilestoneIds)
+        ? a.completedMilestoneIds.filter(
+            (id): id is string => typeof id === 'string'
+          )
+        : [],
+    };
+  });
 
   const savedItems = (summary.savedItems as Array<{
     _id?: string;

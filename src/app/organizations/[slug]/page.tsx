@@ -24,8 +24,7 @@ const SLUG_REDIRECTS: Record<string, string> = {
   blender: '/organizations/blender-foundation',
   owasp: '/organizations/owasp-foundation',
   postgres: '/organizations/postgresql',
-  jupyter: '/organizations?search=jupyter',
-  docker: '/organizations?search=docker',
+    jupyter: '/organizations/outreachy-internships-with-jupyterhub-outreachy',
 };
 
 type Props = {
@@ -101,6 +100,12 @@ export default async function OrganizationDetailPage({ params }: Props) {
 
   const program = rawProgram as unknown as Program | null;
   const projects = (projectsResult.projects || []) as unknown as Project[];
+
+  if (org.programId && !program) {
+    console.warn(
+      `Organization "${org.slug}" references program ${String(org.programId)}, but the program document was not found.`
+    );
+  }
 
   // User save status
   let isSaved = false;

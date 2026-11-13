@@ -13,7 +13,7 @@ concurrency:
 jobs:
   validate:
     name: Lint, Test & Typecheck
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       AUTH_SECRET: ci_dummy_auth_secret_minimum_16_chars
       NEXTAUTH_SECRET: ci_dummy_auth_secret_minimum_16_chars

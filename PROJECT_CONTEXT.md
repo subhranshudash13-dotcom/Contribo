@@ -122,7 +122,8 @@ Contribo/
 
 ### 2.5 Auth & security
 
-- Providers: GitHub, Google, Credentials (scrypt).
+- Providers: GitHub, Google, Credentials (scrypt). OAuth providers (GitHub/Google) are registered **only when real credentials are present** — missing or `your_*_here` placeholder values skip registration entirely; the login page mirrors this by hiding disabled buttons. Gate lives in pure predicates in `src/lib/auth-providers.ts`.
+- `users.email` uses partial-unique index `email_lookup` (`partialFilterExpression: { email: { $type: "string" } }`) — GitHub accounts with no public email (`email: null`) can sign up; duplicate real emails still rejected. Legacy unique-sparse `email_1` must be dropped via `npm run db:indexes` on existing DBs.
 - JWT sessions; dashboard protected via `proxy.ts` cookie presence + page-level `auth()`.
 - Rate limits (in-memory): auth/match/user **10/min**, other APIs **60/min**.
 - Match API: skill count/length caps, JSON validation, blended AI+heuristic scoring (no inflated 72% floor).
@@ -167,6 +168,7 @@ Contribo/
 - [x] **AI matcher harden** — alias expansion, regex tech match, difficulty/year scoring, honest %, Save/Track on results.
 - [x] Rate limiting + security hygiene on proxy.
 - [x] Smoke script: `npm run smoke`.
+- [x] **Auth fix (2026-10-23):** OAuth providers conditionally registered (`src/lib/auth-providers.ts`), provider-aware login page with readable `Configuration` error, `users.email` migrated from unique-sparse to partial-unique `email_lookup` (fixes GitHub accounts with no public email).
 
 ### Partial / next
 
@@ -269,3 +271,18 @@ NEXT_PUBLIC_GSOC_YEAR=2026
 - TrendingProjects domain/spotlight redesign.
 - `initialSaved` / `initialTracked` across cards and pages.
 - `seed-additional-projects.js` multi-program samples.
+
+---
+
+## 10. Session history (2026-10-23) — auth sign-in fix (issue #38)
+
+**Fixed**
+
+- OAuth providers no longer registered when credentials are missing/placeholder (root cause of `/api/auth/error?error=Configuration` 500). Gate: `isProviderConfigured` / `getConfiguredOAuthProviders` in `src/lib/auth-providers.ts`; `/login` hides disabled provider buttons and shows readable copy for `Configuration` errors. Login page split into server `page.tsx` (env access) + client `LoginForm.tsx`.
+- `users.email` legacy unique-sparse index → `email_lookup` partial-unique index in `scripts/setup-indexes.js` (fixes `E11000 dup key: { email: null }` for GitHub accounts that keep email private).
+
+**Verified**
+
+- `npx tsc --noEmit` clean; `npm test` 33/33; `npm run lint` clean; `next build` green.
+- Live (dockerized `mongo:7`): two `email: null` inserts succeed; duplicate real email rejected with E11000; legacy `email_1` dropped; `email_lookup` created.
+- Live end-to-end: real GitHub OAuth PKCE flow reaches `/dashboard`; placeholder-configured provider is hidden on `/login` and absent from `/api/auth/providers`.

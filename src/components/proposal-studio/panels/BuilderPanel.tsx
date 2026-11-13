@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   Bold,
   Check,
@@ -16,7 +16,7 @@ import {
   RefreshCw,
   Wand2,
 } from 'lucide-react';
-import { BUILDER_SECTIONS } from '../constants';
+import { BUILDER_SECTIONS, calculateSectionThreshold } from '../constants';
 import { ProgressMeter } from '../ui/ProgressMeter';
 import { useProposalStudioContext } from '../context/ProposalStudioContext';
 
@@ -37,9 +37,66 @@ export function BuilderPanel() {
 
   const sectionIndex = BUILDER_SECTIONS.findIndex((s) => s.id === activeSectionId);
   const section = BUILDER_SECTIONS[sectionIndex] || BUILDER_SECTIONS[0];
-  const textVal = sectionsState[section.id] || '';
-  const status = sectionStatus.find((s) => s.id === section.id);
-  const isFilled = !!status?.filled;
+  const contextTextVal = sectionsState[section.id] || '';
+
+  // Local state for responsive typing without triggering expensive parent re-renders on every keystroke
+  const [localText, setLocalText] = useState(contextTextVal);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const currentSectionIdRef = useRef(section.id);
+  const localTextRef = useRef(localText);
+
+  useEffect(() => {
+    localTextRef.current = localText;
+  }, [localText]);
+
+  // Flush pending changes before unmounting or navigating
+  const flushChanges = useCallback(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+      handleSectionChange(currentSectionIdRef.current, localTextRef.current);
+    }
+  }, [handleSectionChange]);
+
+  // Synchronize when active section or external text changes (e.g. AI improve, snippet insertion, reset)
+  useEffect(() => {
+    if (currentSectionIdRef.current !== section.id) {
+      flushChanges();
+      currentSectionIdRef.current = section.id;
+      setLocalText(contextTextVal);
+    } else if (contextTextVal !== localTextRef.current) {
+      setLocalText(contextTextVal);
+    }
+  }, [section.id, contextTextVal, flushChanges]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        handleSectionChange(currentSectionIdRef.current, localTextRef.current);
+      }
+    };
+  }, [handleSectionChange]);
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setLocalText(val);
+
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      handleSectionChange(section.id, val);
+    }, 250);
+  };
+
+  const handleNavigateSection = (targetId: string) => {
+    flushChanges();
+    setActiveSectionId(targetId);
+  };
+
+  const metrics = useMemo(() => {
+    return calculateSectionThreshold(localText, section.minChars);
+  }, [localText, section.minChars]);
 
   const [showSnippet, setShowSnippet] = useState(false);
 
@@ -81,7 +138,7 @@ export function BuilderPanel() {
               <button
                 key={s.id}
                 type="button"
-                onClick={() => setActiveSectionId(s.id)}
+                onClick={() => handleNavigateSection(s.id)}
                 className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 font-mono text-xs sm:text-sm font-bold transition-all shrink-0 cursor-pointer ${
                   active
                     ? 'border-accent bg-accent text-white shadow-md scale-[1.02]'
@@ -109,12 +166,12 @@ export function BuilderPanel() {
               {section.title}
             </h1>
           </div>
-          {isFilled ? (
-            <span className="inline-flex items-center gap-2 self-start md:self-center rounded-full border border-success/30 bg-success/10 px-4 py-1.5 font-mono text-xs sm:text-sm font-bold uppercase text-success shadow-xs">
+          {metrics.isThresholdMet ? (
+            <span className="inline-flex items-center gap-2 self-start md:self-center rounded-full border border-success/30 bg-success/10 px-4 py-1.5 font-mono text-xs sm:text-sm font-bold uppercase text-success shadow-xs transition-colors duration-200">
               <Check size={15} /> Section Ready
             </span>
           ) : (
-            <span className="inline-flex items-center gap-2 self-start md:self-center rounded-full border border-warning/30 bg-warning/10 px-4 py-1.5 font-mono text-xs sm:text-sm font-bold uppercase text-warning shadow-xs">
+            <span className="inline-flex items-center gap-2 self-start md:self-center rounded-full border border-warning/30 bg-warning/10 px-4 py-1.5 font-mono text-xs sm:text-sm font-bold uppercase text-warning shadow-xs transition-colors duration-200">
               Needs Detail (~{section.minChars}+ chars)
             </span>
           )}
@@ -152,7 +209,10 @@ export function BuilderPanel() {
                   type="button"
                   title={tool.label}
                   aria-label={tool.label}
-                  onClick={() => insertMarkdownFormatting(section.id, tool.id)}
+                  onClick={() => {
+                    flushChanges();
+                    insertMarkdownFormatting(section.id, tool.id);
+                  }}
                   className="flex h-9 w-9 items-center justify-center rounded-xl border border-hairline bg-surface text-secondary hover:bg-surface-raised hover:text-primary transition-all cursor-pointer shadow-xs"
                 >
                   <Icon size={15} />
@@ -165,9 +225,11 @@ export function BuilderPanel() {
             <button
               type="button"
               onClick={() => {
-                const updated = textVal
-                  ? `${textVal}\n\n${section.acceptedSnippet}`
+                const updated = localText
+                  ? `${localText}\n\n${section.acceptedSnippet}`
                   : section.acceptedSnippet;
+                setLocalText(updated);
+                if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
                 handleSectionChange(section.id, updated);
               }}
               className="h-9 rounded-xl px-3 font-mono text-xs sm:text-sm font-bold text-accent border border-accent/25 bg-accent/10 hover:bg-accent/20 transition-all cursor-pointer"
@@ -176,52 +238,120 @@ export function BuilderPanel() {
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={() => void handleAiImprove(section.id)}
-            disabled={aiLoading === section.id}
-            className="inline-flex h-9 sm:h-10 items-center gap-2 rounded-xl bg-accent px-4 font-mono text-xs sm:text-sm font-bold uppercase tracking-wide text-white hover:bg-accent-hover disabled:opacity-60 transition-all cursor-pointer shadow-sm"
-          >
-            {aiLoading === section.id ? (
-              <RefreshCw size={14} className="animate-spin" />
-            ) : (
-              <Wand2 size={14} />
-            )}
-            <span>AI Improve Section</span>
-          </button>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Live Word & Character Counter Status Pill */}
+            <div
+              className="inline-flex items-center gap-2 rounded-xl border border-hairline bg-surface px-3 py-1.5 font-mono text-xs text-secondary shadow-xs tabular-nums"
+              title="Real-time section word count, character count (with/without spaces), and reading time"
+            >
+              <span className="font-bold text-primary">
+                {metrics.wordCount} {metrics.wordCount === 1 ? 'word' : 'words'}
+              </span>
+              <span className="text-muted/40 select-none">·</span>
+              <span title={`${metrics.charCount} with spaces, ${metrics.charCountNoSpaces} without spaces`}>
+                <span className="font-semibold text-primary">{metrics.charCount}</span> chars{' '}
+                <span className="hidden sm:inline text-muted">({metrics.charCountNoSpaces} no spaces)</span>
+              </span>
+              <span className="text-muted/40 select-none">·</span>
+              <span className="text-accent font-semibold">{metrics.readingTimeLabel}</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                flushChanges();
+                void handleAiImprove(section.id);
+              }}
+              disabled={aiLoading === section.id}
+              className="inline-flex h-9 sm:h-10 items-center gap-2 rounded-xl bg-accent px-4 font-mono text-xs sm:text-sm font-bold uppercase tracking-wide text-white hover:bg-accent-hover disabled:opacity-60 transition-all cursor-pointer shadow-sm"
+            >
+              {aiLoading === section.id ? (
+                <RefreshCw size={14} className="animate-spin" />
+              ) : (
+                <Wand2 size={14} />
+              )}
+              <span>AI Improve Section</span>
+            </button>
+          </div>
         </div>
 
         {/* Textarea Canvas */}
         <textarea
           id={`section-${section.id}`}
           rows={16}
-          value={textVal}
-          onChange={(e) => handleSectionChange(section.id, e.target.value)}
+          value={localText}
+          onChange={handleTextChange}
+          onBlur={flushChanges}
           placeholder={section.placeholder}
           className="w-full min-h-[440px] resize-y bg-surface p-6 sm:p-8 text-base sm:text-lg text-primary leading-relaxed placeholder:text-muted/40 focus:outline-none"
         />
 
-        {/* Textarea Footer Metrics */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-hairline bg-page/80 px-6 py-3.5">
-          <div className="flex items-center gap-3 font-mono text-xs sm:text-sm text-muted tabular-nums">
+        {/* Textarea Footer Metrics with Live Word/Char Counter & Threshold Indicator */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-hairline bg-page/80 px-6 py-3.5 min-h-[52px]">
+          {/* Live Word & Character Counters */}
+          <div className="flex items-center gap-2 font-mono text-xs sm:text-sm text-muted tabular-nums flex-wrap">
             <span className="font-semibold text-primary">
-              {status?.chars ?? textVal.length} chars
+              {metrics.charCount} {metrics.charCount === 1 ? 'char' : 'chars'}
             </span>
-            <span>·</span>
+            <span className="text-muted text-xs">({metrics.charCountNoSpaces} no spaces)</span>
+            <span className="text-hairline select-none">·</span>
             <span className="font-semibold text-primary">
-              {status?.words ??
-                textVal.split(/\s+/).filter(Boolean).length}{' '}
-              words
+              {metrics.wordCount} {metrics.wordCount === 1 ? 'word' : 'words'}
             </span>
-            {!isFilled && (
-              <span className="text-warning font-semibold">
-                (target: ~{section.minChars}+ chars)
+            <span className="text-hairline select-none">·</span>
+            <span className="text-accent font-semibold">{metrics.readingTimeLabel}</span>
+          </div>
+
+          {/* Visual Progress & Threshold Indicator */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Horizontal Mini Progress Track */}
+            <div
+              className="hidden md:flex items-center gap-2"
+              role="progressbar"
+              aria-valuenow={metrics.charCount}
+              aria-valuemin={0}
+              aria-valuemax={metrics.minChars}
+              aria-label={`Character threshold progress for ${section.title}`}
+            >
+              <div className="w-24 lg:w-28 h-1.5 rounded-full bg-surface-raised border border-hairline overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ease-out ${
+                    metrics.isThresholdMet ? 'bg-success' : 'bg-warning'
+                  }`}
+                  style={{ width: `${metrics.percentage}%` }}
+                />
+              </div>
+              <span className="font-mono text-[11px] font-bold text-muted tabular-nums">
+                {metrics.percentage}%
+              </span>
+            </div>
+
+            {/* Threshold Status Chip */}
+            {metrics.isThresholdMet ? (
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full border border-success/35 bg-success/10 px-3 py-1 font-mono text-xs font-bold text-success transition-all duration-300 shadow-xs"
+                title={`Threshold met (${metrics.charCount} of ${metrics.minChars} characters)`}
+              >
+                <Check size={13} className="shrink-0 stroke-[2.5]" />
+                <span>Threshold met ({metrics.charCount}/{metrics.minChars})</span>
+              </span>
+            ) : (
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full border border-warning/35 bg-warning/10 px-3 py-1 font-mono text-xs font-bold text-warning transition-all duration-300 shadow-xs"
+                title={`Minimum recommended length: ${metrics.minChars} characters`}
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-warning animate-pulse shrink-0" />
+                <span className="tabular-nums">
+                  {metrics.charCount} / {metrics.minChars} characters minimum
+                </span>
               </span>
             )}
+
+            {/* Autosave Indicator */}
+            <span className="hidden sm:inline font-mono text-xs text-muted font-medium pl-1 border-l border-hairline">
+              Autosaving changes
+            </span>
           </div>
-          <span className="font-mono text-xs text-muted font-medium">
-            Autosaving changes
-          </span>
         </div>
       </section>
 
@@ -265,7 +395,7 @@ export function BuilderPanel() {
         {prevSection ? (
           <button
             type="button"
-            onClick={() => setActiveSectionId(prevSection.id)}
+            onClick={() => handleNavigateSection(prevSection.id)}
             className="inline-flex h-13 w-full sm:w-auto items-center justify-center gap-2.5 rounded-2xl border border-hairline bg-surface px-6 font-mono text-xs sm:text-sm font-bold text-secondary hover:text-primary hover:bg-surface-raised transition-all cursor-pointer"
           >
             <ChevronLeft size={18} />
@@ -278,7 +408,7 @@ export function BuilderPanel() {
         {nextSection ? (
           <button
             type="button"
-            onClick={() => setActiveSectionId(nextSection.id)}
+            onClick={() => handleNavigateSection(nextSection.id)}
             className="inline-flex h-13 w-full sm:w-auto items-center justify-center gap-2.5 rounded-2xl bg-accent px-8 font-mono text-xs sm:text-sm font-bold uppercase tracking-wide text-white hover:bg-accent-hover transition-all shadow-md hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
           >
             <span>Next: {nextSection.shortLabel}</span>
@@ -287,7 +417,10 @@ export function BuilderPanel() {
         ) : (
           <button
             type="button"
-            onClick={() => selectTab('export')}
+            onClick={() => {
+              flushChanges();
+              selectTab('export');
+            }}
             className="inline-flex h-13 w-full sm:w-auto items-center justify-center gap-2.5 rounded-2xl bg-success px-8 font-mono text-xs sm:text-sm font-bold uppercase tracking-wide text-white hover:bg-success/90 transition-all shadow-md hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
           >
             <span>All sections completed — Proceed to Export</span>

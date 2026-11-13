@@ -476,6 +476,7 @@ export async function updateUserApplication(
     notes?: string;
     deadline?: string | null;
     projectTitle?: string;
+    completedMilestoneIds?: string[];
   },
   signal?: AbortSignal
 ) {

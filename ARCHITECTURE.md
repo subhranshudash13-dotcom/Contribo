@@ -53,7 +53,7 @@ graph TD
 | **UI & Styling** | **React 19**, **Tailwind CSS v4**, Custom HSL Color System (`#2B1B15` / `#FBF9F6`), **Framer Motion**, **Lucide Icons** |
 | **State Management** | **React Context API** (`ProposalStudioContext`), **Custom Hooks** (`useProposalStudio`, `useDebounce`) |
 | **Database & Cache** | **MongoDB 6.x** (MongoDB Atlas) with **in-memory resilient fallback system** |
-| **Authentication** | **NextAuth.js v5** (GitHub & Google OAuth Providers + MongoAdapter) |
+| **Authentication** | **NextAuth.js v5** (GitHub & Google OAuth registered only when credentials are configured via `src/lib/auth-providers.ts`, Credentials provider + MongoAdapter) |
 | **AI Processing** | **Google Gemini AI** (`gemini-2.0-flash`, `gemini-1.5-flash`), **OpenAI API** fallback |
 | **Deployment / Build** | **Vercel / Node.js**, TypeScript static type checking, automated SSR/SSG route generation |
 

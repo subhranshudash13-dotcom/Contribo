@@ -1,409 +1,436 @@
 /* eslint-disable */
-require('dotenv').config();
-const { MongoClient, ObjectId } = require('mongodb');
+const { MongoClient } = require('mongodb');
+const hacktoberfestTags = require('../src/lib/hacktoberfest-tags.json');
 
-function toKebabCase(str) {
-  return str
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_]+/g, '-');
-}
-
-function resolveDatabaseName(uri) {
-  if (process.env.MONGODB_DB && process.env.MONGODB_DB.trim()) {
-    return process.env.MONGODB_DB.trim();
-  }
-  try {
-    const parsed = new URL(
-      uri.replace('mongodb+srv://', 'https://').replace('mongodb://', 'https://')
-    );
-    const pathName = parsed.pathname?.replace(/^\//, '').split('?')[0];
-    if (pathName) return pathName;
-  } catch {}
-  return 'contribo';
-}
-
+const PROGRAM_SLUG = 'hacktoberfest';
+const YEAR = 2026;
+// Partner identities: https://hacktoberfest.com/ (sponsor wall), verified 2026-10-24.
+// Repository descriptions/stacks: each project's official repository.
+// These are ecosystem learning resources, not guaranteed DEV Challenge submissions.
+// Gauge is the sponsor at withgauge.com, not the unrelated Gauge test framework.
 const HACKTOBERFEST_ORGS_DATA = [
   {
-    name: "DigitalOcean",
-    slug: "digitalocean",
-    logoUrl: "https://images.ctfassets.net/00i767y12b6f/30V5s2jK8g8K8K02Kq4u28/77d24d27f8eb2860a4f5f5c9e78280f5/do-logo-blue.svg",
-    description: "The primary sponsor of Hacktoberfest providing cloud infrastructure, developer APIs, and open-source tooling.",
-    websiteUrl: "https://hacktoberfest.com",
-    category: "Cloud & Infrastructure",
-    technologies: ["Go", "Docker", "Kubernetes", "Python", "Node.js", "Terraform"],
-    topics: ["hacktoberfest", "cloud", "devops", "containers", "infrastructure"],
-    projects: [
+    "name": "DigitalOcean",
+    "slug": "digitalocean",
+    "role": "Presenting Partner",
+    "websiteUrl": "https://www.digitalocean.com/",
+    "description": "Cloud infrastructure and App Platform for deploying applications; presenting partner of Hacktoberfest 2026.",
+    "category": "Cloud & Infrastructure",
+    "topics": [
+      "developer-tools"
+    ],
+    "projects": [
       {
-        title: "DigitalOcean CLI (doctl)",
-        description: "Official command line interface for managing DigitalOcean cloud services, droplet provisioning, and Kubernetes clusters.",
-        techStack: ["Go", "Docker", "REST API", "CLI"],
-        difficulty: "Intermediate",
-        githubUrl: "https://github.com/digitalocean/doctl"
+        "title": "DigitalOcean CLI (doctl)",
+        "description": "Official command-line interface for the DigitalOcean API.",
+        "techStack": [
+          "Go"
+        ],
+        "githubUrl": "https://github.com/digitalocean/doctl"
       },
       {
-        title: "App Platform Samples & Templates",
-        description: "Starter repositories and deployment blueprints for full-stack apps on DigitalOcean App Platform.",
-        techStack: ["Node.js", "Python", "Docker", "React"],
-        difficulty: "Beginner",
-        githubUrl: "https://github.com/digitalocean/sample-golang"
+        "title": "App Platform Go Sample",
+        "description": "Sample Go application for deployment on DigitalOcean App Platform.",
+        "techStack": [
+          "Go"
+        ],
+        "githubUrl": "https://github.com/digitalocean/sample-golang"
       }
     ]
   },
   {
-    name: "Appwrite",
-    slug: "appwrite",
-    logoUrl: "https://appwrite.io/images/logos/appwrite.svg",
-    description: "Open-source backend-as-a-service platform providing authentication, databases, storage, and cloud functions.",
-    websiteUrl: "https://appwrite.io",
-    category: "Backend & Databases",
-    technologies: ["TypeScript", "Node.js", "Docker", "PHP", "Kotlin", "Dart", "Redis"],
-    topics: ["hacktoberfest", "baas", "backend", "authentication", "serverless"],
-    projects: [
+    "name": "Major League Hacking (MLH)",
+    "slug": "mlh",
+    "role": "Organizer",
+    "websiteUrl": "https://www.mlh.com/",
+    "description": "Co-organizer of Hacktoberfest, community Hack Days, and Global Hack Week.",
+    "category": "Community & Education",
+    "topics": [
+      "fests",
+      "hack-days",
+      "open-source-ai"
+    ],
+    "projects": [
       {
-        title: "Appwrite Core Engine",
-        description: "End-to-end backend server for web, mobile, and Flutter developers with GraphQL & REST APIs.",
-        techStack: ["TypeScript", "Docker", "PHP", "Redis", "MySQL"],
-        difficulty: "Intermediate to Advanced",
-        githubUrl: "https://github.com/appwrite/appwrite"
-      },
-      {
-        title: "Appwrite SDK Generators",
-        description: "Multi-language SDK generator suite producing official client and server SDKs for Flutter, React Native, Swift, and Go.",
-        techStack: ["TypeScript", "Node.js", "Go", "Dart", "Swift"],
-        difficulty: "Intermediate",
-        githubUrl: "https://github.com/appwrite/sdk-generator"
+        "title": "MLH Node.js Hackathon Starter",
+        "description": "MLH starter project for building Node.js applications at hackathons.",
+        "techStack": [
+          "Node.js",
+          "JavaScript",
+          "HTML/CSS"
+        ],
+        "githubUrl": "https://github.com/MLH/mlh-hackathon-nodejs-starter"
       }
     ]
   },
   {
-    name: "Novu",
-    slug: "novu",
-    logoUrl: "https://novu.co/images/logo.svg",
-    description: "Open-source notification infrastructure for developers managing email, SMS, push, and in-app feeds.",
-    websiteUrl: "https://novu.co",
-    category: "Developer Tools",
-    technologies: ["TypeScript", "React", "Node.js", "NestJS", "Redis", "MongoDB"],
-    topics: ["hacktoberfest", "notifications", "developer-tools", "fullstack"],
-    projects: [
+    "name": "DEV (Forem)",
+    "slug": "dev-forem",
+    "role": "Organizer",
+    "websiteUrl": "https://dev.to/",
+    "description": "Hacktoberfest co-organizer hosting DEV Challenges; Forem is the open-source software powering DEV.",
+    "category": "Community & Education",
+    "topics": [
+      "dev-challenges",
+      "open-source-ai",
+      "open-weights"
+    ],
+    "projects": [
       {
-        title: "Novu Notification Engine",
-        description: "Unified notification pipeline powering transactional email, push notifications, and web-embeddable notification centers.",
-        techStack: ["TypeScript", "NestJS", "React", "Redis", "MongoDB"],
-        difficulty: "Intermediate",
-        githubUrl: "https://github.com/novuhq/novu"
+        "title": "Forem Open Community Engine",
+        "description": "Open-source community software powering DEV and other independent communities.",
+        "techStack": [
+          "Ruby",
+          "JavaScript",
+          "PostgreSQL"
+        ],
+        "githubUrl": "https://github.com/forem/forem",
+        "topics": [
+          "dev-challenges",
+          "developer-tools"
+        ]
       }
     ]
   },
   {
-    name: "Supabase",
-    slug: "supabase",
-    logoUrl: "https://supabase.com/g/supabase-logo.png",
-    description: "Open-source Firebase alternative powered by PostgreSQL with real-time subscriptions, auth, storage, and edge functions.",
-    websiteUrl: "https://supabase.com",
-    category: "Database & Backend",
-    technologies: ["PostgreSQL", "TypeScript", "React", "Rust", "Elixir", "Go"],
-    topics: ["hacktoberfest", "postgres", "realtime", "backend", "database"],
-    projects: [
+    "name": "MongoDB",
+    "slug": "mongodb",
+    "websiteUrl": "https://www.mongodb.com/",
+    "description": "Document database platform and official drivers for application development.",
+    "category": "Databases & Data Engineering",
+    "topics": [
+      "developer-tools"
+    ],
+    "projects": [
       {
-        title: "Realtime Engine & Edge Functions",
-        description: "Listen to PostgreSQL database changes in real-time over WebSockets and trigger edge functions.",
-        techStack: ["Elixir", "TypeScript", "PostgreSQL", "Docker"],
-        difficulty: "Advanced",
-        githubUrl: "https://github.com/supabase/realtime"
-      },
-      {
-        title: "Supabase Studio Dashboard",
-        description: "Modern web application dashboard for managing Postgres schemas, row-level security policies, and API keys.",
-        techStack: ["Next.js", "React", "TypeScript", "TailwindCSS"],
-        difficulty: "Intermediate",
-        githubUrl: "https://github.com/supabase/supabase"
+        "title": "PyMongo",
+        "description": "Official Python driver for MongoDB.",
+        "techStack": [
+          "Python",
+          "MongoDB"
+        ],
+        "githubUrl": "https://github.com/mongodb/mongo-python-driver"
       }
     ]
   },
   {
-    name: "DEV (Forem)",
-    slug: "dev-forem",
-    logoUrl: "https://dev-to-uploads.s3.amazonaws.com/uploads/articles/f3y8z852h0p1v2p.png",
-    description: "Open-source software powering DEV.to and independent developer communities worldwide.",
-    websiteUrl: "https://dev.to",
-    category: "Web Applications",
-    technologies: ["Ruby", "Ruby on Rails", "JavaScript", "PostgreSQL", "Redis", "HTML/CSS"],
-    topics: ["hacktoberfest", "community", "social-network", "rails"],
-    projects: [
+    "name": "Snowflake",
+    "slug": "snowflake",
+    "websiteUrl": "https://www.snowflake.com/",
+    "description": "Data platform with a Python connector for developing applications against Snowflake.",
+    "category": "Databases & Data Engineering",
+    "topics": [
+      "developer-tools"
+    ],
+    "projects": [
       {
-        title: "Forem Open Community Engine",
-        description: "Social blogging and networking platform powering DEV.to, designed for extensible community discussions.",
-        techStack: ["Ruby on Rails", "PostgreSQL", "JavaScript", "Redis"],
-        difficulty: "Intermediate",
-        githubUrl: "https://github.com/forem/forem"
+        "title": "Snowflake Connector for Python",
+        "description": "Official Python connector for accessing Snowflake.",
+        "techStack": [
+          "Python",
+          "SQL"
+        ],
+        "githubUrl": "https://github.com/snowflakedb/snowflake-connector-python"
       }
     ]
   },
   {
-    name: "EddieHub",
-    slug: "eddiehub",
-    logoUrl: "https://github.com/EddieHub.png",
-    description: "Global open-source community dedicated to fostering collaboration, mentorship, and first-time open-source contributions.",
-    websiteUrl: "https://eddiehub.org",
-    category: "Community & Education",
-    technologies: ["JavaScript", "TypeScript", "React", "Python", "Markdown"],
-    topics: ["hacktoberfest", "good-first-issue", "beginner-friendly", "community"],
-    projects: [
+    "name": "Solana",
+    "slug": "solana",
+    "websiteUrl": "https://solana.com/",
+    "description": "Blockchain ecosystem with developer documentation and learning resources maintained by the Solana Foundation.",
+    "category": "Security, Cryptography & Blockchain",
+    "topics": [
+      "developer-tools"
+    ],
+    "projects": [
       {
-        title: "EddieHub Live Community Portal",
-        description: "Open-source developer portfolio and event hub for connecting open-source contributors and mentors.",
-        techStack: ["Next.js", "React", "TypeScript", "TailwindCSS"],
-        difficulty: "Beginner Friendly",
-        githubUrl: "https://github.com/EddieHubCommunity/LinkFree"
-      },
-      {
-        title: "Hacktoberfest Practice Grounds",
-        description: "Curated beginner-friendly repository for learning Git workflow, pull requests, and code reviews.",
-        techStack: ["Markdown", "Git", "HTML/CSS", "JavaScript"],
-        difficulty: "Beginner",
-        githubUrl: "https://github.com/EddieHubCommunity/hacktoberfest-practice"
+        "title": "Solana Developer Content",
+        "description": "Solana Foundation developer content for exploring, learning, and building in the Solana ecosystem.",
+        "techStack": [
+          "TypeScript"
+        ],
+        "githubUrl": "https://github.com/solana-foundation/developer-content"
       }
     ]
   },
   {
-    name: "Meshery",
-    slug: "meshery",
-    logoUrl: "https://raw.githubusercontent.com/meshery/meshery/master/docs/assets/img/meshery-logo/meshery-logo-light.svg",
-    description: "Cloud-native management plane for managing Kubernetes clusters, service meshes, and infrastructure diagrams.",
-    websiteUrl: "https://meshery.io",
-    category: "Cloud Native & Kubernetes",
-    technologies: ["Go", "Kubernetes", "React", "Docker", "TypeScript", "GraphQL"],
-    topics: ["hacktoberfest", "cncf", "kubernetes", "cloud-native", "devops"],
-    projects: [
+    "name": "ElevenLabs",
+    "slug": "elevenlabs",
+    "websiteUrl": "https://elevenlabs.io/",
+    "description": "Audio AI platform with an official Python SDK for its API.",
+    "category": "AI & Machine Learning",
+    "topics": [
+      "agents",
+      "developer-tools"
+    ],
+    "projects": [
       {
-        title: "Meshery Cloud Native Management",
-        description: "Extensible multi-service mesh orchestrator supporting Istio, Linkerd, and Kubernetes infrastructure deployment.",
-        techStack: ["Go", "Kubernetes", "React", "Docker"],
-        difficulty: "Intermediate to Advanced",
-        githubUrl: "https://github.com/meshery/meshery"
+        "title": "ElevenLabs Python SDK",
+        "description": "Official Python SDK for the ElevenLabs API; the SDK is public, while API access is provided by ElevenLabs.",
+        "techStack": [
+          "Python"
+        ],
+        "githubUrl": "https://github.com/elevenlabs/elevenlabs-python"
       }
     ]
   },
   {
-    name: "AsyncAPI",
-    slug: "asyncapi",
-    logoUrl: "https://www.asyncapi.com/img/posts/asyncapi-logo.png",
-    description: "Industry standard specification and open-source tooling for event-driven architectures and message brokers.",
-    websiteUrl: "https://www.asyncapi.com",
-    category: "API & Middleware",
-    technologies: ["TypeScript", "Node.js", "Python", "Java", "JSON Schema"],
-    topics: ["hacktoberfest", "asyncapi", "event-driven", "code-generators"],
-    projects: [
+    "name": "GitHub",
+    "slug": "github",
+    "websiteUrl": "https://github.com/",
+    "description": "Developer collaboration platform providing an official MCP server for agent integrations.",
+    "category": "Developer Tools & Compilers",
+    "topics": [
+      "agents",
+      "developer-tools"
+    ],
+    "projects": [
       {
-        title: "AsyncAPI CLI & Code Generators",
-        description: "CLI tools and code generators for building event-driven microservices from AsyncAPI definitions.",
-        techStack: ["TypeScript", "Node.js", "Docker", "CLI"],
-        difficulty: "Intermediate",
-        githubUrl: "https://github.com/asyncapi/cli"
+        "title": "GitHub MCP Server",
+        "description": "Official GitHub Model Context Protocol server for integrating GitHub with AI tools.",
+        "techStack": [
+          "Go"
+        ],
+        "githubUrl": "https://github.com/github/github-mcp-server"
       }
     ]
   },
   {
-    name: "Cal.com",
-    slug: "cal-com",
-    logoUrl: "https://cal.com/logo.svg",
-    description: "Open-source scheduling infrastructure and Calendly alternative for individuals and enterprise teams.",
-    websiteUrl: "https://cal.com",
-    category: "SaaS & Productivity",
-    technologies: ["Next.js", "React", "TypeScript", "Prisma", "PostgreSQL", "TailwindCSS"],
-    topics: ["hacktoberfest", "scheduling", "fullstack", "nextjs"],
-    projects: [
+    "name": "Sentry",
+    "slug": "sentry",
+    "websiteUrl": "https://sentry.io/",
+    "description": "Developer error tracking and application performance monitoring platform.",
+    "category": "Developer Tools & Compilers",
+    "topics": [
+      "developer-tools"
+    ],
+    "projects": [
       {
-        title: "Cal.com Core Scheduling Engine",
-        description: "Full-stack calendar sync, video routing, payment integration, and booking engine.",
-        techStack: ["Next.js", "React", "TypeScript", "Prisma", "PostgreSQL"],
-        difficulty: "Intermediate to Advanced",
-        githubUrl: "https://github.com/calcom/cal.com"
+        "title": "Sentry",
+        "description": "Developer-focused error tracking and performance monitoring.",
+        "techStack": [
+          "Python",
+          "TypeScript"
+        ],
+        "githubUrl": "https://github.com/getsentry/sentry"
       }
     ]
   },
   {
-    name: "Strapi",
-    slug: "strapi",
-    logoUrl: "https://strapi.io/assets/strapi-logo-dark.svg",
-    description: "Leading open-source headless CMS giving developers freedom to use preferred frameworks and tools.",
-    websiteUrl: "https://strapi.io",
-    category: "Content Management",
-    technologies: ["JavaScript", "TypeScript", "Node.js", "React", "GraphQL"],
-    topics: ["hacktoberfest", "cms", "headless-cms", "nodejs"],
-    projects: [
+    "name": "Render",
+    "slug": "render",
+    "websiteUrl": "https://render.com/",
+    "description": "Cloud application hosting platform with deployment examples for developers.",
+    "category": "Cloud & Infrastructure",
+    "topics": [
+      "developer-tools"
+    ],
+    "projects": [
       {
-        title: "Strapi Headless CMS Engine",
-        description: "Customizable Node.js API framework with auto-generated REST and GraphQL endpoints.",
-        techStack: ["TypeScript", "Node.js", "React", "GraphQL"],
-        difficulty: "Intermediate",
-        githubUrl: "https://github.com/strapi/strapi"
+        "title": "Render FastAPI Example",
+        "description": "Template for deploying a simple Python FastAPI application on Render.",
+        "techStack": [
+          "Python",
+          "FastAPI"
+        ],
+        "githubUrl": "https://github.com/render-examples/fastapi"
       }
     ]
   },
   {
-    name: "PostHog",
-    slug: "posthog",
-    logoUrl: "https://posthog.com/brand/posthog-logo.svg",
-    description: "Open-source product analytics suite providing session recording, feature flags, heatmaps, and SQL queries.",
-    websiteUrl: "https://posthog.com",
-    category: "Analytics & Data",
-    technologies: ["Python", "Django", "React", "TypeScript", "ClickHouse", "PostgreSQL"],
-    topics: ["hacktoberfest", "analytics", "product-analytics", "data"],
-    projects: [
+    "name": "IBM",
+    "slug": "ibm",
+    "websiteUrl": "https://www.ibm.com/us-en",
+    "description": "Developer of Granite AI models and community recipes for building with them.",
+    "category": "AI & Machine Learning",
+    "topics": [
+      "open-source-ai",
+      "open-weights",
+      "agents"
+    ],
+    "projects": [
       {
-        title: "PostHog Analytics Core",
-        description: "Product analysis platform capturing user interactions, funnel conversions, and session replays.",
-        techStack: ["Python", "Django", "React", "ClickHouse"],
-        difficulty: "Advanced",
-        githubUrl: "https://github.com/PostHog/posthog"
+        "title": "Granite Snack Cookbook",
+        "description": "Short Python notebook recipes demonstrating the capabilities of IBM Granite models.",
+        "techStack": [
+          "Python",
+          "Jupyter"
+        ],
+        "githubUrl": "https://github.com/ibm-granite-community/granite-snack-cookbook"
       }
     ]
   },
   {
-    name: "Hoppscotch",
-    slug: "hoppscotch",
-    logoUrl: "https://hoppscotch.io/icon.png",
-    description: "Open-source API development ecosystem used by millions of developers for REST, GraphQL, and WebSocket testing.",
-    websiteUrl: "https://hoppscotch.io",
-    category: "Developer Tools",
-    technologies: ["Vue.js", "TypeScript", "Node.js", "PWA", "TailwindCSS"],
-    topics: ["hacktoberfest", "api-client", "vuejs", "pwa"],
-    projects: [
+    "name": "Backboard.io",
+    "slug": "backboard",
+    "websiteUrl": "https://backboard.io/",
+    "description": "AI infrastructure provider with memory and coding-agent integrations.",
+    "category": "AI & Machine Learning",
+    "topics": [
+      "agents",
+      "developer-tools"
+    ],
+    "projects": [
       {
-        title: "Hoppscotch Web & Desktop Client",
-        description: "Lightweight, fast API testing environment supporting HTTP, GraphQL, WebSockets, and Server-Sent Events.",
-        techStack: ["Vue.js", "TypeScript", "TailwindCSS"],
-        difficulty: "Intermediate",
-        githubUrl: "https://github.com/hoppscotch/hoppscotch"
+        "title": "Backboard OpenClaw Plugin",
+        "description": "Backboard.io integration plugin for OpenClaw.",
+        "techStack": [
+          "TypeScript"
+        ],
+        "githubUrl": "https://github.com/Backboard-io/openclaw_plugin"
       }
     ]
+  },
+  {
+    "name": "Tiger Data",
+    "slug": "tiger-data",
+    "websiteUrl": "https://www.tigerdata.com/",
+    "description": "PostgreSQL data platform and tools for building AI applications.",
+    "category": "Databases & Data Engineering",
+    "topics": [
+      "open-source-ai",
+      "developer-tools"
+    ],
+    "projects": [
+      {
+        "title": "pgai",
+        "description": "Tools for RAG, semantic search, and other AI applications with PostgreSQL.",
+        "techStack": [
+          "Python",
+          "PostgreSQL"
+        ],
+        "githubUrl": "https://github.com/timescale/pgai"
+      }
+    ]
+  },
+  {
+    "name": "Gauge",
+    "slug": "gauge",
+    "websiteUrl": "https://www.withgauge.com/",
+    "description": "Agent-led growth platform measuring AI visibility, agent preference, and agent experience. No public project repository is verified for this catalog.",
+    "category": "AI & Machine Learning",
+    "topics": [
+      "agents",
+      "developer-tools"
+    ],
+    "projects": []
   }
 ];
 
-async function main() {
-  const uri = process.env.MONGODB_URI;
-  if (!uri) {
-    console.error('Error: No MONGODB_URI found in .env');
-    process.exit(1);
+function toKebabCase(value) {
+  return value.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-');
+}
+
+function resolveDatabaseName(uri, env = process.env) {
+  if (env.MONGODB_DB?.trim()) return env.MONGODB_DB.trim();
+  // MongoClient parses replica-set/SRV connection strings as well as local URIs.
+  const name = new MongoClient(uri).options.dbName;
+  if (name && name !== 'test') return name;
+  throw new Error('Set MONGODB_DB or include an explicit database in MONGODB_URI.');
+}
+
+async function syncHacktoberfest(db) {
+  const programs = db.collection('programs');
+  const organizations = db.collection('organizations');
+  const projects = db.collection('projects');
+
+  await programs.updateOne({ slug: PROGRAM_SLUG }, {
+    $set: {
+      name: 'Hacktoberfest',
+      organizer: 'MLH & DEV, presented by DigitalOcean',
+      officialWebsite: 'https://hacktoberfest.com/',
+      stipendRange: 'Sticker milestones and event rewards',
+      eligibilitySummary: 'Ages 13+ subject to country eligibility; check each Fest and DEV Challenge for its rules',
+      lastVerifiedAt: new Date('2026-10-24T00:00:00.000Z'),
+    },
+    $setOnInsert: { slug: PROGRAM_SLUG, durationWeeks: 4, tier: 3, accentColor: '#FF7A00', timeline: [] },
+  }, { upsert: true });
+  const program = await programs.findOne({ slug: PROGRAM_SLUG });
+  const programFields = {
+    programId: program._id,
+    programSlug: PROGRAM_SLUG,
+    programName: 'Hacktoberfest',
+    programColor: program.accentColor || '#FF7A00',
+  };
+  const counts = { organizationsInserted: 0, organizationsModified: 0, projectsInserted: 0, projectsModified: 0 };
+
+  for (const partner of HACKTOBERFEST_ORGS_DATA) {
+    const topics = ['hacktoberfest', ...partner.topics];
+    if (partner.topics.some(tag => !hacktoberfestTags.includes(tag))) {
+      throw new Error('Unknown Hacktoberfest tag');
+    }
+    const orgFilter = { programId: program._id, slug: partner.slug };
+    const orgResult = await organizations.updateOne(orgFilter, {
+      $set: {
+        ...programFields,
+        name: partner.name,
+        slug: partner.slug,
+        description: partner.description,
+        websiteUrl: partner.websiteUrl,
+        category: partner.category,
+        partnerRole: partner.role || 'Partner',
+        technologies: [...new Set(partner.projects.flatMap(project => project.techStack))],
+        topics,
+        is2026: true,
+        sourceUrl: 'https://hacktoberfest.com/',
+      },
+      $addToSet: { years: YEAR },
+    }, { upsert: true });
+    counts.organizationsInserted += orgResult.upsertedCount;
+    counts.organizationsModified += orgResult.modifiedCount;
+    const org = await organizations.findOne(orgFilter);
+
+    for (const project of partner.projects) {
+      // Match the repository's compound project identity; retain other years/programs.
+      const filter = { programId: program._id, orgSlug: partner.slug, title: project.title, year: YEAR };
+      const result = await projects.updateOne(filter, {
+        $set: {
+          ...programFields,
+          org: partner.name,
+          orgSlug: partner.slug,
+          orgId: org._id,
+          title: project.title,
+          slug: toKebabCase(project.title),
+          description: project.description,
+          techStack: project.techStack,
+          topics: ['hacktoberfest', ...(project.topics || partner.topics)],
+          githubUrl: project.githubUrl,
+          year: YEAR,
+        },
+        // Unknown stars/difficulty/mentors must not be fabricated or replace curated data.
+        $setOnInsert: { mentors: [] },
+      }, { upsert: true });
+      counts.projectsInserted += result.upsertedCount;
+      counts.projectsModified += result.modifiedCount;
+    }
+    const projectCount = await projects.countDocuments({ programId: program._id, orgSlug: partner.slug });
+    await organizations.updateOne(orgFilter, { $set: { projectCount } });
   }
+  return counts;
+}
 
+async function main() {
+  require('dotenv').config();
+  const uri = process.env.MONGODB_URI;
+  if (!uri) throw new Error('Missing MONGODB_URI. Configure .env before syncing.');
   const dbName = resolveDatabaseName(uri);
-  const client = new MongoClient(uri);
-
+  console.log('Hacktoberfest sync database: ' + dbName);
+  const client = new MongoClient(uri, { serverSelectionTimeoutMS: 5000 });
   try {
     await client.connect();
-    console.log(`Connected to MongoDB Atlas (database: ${dbName})`);
-    const db = client.db(dbName);
-
-    const programsCol = db.collection('programs');
-    const orgsCol = db.collection('organizations');
-    const projectsCol = db.collection('projects');
-
-    // 1. Resolve or Seed Hacktoberfest Program
-    let hfProgram = await programsCol.findOne({ slug: 'hacktoberfest' });
-    if (!hfProgram) {
-      console.log('Seeding Hacktoberfest program record...');
-      const insertRes = await programsCol.insertOne({
-        slug: 'hacktoberfest',
-        name: 'Hacktoberfest',
-        organizer: 'DigitalOcean',
-        stipendRange: 'Swag & Digital Badge',
-        durationWeeks: 4,
-        tier: 3,
-        accentColor: '#FF7A00',
-        eligibilitySummary: 'Open to anyone worldwide, beginner friendly',
-        officialWebsite: 'https://hacktoberfest.com',
-        difficulty: 'Beginner Friendly',
-        pastStats: [
-          { year: '2025', contributors: 142000, orgs: 8200, projects: 24000 },
-          { year: '2024', contributors: 153000, orgs: 9100, projects: 28000 }
-        ],
-        lastVerifiedAt: new Date()
-      });
-      hfProgram = { _id: insertRes.insertedId, name: 'Hacktoberfest', slug: 'hacktoberfest' };
-    }
-    const hfProgramId = hfProgram._id;
-    console.log(`Hacktoberfest Program ID: ${hfProgramId}`);
-
-    let orgsUpserted = 0;
-    let projectsUpserted = 0;
-
-    for (const orgData of HACKTOBERFEST_ORGS_DATA) {
-      const orgFilter = { slug: orgData.slug };
-      const orgUpdate = {
-        $set: {
-          name: orgData.name,
-          slug: orgData.slug,
-          programId: hfProgramId,
-          programSlug: 'hacktoberfest',
-          programName: 'Hacktoberfest',
-          programColor: '#FF7A00',
-          logoUrl: orgData.logoUrl,
-          description: orgData.description,
-          websiteUrl: orgData.websiteUrl,
-          category: orgData.category,
-          technologies: orgData.technologies,
-          topics: orgData.topics,
-          years: [2024, 2025],
-          is2026: true,
-          is2025: true,
-          projectCount: orgData.projects.length,
-          lastSyncedAt: new Date()
-        }
-      };
-
-      const orgRes = await orgsCol.updateOne(orgFilter, orgUpdate, { upsert: true });
-      if (orgRes.upsertedCount > 0 || orgRes.modifiedCount > 0) {
-        orgsUpserted++;
-      }
-
-      const dbOrg = await orgsCol.findOne(orgFilter);
-      const orgId = dbOrg?._id;
-
-      for (const projData of orgData.projects) {
-        const projSlug = toKebabCase(projData.title);
-        const projFilter = { orgSlug: orgData.slug, title: projData.title };
-        const projUpdate = {
-          $set: {
-            title: projData.title,
-            slug: projSlug,
-            org: orgData.name,
-            orgSlug: orgData.slug,
-            orgId: orgId,
-            programId: hfProgramId,
-            programSlug: 'hacktoberfest',
-            programName: 'Hacktoberfest',
-            programColor: '#FF7A00',
-            description: projData.description,
-            techStack: projData.techStack,
-            difficulty: projData.difficulty,
-            year: 2025,
-            githubUrl: projData.githubUrl,
-            stars: 1200 + Math.floor(Math.random() * 4500),
-            updatedAt: new Date()
-          }
-        };
-
-        const projRes = await projectsCol.updateOne(projFilter, projUpdate, { upsert: true });
-        if (projRes.upsertedCount > 0 || projRes.modifiedCount > 0) {
-          projectsUpserted++;
-        }
-      }
-    }
-
-    console.log(`\nHacktoberfest Data Sync Complete:`);
-    console.log(`- Upserted Organizations: ${orgsUpserted}`);
-    console.log(`- Upserted Projects: ${projectsUpserted}`);
-  } catch (error) {
-    console.error('Error during Hacktoberfest data sync:', error);
-    process.exit(1);
+    console.log(await syncHacktoberfest(client.db(dbName)));
   } finally {
     await client.close();
-    console.log('MongoDB connection closed.');
   }
 }
 
-main();
+if (require.main === module) {
+  main().catch(() => {
+    // Driver errors may contain connection details; never print credentials.
+    console.error('Hacktoberfest sync failed. Check the database target, connectivity, and indexes.');
+    process.exitCode = 1;
+  });
+}
+
+module.exports = { HACKTOBERFEST_ORGS_DATA, resolveDatabaseName, syncHacktoberfest };

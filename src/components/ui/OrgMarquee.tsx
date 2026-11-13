@@ -11,16 +11,54 @@ interface MarqueeLogo {
   slug: string;
 }
 
-const DEFAULT_MARQUEE_LOGOS: MarqueeLogo[] = [
-  { name: 'Apache Software', logoUrl: 'https://cdn.simpleicons.org/apache/D22128', brandColor: '#D22128', slug: 'apache-software-foundation' },
-  { name: 'Linux Foundation', logoUrl: 'https://cdn.simpleicons.org/linuxfoundation/0070FF', brandColor: '#0070FF', slug: 'cncf' },
-  { name: 'Python PSF', logoUrl: 'https://cdn.simpleicons.org/python/3776AB', brandColor: '#3776AB', slug: 'python-software-foundation' },
-  { name: 'Google DeepMind', logoUrl: 'https://cdn.simpleicons.org/google/4285F4', brandColor: '#4285F4', slug: 'google-deepmind' },
-  { name: 'CNCF Cloud', logoUrl: 'https://cdn.simpleicons.org/cncf/008BB8', brandColor: '#008BB8', slug: 'cncf' },
-  { name: 'Mozilla Devs', logoUrl: 'https://cdn.simpleicons.org/mozilla/FF7139', brandColor: '#FF7139', slug: 'mozilla' },
-  { name: 'Red Hat Open', logoUrl: 'https://cdn.simpleicons.org/redhat/EE0000', brandColor: '#EE0000', slug: 'redhat-mlh' },
-  { name: 'PostgreSQL', logoUrl: 'https://cdn.simpleicons.org/postgresql/4169E1', brandColor: '#4169E1', slug: 'postgresql' },
-];
+/**
+ * The marquee used to be a fixed list of eight names with hand-written slugs,
+ * and one of them — the Linux Foundation tile — reused the CNCF slug, so two
+ * tiles pointed at the same detail page and neither was checked against the
+ * database. It now renders organizations from the caller's result set, so every
+ * tile is a page that actually exists.
+ */
+export function OrgMarquee({
+  organizations = [],
+}: {
+  organizations?: { name?: string; slug?: string; logoUrl?: string; backgroundColor?: string }[];
+}) {
+  const logos: MarqueeLogo[] = [];
+  const seen = new Set<string>();
+  for (const org of organizations) {
+    const slug = typeof org?.slug === 'string' ? org.slug.trim() : '';
+    const name = typeof org?.name === 'string' ? org.name.trim() : '';
+    if (!slug || !name || seen.has(slug)) continue;
+    seen.add(slug);
+    logos.push({
+      name,
+      slug,
+      logoUrl: typeof org.logoUrl === 'string' ? org.logoUrl : '',
+      brandColor: typeof org.backgroundColor === 'string' && org.backgroundColor ? org.backgroundColor : '#64748b',
+    });
+    if (logos.length >= 12) break;
+  }
+
+  if (logos.length === 0) return null;
+
+  // Repeat the strip enough times that the CSS loop never shows a gap.
+  const repeats = logos.length >= 8 ? 3 : Math.max(2, Math.ceil(24 / logos.length));
+  const loopedLogos = Array.from({ length: repeats }, () => logos).flat();
+
+  return (
+    <div className="mb-10 relative overflow-hidden border border-hairline rounded-2xl bg-surface/40 py-3.5">
+      {/* Left and right fade gradient overlays */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-page to-transparent z-10" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-page to-transparent z-10" />
+
+      <div className="flex gap-4 animate-marquee-left pause-on-hover whitespace-nowrap px-4 items-center">
+        {loopedLogos.map((logo, i) => (
+          <MarqueeItem key={`${logo.slug}-${i}`} logo={logo} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function MarqueeItem({ logo }: { logo: MarqueeLogo }) {
   const [hasError, setHasError] = useState(false);
@@ -30,11 +68,11 @@ function MarqueeItem({ logo }: { logo: MarqueeLogo }) {
       href={`/organizations/${logo.slug}`}
       className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl border border-hairline/80 bg-surface hover:border-accent/40 transition-all shrink-0 select-none shadow-2xs hover:scale-[1.02] cursor-pointer"
     >
-      {!hasError ? (
+      {!hasError && logo.logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={logo.logoUrl}
-          alt={logo.name}
+          alt={`${logo.name} logo`}
           className="h-5 w-5 object-contain shrink-0"
           loading="lazy"
           onError={() => setHasError(true)}
@@ -46,23 +84,5 @@ function MarqueeItem({ logo }: { logo: MarqueeLogo }) {
         {logo.name}
       </span>
     </Link>
-  );
-}
-
-export function OrgMarquee() {
-  const doubleLogos = [...DEFAULT_MARQUEE_LOGOS, ...DEFAULT_MARQUEE_LOGOS, ...DEFAULT_MARQUEE_LOGOS];
-
-  return (
-    <div className="mb-10 relative overflow-hidden border border-hairline rounded-2xl bg-surface/40 py-3.5">
-      {/* Left and right fade gradient overlays */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-page to-transparent z-10" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-page to-transparent z-10" />
-
-      <div className="flex gap-4 animate-marquee-left pause-on-hover whitespace-nowrap px-4 items-center">
-        {doubleLogos.map((logo, i) => (
-          <MarqueeItem key={`${logo.name}-${i}`} logo={logo} />
-        ))}
-      </div>
-    </div>
   );
 }
