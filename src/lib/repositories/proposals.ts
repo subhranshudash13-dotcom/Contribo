@@ -594,7 +594,18 @@ export async function listProposalRevisions(
   return memoryRevisions
     .filter((r) => r.proposalId === proposalId && ownsDraft({ userId: r.userId } as never, userId))
     .slice(0, limit)
-    .map(({ sections: _, ...summary }) => summary);
+    .map((r) => ({
+      id: r.id,
+      proposalId: r.proposalId,
+      userId: r.userId,
+      createdAt: r.createdAt,
+      timestamp: r.timestamp,
+      source: r.source,
+      label: r.label,
+      characterCount: r.characterCount,
+      wordCount: r.wordCount,
+      progress: r.progress,
+    }));
 }
 
 export async function getProposalRevisionById(

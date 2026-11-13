@@ -105,7 +105,7 @@ export function ProposalVersionModal({
     [draft.sections]
   );
 
-  const fetchRevisions = useCallback(async () => {
+  const refreshRevisions = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -123,18 +123,50 @@ export function ProposalVersionModal({
   }, [draft.id]);
 
   useEffect(() => {
-    fetchRevisions();
-  }, [fetchRevisions]);
+    let isSubscribed = true;
+
+    fetch(`/api/proposals/${draft.id}/revisions`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to load revisions (${res.status})`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (isSubscribed) {
+          setRevisions(data.revisions || []);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isSubscribed) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch version history');
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, [draft.id]);
+
+  const handleSelectRevision = (revId: string) => {
+    setSelectedRevId(revId);
+    if (revId === 'current') {
+      setSelectedRevisionDetail(null);
+      setIsLoadingDetail(false);
+    } else {
+      setIsLoadingDetail(true);
+    }
+  };
 
   // Load detailed revision contents when selected
   useEffect(() => {
     if (selectedRevId === 'current') {
-      setSelectedRevisionDetail(null);
       return;
     }
 
     let isSubscribed = true;
-    setIsLoadingDetail(true);
 
     fetch(`/api/proposals/${draft.id}/revisions/${selectedRevId}`)
       .then((res) => {
@@ -181,7 +213,7 @@ export function ProposalVersionModal({
 
       setCheckpointLabel('');
       setShowCheckpointInput(false);
-      await fetchRevisions();
+      await refreshRevisions();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Error creating snapshot checkpoint');
     } finally {
@@ -206,8 +238,8 @@ export function ProposalVersionModal({
         onRestore(data.proposal.sections);
       }
       setConfirmRestoreId(null);
-      await fetchRevisions();
-      setSelectedRevId('current');
+      await refreshRevisions();
+      handleSelectRevision('current');
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Error restoring version');
     } finally {
@@ -266,7 +298,7 @@ export function ProposalVersionModal({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={fetchRevisions}
+              onClick={refreshRevisions}
               className="flex h-9 w-9 items-center justify-center rounded-xl border border-hairline bg-page text-muted hover:text-primary transition-colors cursor-pointer"
               title="Refresh revision history"
             >
@@ -333,7 +365,7 @@ export function ProposalVersionModal({
               {/* Current Active Live State */}
               <button
                 type="button"
-                onClick={() => setSelectedRevId('current')}
+                onClick={() => handleSelectRevision('current')}
                 className={`w-full text-left p-3 rounded-2xl border transition-all cursor-pointer ${
                   selectedRevId === 'current'
                     ? 'border-accent bg-accent/10 shadow-sm ring-1 ring-accent/30'
@@ -383,7 +415,7 @@ export function ProposalVersionModal({
                     <button
                       key={rev.id}
                       type="button"
-                      onClick={() => setSelectedRevId(rev.id)}
+                      onClick={() => handleSelectRevision(rev.id)}
                       className={`w-full text-left p-3 rounded-2xl border transition-all cursor-pointer ${
                         isSelected
                           ? 'border-accent bg-accent/10 shadow-sm ring-1 ring-accent/30'

@@ -164,7 +164,7 @@ test('3. Owner-Scoped Authorization Guardrails', async (t) => {
   });
 });
 
-test('4. Atomic Non-Destructive Rollback Engine', async (t) => {
+test('4. Atomic Non-Destructive Rollback Engine', async () => {
   const userId = `rollback-user-${Date.now()}`;
   const proposal = await createProposal({
     projectTitle: 'Rollback Test Project',
@@ -217,7 +217,7 @@ test('4. Atomic Non-Destructive Rollback Engine', async (t) => {
   );
 });
 
-test('5. Autosave Snapshot Throttling', async (t) => {
+test('5. Autosave Snapshot Throttling', async () => {
   const userId = `throttle-user-${Date.now()}`;
   const proposal = await createProposal({
     projectTitle: 'Throttle Test',
