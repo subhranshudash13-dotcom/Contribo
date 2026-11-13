@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 
-test('1. Homepage Dynamic generateMetadata() & OG / Twitter Meta Tags', async (t) => {
+test('1. Homepage Dynamic generateMetadata() & OG / Twitter Meta Tags', async () => {
   const pagePath = path.join(root, 'src/app/page.tsx');
   const pageContent = fs.readFileSync(pagePath, 'utf8');
 

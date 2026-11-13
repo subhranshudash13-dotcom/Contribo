@@ -111,9 +111,17 @@ export default async function DashboardPage() {
     })
   );
 
+  const username =
+    profile?.githubUsername ||
+    profile?.name?.toLowerCase().replace(/[^a-z0-9_-]/g, '') ||
+    session.user.name?.toLowerCase().replace(/[^a-z0-9_-]/g, '') ||
+    'contributor';
+
   return (
     <DashboardClient
       displayName={displayName}
+      username={username}
+      passportSettings={profile?.passportSettings}
       initialApplications={applications}
       initialSaved={savedItems}
       skills={profile?.skills}
