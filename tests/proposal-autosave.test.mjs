@@ -35,7 +35,7 @@ const {
   clearLocalSnapshot,
   createAutoSaveScheduler,
   formatLocalSaveClock,
-  hasNewerLocalWork,
+  hasRecoverableLocalWork,
   parseSnapshot,
   readLocalSnapshot,
   sanitizeSections,
@@ -108,7 +108,7 @@ test('two drafts in the same browser never read each other buffer', () => {
 // Snapshot shape
 // ---------------------------------------------------------------------------
 
-test('only string sections survive sanitization', () => {
+test('only string sections survive sanitization without truncating text', () => {
   const clean = sanitizeSections({
     summary: 'keep me',
     timeline: 42,
@@ -119,7 +119,7 @@ test('only string sections survive sanitization', () => {
     architecture: 'x'.repeat(60_001),
   });
   assert.deepEqual(Object.keys(clean), ['summary', 'architecture']);
-  assert.equal(clean.architecture.length, 60_000);
+  assert.equal(clean.architecture.length, 60_001);
   assert.deepEqual(sanitizeSections(undefined), {});
   assert.deepEqual(sanitizeSections(['a']), {});
 });
@@ -209,27 +209,24 @@ test('no window means no local writes', () => {
 test('identical text is never worth a banner', () => {
   const local = { draftId: 'draft-a', savedAt: iso(60_000), sections: { summary: 'Same ' } };
   assert.equal(
-    hasNewerLocalWork(local, { summary: 'Same' }, iso(0)),
+    hasRecoverableLocalWork(local, { summary: 'Same' }),
     false,
     'comparison is trimmed, whitespace-only edits are not new work'
   );
-  assert.equal(hasNewerLocalWork(local, { summary: 'Same' }, 'Just now'), false);
+  assert.equal(hasRecoverableLocalWork(local, { summary: 'Same' }), false);
 });
 
-test('recovery needs differing text and a local copy that is actually newer', () => {
+test('recovery needs differing text and never relies on clock order', () => {
   const local = { draftId: 'draft-a', savedAt: iso(0), sections: { summary: 'Longer local' } };
-  assert.equal(hasNewerLocalWork(local, { summary: 'Cloud' }, iso(-1000)), true);
-  assert.equal(hasNewerLocalWork(local, { summary: 'Cloud' }, iso(1000)), false);
-  assert.equal(hasNewerLocalWork(local, { summary: 'Cloud' }, new Date(-1000)), true);
-  // A seed draft stores prose for updatedAt; the user decides rather than the
-  // code silently discarding work it cannot date.
-  assert.equal(hasNewerLocalWork(local, { summary: 'Cloud' }, 'Just now'), true);
-  assert.equal(hasNewerLocalWork(local, { summary: 'Cloud' }, null), true);
-  assert.equal(hasNewerLocalWork(null, { summary: 'Cloud' }, iso(0)), false);
+  assert.equal(hasRecoverableLocalWork(local, { summary: 'Cloud' }), true);
+  // The user decides rather than the code silently discarding text it cannot
+  // safely order against a cloud timestamp.
+  assert.equal(hasRecoverableLocalWork(local, { summary: 'Cloud' }), true);
+  assert.equal(hasRecoverableLocalWork(null, { summary: 'Cloud' }), false);
   assert.equal(
-    hasNewerLocalWork({ draftId: 'draft-a', savedAt: 'bogus', sections: { summary: 'x' } }, {}, iso(0)),
+    hasRecoverableLocalWork({ draftId: 'draft-a', savedAt: 'bogus', sections: { summary: 'x' } }, {}),
     false,
-    'an undatable buffer cannot beat a real cloud timestamp'
+    'a snapshot with an invalid save time is rejected'
   );
 });
 

@@ -11,13 +11,13 @@
 
 export const AUTOSAVE_KEY_PREFIX = 'contribo_proposal_autosave_v1_';
 export const AUTOSAVE_DEBOUNCE_MS = 2500;
-/** Guard against an unbounded blob from a paste marathon; the cloud limit is larger. */
-export const AUTOSAVE_MAX_SECTION_CHARS = 60_000;
 
 export interface LocalDraftSnapshot {
   draftId: string;
   /** ISO timestamp of when the browser last wrote this buffer. */
   savedAt: string;
+  /** Signature of the cloud text this local edit was based on. */
+  baseCloudSignature?: string;
   sections: Record<string, string>;
 }
 
@@ -50,7 +50,7 @@ export function sanitizeSections(input: unknown): Record<string, string> {
   for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
     if (typeof value !== 'string') continue;
     if (!key.trim() || key === '__proto__' || key === 'constructor') continue;
-    out[key] = value.slice(0, AUTOSAVE_MAX_SECTION_CHARS);
+    out[key] = value;
   }
   return out;
 }
@@ -77,7 +77,14 @@ export function parseSnapshot(raw: string | null): LocalDraftSnapshot | null {
   if (typeof candidate.savedAt !== 'string' || !isoToDate(candidate.savedAt)) return null;
   const sections = sanitizeSections(candidate.sections);
   if (!hasAnyText(sections)) return null;
-  return { draftId: candidate.draftId, savedAt: candidate.savedAt, sections };
+  return {
+    draftId: candidate.draftId,
+    savedAt: candidate.savedAt,
+    ...(typeof candidate.baseCloudSignature === 'string'
+      ? { baseCloudSignature: candidate.baseCloudSignature }
+      : {}),
+    sections,
+  };
 }
 
 export function readLocalSnapshot(draftId: string): LocalDraftSnapshot | null {
@@ -100,7 +107,8 @@ export function readLocalSnapshot(draftId: string): LocalDraftSnapshot | null {
 export function writeLocalSnapshot(
   draftId: string,
   sections: Record<string, string>,
-  now: Date = new Date()
+  now: Date = new Date(),
+  baseCloudSignature?: string | null
 ): LocalDraftSnapshot | null {
   const key = autosaveKeyFor(draftId);
   const store = storage();
@@ -121,6 +129,7 @@ export function writeLocalSnapshot(
   const snapshot: LocalDraftSnapshot = {
     draftId: draftId.trim(),
     savedAt: now.toISOString(),
+    ...(baseCloudSignature ? { baseCloudSignature } : {}),
     sections: clean,
   };
   try {
@@ -168,27 +177,28 @@ export function sectionsDiffer(
   return false;
 }
 
-/**
- * Should the local buffer be offered for recovery?
- *
- * Identical text is never worth a banner. When the cloud copy carries a real
- * timestamp the buffer has to be newer than it; when it does not (seed drafts
- * still store prose like "2 hours ago"), a differing buffer is shown rather
- * than silently discarded — the user decides, because this is only ever a
- * prompt with Restore and Discard.
- */
-export function hasNewerLocalWork(
+/** Offer any valid local copy whose text differs from the current cloud draft. */
+export function hasRecoverableLocalWork(
   local: LocalDraftSnapshot | null,
-  cloudSections: Record<string, string> | undefined,
-  cloudUpdatedAt: unknown
+  cloudSections: Record<string, string> | undefined
 ): boolean {
-  if (!local || !hasAnyText(local.sections)) return false;
-  if (!sectionsDiffer(local.sections, cloudSections)) return false;
-  const cloudAt = isoToDate(cloudUpdatedAt);
-  if (!cloudAt) return true;
-  const localAt = isoToDate(local.savedAt);
-  if (!localAt) return false;
-  return localAt.getTime() > cloudAt.getTime();
+  if (!local || !isoToDate(local.savedAt) || !hasAnyText(local.sections)) return false;
+  // Browser and server timestamps cannot establish causality: an older cloud
+  // PATCH can finish after a newer local edit. Keep every divergent local copy
+  // available for an explicit Restore/Discard decision.
+  return sectionsDiffer(local.sections, cloudSections);
+}
+
+/** A changed cloud base means both copies have diverged since this snapshot. */
+export function cloudChangedSinceSnapshot(
+  local: LocalDraftSnapshot,
+  currentCloudSignature: string | null
+): boolean {
+  return !!(
+    local.baseCloudSignature &&
+    currentCloudSignature &&
+    local.baseCloudSignature !== currentCloudSignature
+  );
 }
 
 /** 24-hour clock for the "Auto-saved locally (14:32)" pill. */
@@ -225,14 +235,19 @@ function hashText(value: string): number {
 
 export interface AutoSaveScheduler {
   /** Buffer `sections` for `draftId`; the write happens one quiet period later. */
-  schedule(draftId: string, sections: Record<string, string>): void;
+  schedule(
+    draftId: string,
+    sections: Record<string, string>,
+    baseCloudSignature?: string | null
+  ): void;
   /**
    * Write whatever is buffered, now — used on tab hide, unload and draft
    * switch. `notify: false` skips the callback, for teardown paths that must
    * not touch component state.
    */
   flush(options?: { notify?: boolean }): LocalDraftSnapshot | null;
-  cancel(): void;
+  /** Cancel only the matching draft's pending write when an id is supplied. */
+  cancel(draftId?: string): void;
   isPending(): boolean;
 }
 
@@ -254,7 +269,11 @@ export function createAutoSaveScheduler(options: {
   const clearTimer = options.clearTimer ?? ((handle) => clearTimeout(handle));
 
   let handle: ReturnType<typeof setTimeout> | null = null;
-  let pending: { draftId: string; sections: Record<string, string> } | null = null;
+  let pending: {
+    draftId: string;
+    sections: Record<string, string>;
+    baseCloudSignature?: string | null;
+  } | null = null;
 
   function flush(flushOptions?: { notify?: boolean }): LocalDraftSnapshot | null {
     if (handle !== null) {
@@ -264,7 +283,12 @@ export function createAutoSaveScheduler(options: {
     const buffered = pending;
     pending = null;
     if (!buffered) return null;
-    const snapshot = writeLocalSnapshot(buffered.draftId, buffered.sections);
+    const snapshot = writeLocalSnapshot(
+      buffered.draftId,
+      buffered.sections,
+      new Date(),
+      buffered.baseCloudSignature
+    );
     // `options` is the scheduler's own config; only `notify` comes from the
     // caller, so reading either from the wrong object is a bug waiting to happen.
     if (snapshot && flushOptions?.notify !== false) options.onWritten?.(snapshot);
@@ -272,14 +296,14 @@ export function createAutoSaveScheduler(options: {
   }
 
   return {
-    schedule(draftId, sections) {
+    schedule(draftId, sections, baseCloudSignature) {
       const id = draftId.trim();
       const key = autosaveKeyFor(id);
       if (!key) return;
       // Switching drafts mid-debounce: the previous draft's text has to reach
       // its own slot first, or it is lost to the new buffer.
       if (pending && pending.draftId !== id) flush();
-      pending = { draftId: id, sections };
+      pending = { draftId: id, sections, baseCloudSignature };
       if (options.onScheduled) options.onScheduled();
       if (handle !== null) clearTimer(handle);
       handle = setTimer(() => {
@@ -288,7 +312,8 @@ export function createAutoSaveScheduler(options: {
       }, delayMs);
     },
     flush,
-    cancel() {
+    cancel(draftId) {
+      if (draftId && pending?.draftId !== draftId.trim()) return;
       pending = null;
       if (handle !== null) {
         clearTimer(handle);

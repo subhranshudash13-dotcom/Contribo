@@ -19,39 +19,45 @@ import {
 export function useProposalAutoSave({
   draftId,
   sections,
+  baseCloudSignature,
   enabled = true,
   delayMs,
 }: {
   draftId: string;
   sections: Record<string, string>;
+  baseCloudSignature?: string | null;
   enabled?: boolean;
   delayMs?: number;
 }) {
-  const [lastLocalSaveAt, setLastLocalSaveAt] = useState<string | null>(null);
+  const [lastLocalSave, setLastLocalSave] = useState<{
+    draftId: string;
+    savedAt: string;
+  } | null>(null);
   const schedulerRef = useRef<ReturnType<typeof createAutoSaveScheduler> | null>(null);
 
   if (schedulerRef.current === null) {
     schedulerRef.current = createAutoSaveScheduler({
       delayMs,
-      onWritten: (snapshot: LocalDraftSnapshot) => setLastLocalSaveAt(snapshot.savedAt),
+      onWritten: (snapshot: LocalDraftSnapshot) =>
+        setLastLocalSave({ draftId: snapshot.draftId, savedAt: snapshot.savedAt }),
     });
   }
 
   // Signature instead of object identity: the store hands back a new sections
   // object on every keystroke, and only real text changes are worth a write.
   const signature = useMemo(
-    () => sectionsSignature(draftId, sections),
-    [draftId, sections]
+    () => `${sectionsSignature(draftId, sections)}|${baseCloudSignature ?? ''}`,
+    [draftId, sections, baseCloudSignature]
   );
 
   useEffect(() => {
     const scheduler = schedulerRef.current;
     if (!scheduler || !enabled || !draftId) return;
-    scheduler.schedule(draftId, sections);
+    scheduler.schedule(draftId, sections, baseCloudSignature);
     // `signature` is the dependency that actually matters; `sections` is read
     // through it so a re-render with identical text never re-arms the timer.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draftId, signature, enabled]);
+  }, [draftId, signature, enabled, baseCloudSignature]);
 
   // Flush the buffered text when the tab is backgrounded or closed — the timer
   // may never get its quiet period.
@@ -75,16 +81,20 @@ export function useProposalAutoSave({
   /** Force the buffered text out now, e.g. before a manual save or an export. */
   const flushNow = useCallback(() => {
     const snapshot = schedulerRef.current?.flush();
-    if (snapshot) setLastLocalSaveAt(snapshot.savedAt);
+    if (snapshot) {
+      setLastLocalSave({ draftId: snapshot.draftId, savedAt: snapshot.savedAt });
+    }
   }, []);
 
   /**
    * Drop the buffered text without writing it — used when the draft it belongs
    * to is deleted, so a half-finished timer cannot resurrect a removed buffer.
    */
-  const discardPending = useCallback(() => {
-    schedulerRef.current?.cancel();
+  const discardPending = useCallback((pendingDraftId?: string) => {
+    schedulerRef.current?.cancel(pendingDraftId);
   }, []);
+
+  const lastLocalSaveAt = lastLocalSave?.draftId === draftId ? lastLocalSave.savedAt : null;
 
   return { lastLocalSaveAt, flushNow, discardPending };
 }

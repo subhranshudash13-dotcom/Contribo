@@ -28,8 +28,9 @@ import {
 import { useProposalAutoSave } from './useProposalAutoSave';
 import {
   clearLocalSnapshot,
+  cloudChangedSinceSnapshot,
   formatLocalSaveClock,
-  hasNewerLocalWork,
+  hasRecoverableLocalWork,
   isoToDate,
   readLocalSnapshot,
   sectionsSignature,
@@ -111,14 +112,27 @@ export function useProposalStudio() {
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
 
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveTimer = useRef<{
+    draftId: string;
+    handle: ReturnType<typeof setTimeout>;
+  } | null>(null);
+  const cloudRevisionByDraftRef = useRef<Map<string, string>>(
+    new Map(
+      DRAFT_PROPOSALS.map((draft) => [
+        draft.id,
+        sectionsSignature(draft.id, draft.sections),
+      ])
+    )
+  );
   const seededFromQuery = useRef(false);
   // Latest draft list, readable from effects that must not re-run on every
   // keystroke (the recovery check compares against the cloud copy on it).
   const draftsRef = useRef(drafts);
   // Text that survived in this browser but never reached MongoDB, plus the
   // moment the last cloud save was confirmed.
-  const [recoveryCandidate, setRecoveryCandidate] = useState<LocalDraftSnapshot | null>(null);
+  const [recoveryCandidate, setRecoveryCandidate] = useState<
+    (LocalDraftSnapshot & { cloudChangedSinceSnapshot: boolean }) | null
+  >(null);
   const [recoveryCheckedFor, setRecoveryCheckedFor] = useState<string | null>(null);
   // Signature of the exact text a PATCH confirmed on the server, or null while
   // nothing has been saved in this session.
@@ -150,6 +164,12 @@ export function useProposalStudio() {
         const res = await fetchProposals();
         if (!cancelled && res?.proposals && res.proposals.length > 0) {
           loaded = res.proposals;
+          for (const draft of res.proposals) {
+            cloudRevisionByDraftRef.current.set(
+              draft.id,
+              sectionsSignature(draft.id, draft.sections)
+            );
+          }
           setDrafts(res.proposals);
           if (!draftParam) {
             setActiveDraftId(res.proposals[0].id);
@@ -202,6 +222,10 @@ export function useProposalStudio() {
               programName: 'Google Summer of Code',
             });
             if (!cancelled && created?.proposal) {
+              cloudRevisionByDraftRef.current.set(
+                created.proposal.id,
+                sectionsSignature(created.proposal.id, created.proposal.sections)
+              );
               setDrafts((prev) => [created.proposal, ...prev]);
               setActiveDraftId(created.proposal.id);
               setMode('workspace');
@@ -288,10 +312,14 @@ export function useProposalStudio() {
           setIsOfflineMode(true);
           return;
         }
-        await updateProposalDraft(draftId, {
+        const response = await updateProposalDraft(draftId, {
           sections: updatedSections,
           progress,
         });
+        cloudRevisionByDraftRef.current.set(
+          draftId,
+          sectionsSignature(draftId, response?.proposal?.sections ?? updatedSections)
+        );
         setSaveStatus('saved');
         setIsOfflineMode(false);
         // Only a resolved PATCH backs the "Cloud synced" claim.
@@ -322,10 +350,12 @@ export function useProposalStudio() {
         const updated = { ...current.sections, [sectionId]: value };
         const progress = computeProgress(updated);
 
-        if (saveTimer.current) clearTimeout(saveTimer.current);
-        saveTimer.current = setTimeout(() => {
+        if (saveTimer.current) clearTimeout(saveTimer.current.handle);
+        const timer = setTimeout(() => {
+          if (saveTimer.current?.handle === timer) saveTimer.current = null;
           void persistSectionEdit(draftId, updated, progress);
         }, 450);
+        saveTimer.current = { draftId, handle: timer };
 
         return prevDrafts.map((d) =>
           d.id === draftId
@@ -354,8 +384,19 @@ export function useProposalStudio() {
       if (cancelled) return;
       const cloud = draftsRef.current.find((d) => d.id === draftIdAtCheck);
       const local = readLocalSnapshot(draftIdAtCheck);
+      const currentCloudSignature = cloud
+        ? sectionsSignature(draftIdAtCheck, cloud.sections)
+        : null;
       setRecoveryCandidate(
-        hasNewerLocalWork(local, cloud?.sections, cloud?.updatedAt) ? local : null
+        local && hasRecoverableLocalWork(local, cloud?.sections)
+          ? {
+              ...local,
+              cloudChangedSinceSnapshot: cloudChangedSinceSnapshot(
+                local,
+                currentCloudSignature
+              ),
+            }
+          : null
       );
       setRecoveryCheckedFor(draftIdAtCheck);
     }, 0);
@@ -372,6 +413,9 @@ export function useProposalStudio() {
   } = useProposalAutoSave({
     draftId: activeDraftId,
     sections: sectionsState,
+    baseCloudSignature:
+      cloudRevisionByDraftRef.current.get(activeDraftId) ??
+      sectionsSignature(activeDraftId, activeDraft?.sections),
     // Disabled until the recovery check for this draft has run and come up
     // empty: writing while a prompt is open would destroy the buffer on offer.
     enabled:
@@ -383,6 +427,11 @@ export function useProposalStudio() {
   const restoreLocalDraft = useCallback(() => {
     const snapshot = recoveryCandidate;
     if (!snapshot || snapshot.draftId !== activeDraftId || !activeDraft) return;
+    if (saveTimer.current?.draftId === activeDraftId) {
+      clearTimeout(saveTimer.current.handle);
+      saveTimer.current = null;
+    }
+    discardPendingLocalSave(activeDraftId);
     const merged = { ...activeDraft.sections, ...snapshot.sections };
     const progress = computeProgress(merged);
     setDrafts((prev) =>
@@ -393,7 +442,7 @@ export function useProposalStudio() {
     setRecoveryCandidate(null);
     void persistSectionEdit(activeDraftId, merged, progress);
     showToast('Restored your locally saved text');
-  }, [recoveryCandidate, activeDraft, activeDraftId, persistSectionEdit, showToast]);
+  }, [recoveryCandidate, activeDraft, activeDraftId, discardPendingLocalSave, persistSectionEdit, showToast]);
 
   const discardLocalDraft = useCallback(() => {
     const snapshot = recoveryCandidate;
@@ -669,6 +718,10 @@ export function useProposalStudio() {
           programName: payload?.programName || 'GSoC 2026',
         });
         if (created?.proposal) {
+          cloudRevisionByDraftRef.current.set(
+            created.proposal.id,
+            sectionsSignature(created.proposal.id, created.proposal.sections)
+          );
           setDrafts((prev) => [created.proposal, ...prev]);
           setActiveDraftId(created.proposal.id);
           setMode('workspace');
@@ -697,7 +750,8 @@ export function useProposalStudio() {
         await deleteProposalDraft(draftId);
         // The draft is gone; its local buffer must not resurface as a
         // recovery prompt, and a still-running debounce must not rewrite it.
-        if (draftId === activeDraftId) discardPendingLocalSave();
+        discardPendingLocalSave(draftId);
+        cloudRevisionByDraftRef.current.delete(draftId);
         clearLocalSnapshot(draftId);
         if (recoveryCandidate?.draftId === draftId) setRecoveryCandidate(null);
         setDrafts((prev) => {

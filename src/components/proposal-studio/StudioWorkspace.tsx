@@ -410,7 +410,9 @@ export function StudioWorkspace() {
             <div className="mx-auto flex max-w-[1440px] flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12">
               <p className="text-sm text-primary">
                 <span className="font-mono font-bold text-accent">Heads up:</span>{' '}
-                You have unsaved changes from a previous session.
+                {studio.recoveryCandidate.cloudChangedSinceSnapshot
+                  ? 'The cloud draft changed since this local copy was saved. Restore merges its sections into the current draft.'
+                  : 'You have unsaved changes from a previous session.'}
               </p>
               <div className="flex shrink-0 items-center gap-2">
                 <button
