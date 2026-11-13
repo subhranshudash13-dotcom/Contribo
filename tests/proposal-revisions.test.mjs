@@ -43,7 +43,24 @@ function sourceLoader(mocks = {}) {
   return load;
 }
 
-const load = sourceLoader();
+const mockDb = {
+  COLLECTIONS: {
+    users: 'users',
+    programs: 'programs',
+    organizations: 'organizations',
+    projects: 'projects',
+    savedItems: 'saved_items',
+    applications: 'applications',
+    proposals: 'proposals',
+    proposalRevisions: 'proposal_revisions',
+    userFeedback: 'user_feedback',
+  },
+  getCollection: async () => null,
+};
+
+const load = sourceLoader({
+  '@/lib/db': mockDb,
+});
 const proposalsRepo = load('src/lib/repositories/proposals.ts');
 
 const {
@@ -265,6 +282,7 @@ test('6. REST API Endpoints Route Verification', async (t) => {
 
   const apiLoader = sourceLoader({
     '@/lib/api': mockApi,
+    '@/lib/db': mockDb,
     '@/lib/repositories/proposals': proposalsRepo,
     '@/lib/security': { safeLogError: () => {} },
   });
