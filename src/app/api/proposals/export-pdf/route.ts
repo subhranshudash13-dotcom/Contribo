@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
         } catch {
           // ignore already exited process
         }
-        safeLogError('Python PDF engine timed out after 20s');
+        safeLogError('Python PDF engine timed out after 20s:', new Error('Timeout'));
         finish(
           apiError(
             'PDF generation timed out. Use client-side Print to PDF or Markdown export.',
