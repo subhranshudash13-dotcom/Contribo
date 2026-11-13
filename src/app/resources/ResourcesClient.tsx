@@ -509,17 +509,26 @@ const LIFECYCLE_STEPS: LifecycleStep[] = [
 ];
 
 function ResourceCard({ guide }: { guide: ResourceGuide }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hash = window.location.hash.slice(1);
+      return hash === guide.id || Boolean(guide.aliases?.includes(hash));
+    }
+    return false;
+  });
   const Icon = guide.icon;
   const panelId = `scenario-${guide.id}`;
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.hash) {
+    if (typeof window === 'undefined') return;
+    const handleHashChange = () => {
       const hash = window.location.hash.slice(1);
-      if (hash === guide.id || guide.aliases?.includes(hash)) {
+      if (hash === guide.id || Boolean(guide.aliases?.includes(hash))) {
         setExpanded(true);
       }
-    }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, [guide.id, guide.aliases]);
 
   return (

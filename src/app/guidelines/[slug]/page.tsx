@@ -3,12 +3,8 @@ import Link from 'next/link';
 import {
   ArrowLeft,
   CheckCircle2,
-  BookOpen,
-  DollarSign,
-  ShieldCheck,
   Award,
   ArrowRight,
-  ExternalLink,
   AlertCircle,
   HelpCircle,
 } from 'lucide-react';
