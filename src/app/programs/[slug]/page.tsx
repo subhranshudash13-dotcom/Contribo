@@ -26,6 +26,7 @@ import { ProgramLogo } from '@/components/ui/ProgramLogos';
 import { getProgramBySlug } from '@/lib/repositories/programs';
 import { getProgramGuide } from '@/lib/program-guides';
 import { EXPLORER_ENABLED_SLUGS } from '@/lib/programs/explorer';
+import { AddToCalendarDropdown } from '@/components/programs/AddToCalendarDropdown';
 
 export const revalidate = 600;
 
@@ -329,9 +330,19 @@ export default async function ProgramDetailPage({ params }: Props) {
 
           {/* Timeline */}
           <section className="space-y-6 pb-10 border-b border-hairline/70">
-            <h2 className="text-2xl sm:text-3xl font-bold flex items-center gap-2.5 text-primary font-heading">
-              <Calendar size={22} className="text-accent" /> Program Timeline
-            </h2>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <h2 className="text-2xl sm:text-3xl font-bold flex items-center gap-2.5 text-primary font-heading">
+                <Calendar size={22} className="text-accent" /> Program Timeline
+              </h2>
+              {program.timeline && program.timeline.length > 0 && (
+                <AddToCalendarDropdown
+                  programSlug={program.slug}
+                  programName={program.name}
+                  events={program.timeline.map((t) => ({ event: t.event, date: String(t.date) }))}
+                  officialWebsite={program.officialWebsite}
+                />
+              )}
+            </div>
             {program.timeline && program.timeline.length > 0 ? (
               <div className="relative pl-6 sm:pl-8 border-l-2 border-hairline ml-3 sm:ml-4 space-y-8 py-2">
                 {program.timeline.map((item, idx) => {
