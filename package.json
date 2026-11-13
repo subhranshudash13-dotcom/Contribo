@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test tests/unit-suite.test.mjs tests/organization-search.test.mjs tests/contributor-readiness.test.mjs tests/feedback-categories.test.mjs tests/application-milestones.test.mjs tests/proposal-sections.test.mjs tests/pagination.test.mjs tests/pagination-helpers.test.mjs tests/glossary-search.test.mjs tests/hacktoberfest.test.mjs tests/saved-items.test.mjs tests/pr-interactive-lab.test.mjs tests/project-search-sorting.test.mjs tests/proposal-export-counters.test.mjs tests/homepage-ssr-metadata.test.mjs tests/orbit-ai-org-matcher.test.mjs",
+    "test": "node --test tests/unit-suite.test.mjs tests/organization-search.test.mjs tests/contributor-readiness.test.mjs tests/feedback-categories.test.mjs tests/application-milestones.test.mjs tests/proposal-sections.test.mjs tests/pagination.test.mjs tests/pagination-helpers.test.mjs tests/glossary-search.test.mjs tests/hacktoberfest.test.mjs tests/saved-items.test.mjs tests/pr-interactive-lab.test.mjs tests/project-search-sorting.test.mjs tests/proposal-export-counters.test.mjs tests/homepage-ssr-metadata.test.mjs tests/orbit-ai-org-matcher.test.mjs tests/roadmap-guidelines-links.test.mjs",
     "audit": "npm audit && node scripts/audit-coverage.js",
     "db:indexes": "node scripts/setup-indexes.js",
     "db:migrate-proposal-times": "node scripts/migrate-proposal-updated-at.js",

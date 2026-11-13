@@ -30,10 +30,6 @@ export function ExportPanel() {
   const [pdfFailed, setPdfFailed] = useState(false);
   const [viewMode, setViewMode] = useState<'sheet' | 'raw'>('sheet');
 
-  if (!draft) return null;
-
-  const score = scoreData.totalScore;
-
   const totalStats = useMemo(() => {
     let totalChars = 0;
     let totalCharsNoSpaces = 0;
@@ -59,6 +55,10 @@ export function ExportPanel() {
             : `~${readingTime} min read`,
     };
   }, [sectionsState]);
+
+  if (!draft) return null;
+
+  const score = scoreData.totalScore;
 
   const handlePdfExport = async () => {
     try {
