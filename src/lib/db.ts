@@ -42,6 +42,8 @@ export const COLLECTIONS = {
   applications: 'applications',
   /** Proposal Studio drafts */
   proposals: 'proposals',
+  /** Proposal Studio revision snapshots */
+  proposalRevisions: 'proposal_revisions',
   /** Product feedback submissions */
   userFeedback: 'user_feedback',
 } as const;
