@@ -128,6 +128,14 @@ export interface SavedItem {
   createdAt: Date | string;
 }
 
+export interface PassportSettings {
+  visibility?: 'public' | 'unlisted' | 'private';
+  showProposalsCount?: boolean;
+  showTargetOrgs?: boolean;
+  showSkills?: boolean;
+  customBio?: string;
+}
+
 export interface UserProfile {
   _id?: ObjectId | string;
   name?: string | null;
@@ -139,6 +147,7 @@ export interface UserProfile {
   availabilityHours?: number;
   location?: string;
   githubUsername?: string;
+  passportSettings?: PassportSettings;
   lastLoginAt?: Date | string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
