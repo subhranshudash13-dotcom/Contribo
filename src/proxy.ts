@@ -104,6 +104,21 @@ function clientIp(req: { headers: Headers }): string {
 // Next.js 16: request interceptor is named `proxy` (formerly middleware)
 export const proxy = auth((req) => {
   const { pathname } = req.nextUrl;
+
+  // Keep one canonical URL for public pages. API routes, assets, and the root
+  // route are intentionally excluded because their trailing slash semantics
+  // are meaningful to clients or controlled by Next.js.
+  if (
+    req.method === "GET" &&
+    pathname.length > 1 &&
+    pathname.endsWith("/") &&
+    !pathname.startsWith("/api/")
+  ) {
+    const canonical = req.nextUrl.clone();
+    canonical.pathname = pathname.replace(/\/+$/, "");
+    return NextResponse.redirect(canonical, 308);
+  }
+
   const ip = clientIp(req);
   const method = req.method.toUpperCase();
 
