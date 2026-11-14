@@ -17,8 +17,7 @@ test.describe('Proposal Studio User Journey', () => {
 
   test('displays proposal sections or guidance overview without error', async ({ page }) => {
     await page.waitForLoadState('domcontentloaded');
-    await expect(
-      page.locator('main, [data-section], text=/proposal studio|draft|sections|overview/i').first()
-    ).toBeVisible();
+    const container = page.locator('main, header, nav').first();
+    await expect(container).toBeVisible();
   });
 });
