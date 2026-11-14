@@ -5,6 +5,7 @@ import {
   isValidEmail,
   parseMutationBody,
   privateNoStoreHeaders,
+  requireSameOrigin,
 } from '@/lib/api';
 import { auth } from '@/auth';
 import { normalizeFeedbackCategory } from '@/lib/feedback-categories.mjs';
@@ -17,6 +18,8 @@ import { safeLogError } from '@/lib/security';
  */
 export async function POST(req: Request) {
   try {
+    const originError = requireSameOrigin(req);
+    if (originError) return originError;
     const session = await auth();
     const body = await parseMutationBody(req);
     if (isNextResponse(body)) return body;
