@@ -15,9 +15,11 @@ import {
   AlertCircle,
   Zap,
   FolderGit2,
-  ChevronRight
+  ChevronRight,
+  Shield,
 } from 'lucide-react';
 import Link from 'next/link';
+import { SharePassportModal } from '@/components/dashboard/SharePassportModal';
 import {
   friendlyApiMessage,
   updateUserApplication,
@@ -27,7 +29,7 @@ import {
 import { useNetwork } from '@/components/ui/NetworkProvider';
 import { OrgLogo } from '@/components/ui/OrgLogo';
 import { calculateContributorReadiness } from '@/lib/contributor-readiness';
-import type { ApplicationStatus } from '@/../types';
+import type { ApplicationStatus, PassportSettings } from '@/../types';
 
 const STATUSES: ApplicationStatus[] = [
   'saved',
@@ -133,11 +135,15 @@ function getDeadlineUrgency(value?: string | Date | null) {
 
 export function DashboardClient({
   displayName = 'Contributor',
+  username = 'contributor',
+  passportSettings,
   initialApplications = [],
   initialSaved = [],
   skills = [],
 }: {
   displayName?: string;
+  username?: string;
+  passportSettings?: PassportSettings;
   initialApplications?: DashboardApp[];
   initialSaved?: DashboardSaved[];
   skills?: string[];
@@ -151,6 +157,7 @@ export function DashboardClient({
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'applications' | 'proposals' | 'bookmarks'>('applications');
   const [bookmarkQuery, setBookmarkQuery] = useState('');
+  const [isPassportModalOpen, setIsPassportModalOpen] = useState(false);
 
   const safeApplications = applications || [];
   const safeSaved = savedItems || [];
@@ -274,7 +281,15 @@ export function DashboardClient({
           </p>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <button
+            type="button"
+            onClick={() => setIsPassportModalOpen(true)}
+            className="flex items-center gap-1.5 text-xs font-bold text-accent hover:text-accent/80 transition-colors px-3 py-1.5 rounded-full border border-hairline hover:border-accent/30 bg-surface/60 cursor-pointer shadow-2xs"
+          >
+            <Shield size={13} />
+            <span>Passport & Badge</span>
+          </button>
           <Link
             href="/matcher"
             className="flex items-center gap-1.5 text-xs font-bold text-accent hover:text-accent/80 transition-colors px-3 py-1.5 rounded-full border border-hairline hover:border-accent/30 bg-surface/60"
@@ -510,8 +525,18 @@ export function DashboardClient({
           <span className="text-[10px] font-bold text-tertiary uppercase tracking-wider flex items-center gap-1.5">
             <Zap size={12} /> Contributor Readiness
           </span>
-          <div className="text-2xl sm:text-3xl font-heading font-extrabold text-primary">
-            {readiness.score}%
+          <div className="flex items-center justify-between">
+            <div className="text-2xl sm:text-3xl font-heading font-extrabold text-primary">
+              {readiness.score}%
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsPassportModalOpen(true)}
+              className="text-[11px] font-bold text-accent hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <span>Share</span>
+              <ChevronRight size={12} />
+            </button>
           </div>
           <div
             className={`text-xs font-medium ${
@@ -790,6 +815,14 @@ export function DashboardClient({
         )}
 
       </div>
+
+      <SharePassportModal
+        isOpen={isPassportModalOpen}
+        onClose={() => setIsPassportModalOpen(false)}
+        username={username}
+        displayName={displayName}
+        initialSettings={passportSettings}
+      />
     </main>
   );
 }

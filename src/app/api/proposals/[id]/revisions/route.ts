@@ -12,6 +12,7 @@ import {
   getProposalById,
   listProposalRevisions,
 } from '@/lib/repositories/proposals';
+import { calculateProposalProgress } from '@/lib/proposal-studio/sections';
 import { safeLogError } from '@/lib/security';
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -75,13 +76,18 @@ export async function POST(req: Request, { params }: RouteContext) {
         ? (body.sections as Record<string, string>)
         : proposal.sections;
 
+    const progress =
+      body.sections && typeof body.sections === 'object' && !Array.isArray(body.sections)
+        ? calculateProposalProgress(sections)
+        : proposal.progress;
+
     const revision = await createProposalRevision({
       proposalId: id.trim(),
       userId: authResult.userId,
       source: 'manual_snapshot',
       label,
       sections,
-      progress: proposal.progress,
+      progress,
     });
 
     return apiOk({ revision }, 201, privateNoStoreHeaders());
