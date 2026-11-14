@@ -27,6 +27,19 @@ export const metadata: Metadata = {
   icons: {
     icon: "/icon.svg?v=3",
   },
+  openGraph: {
+    type: "website",
+    siteName: "Contribo",
+    title: "Contribo | Open Source Programs",
+    description: "Discover and apply to open-source programs and projects.",
+    images: [{ url: "/icon.svg", alt: "Contribo" }],
+  },
+  twitter: {
+    card: "summary",
+    title: "Contribo | Open Source Programs",
+    description: "Discover and apply to open-source programs and projects.",
+    images: ["/icon.svg"],
+  },
 };
 
 export const viewport: Viewport = {
