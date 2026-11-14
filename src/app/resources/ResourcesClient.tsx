@@ -30,6 +30,7 @@ type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced';
 
 interface ResourceGuide {
   id: string;
+  aliases?: string[];
   title: string;
   category: string;
   icon: React.ElementType;
@@ -70,6 +71,7 @@ function DiffBlock({ code }: { code: string }) {
 const RESOURCES: ResourceGuide[] = [
   {
     id: "proposal-writing",
+    aliases: ["timeline-planner", "mentor-outreach-guide"],
     title: "How to write proposals",
     category: "Mentorship Application",
     difficulty: "Intermediate",
@@ -98,6 +100,7 @@ const RESOURCES: ResourceGuide[] = [
   },
   {
     id: "finding-first-issues",
+    aliases: ["readiness-checklist"],
     title: "Finding Good First Issues",
     category: "Discovery",
     difficulty: "Beginner",
@@ -294,6 +297,7 @@ const RESOURCES: ResourceGuide[] = [
   },
   {
     id: "demystifying-pull-requests",
+    aliases: ["pr-starter-guide", "first-pr"],
     title: "Demystifying Pull Requests",
     category: "Collaboration",
     difficulty: "Beginner",
@@ -506,12 +510,41 @@ const LIFECYCLE_STEPS: LifecycleStep[] = [
 ];
 
 function ResourceCard({ guide }: { guide: ResourceGuide }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hash = window.location.hash.slice(1);
+      return hash === guide.id || Boolean(guide.aliases?.includes(hash));
+    }
+    return false;
+  });
   const Icon = guide.icon;
   const panelId = `scenario-${guide.id}`;
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash === guide.id || Boolean(guide.aliases?.includes(hash))) {
+        setExpanded(true);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [guide.id, guide.aliases]);
+
   return (
-    <div className={`flex flex-col bg-surface border rounded-2xl overflow-hidden transition-all duration-300 motion-reduce:transition-none ${expanded ? 'border-accent shadow-md' : 'border-hairline shadow-sm hover:border-tertiary'}`}>
+    <article
+      id={guide.id}
+      className={`scroll-mt-24 relative flex flex-col bg-surface border rounded-2xl overflow-hidden transition-all duration-300 motion-reduce:transition-none ${expanded ? 'border-accent shadow-md' : 'border-hairline shadow-sm hover:border-tertiary'}`}
+    >
+      {guide.aliases?.map((alias) => (
+        <span
+          key={alias}
+          id={alias}
+          className="scroll-mt-24 absolute -top-24 pointer-events-none"
+          aria-hidden="true"
+        />
+      ))}
       <div 
         className="p-6 cursor-pointer select-none flex-1"
         onClick={() => setExpanded(!expanded)}
@@ -584,7 +617,7 @@ function ResourceCard({ guide }: { guide: ResourceGuide }) {
           </div>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 
