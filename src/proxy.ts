@@ -1,52 +1,32 @@
 import { NextResponse } from "next/server";
 import { auth } from "./auth";
+import {
+  checkRateLimit,
+  attachRateLimitHeaders,
+  RATE_LIMIT_TIERS,
+  type RateLimitOptions,
+  type RateLimitResult,
+} from "./lib/rate-limit";
 
-// Simple in-memory sliding window rate limit cache (single-instance only).
-const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
-const MAX_RATE_LIMIT_KEYS = 10_000;
-
-function isRateLimited(key: string, limit: number, windowMs: number): boolean {
-  const now = Date.now();
-  const record = rateLimitMap.get(key);
-
-  if (!record) {
-    if (rateLimitMap.size >= MAX_RATE_LIMIT_KEYS) {
-      const drop = Math.ceil(MAX_RATE_LIMIT_KEYS * 0.1);
-      let i = 0;
-      for (const k of rateLimitMap.keys()) {
-        rateLimitMap.delete(k);
-        if (++i >= drop) break;
-      }
-    }
-    rateLimitMap.set(key, { count: 1, lastReset: now });
-    return false;
-  }
-
-  if (now - record.lastReset > windowMs) {
-    record.count = 1;
-    record.lastReset = now;
-    return false;
-  }
-
-  record.count += 1;
-  return record.count > limit;
-}
-
-function rateLimitResponse(retryAfterSec = 60) {
-  return new NextResponse(
+function rateLimitResponse(rateResult: RateLimitResult, requestId: string) {
+  const res = new NextResponse(
     JSON.stringify({
       error: "Too many requests. Please try again in a minute.",
       code: "rate_limited",
+      requestId,
+      retryAfter: rateResult.retryAfter,
     }),
     {
       status: 429,
       headers: {
         "Content-Type": "application/json",
-        "Retry-After": String(retryAfterSec),
+        "X-Request-Id": requestId,
         "X-Content-Type-Options": "nosniff",
       },
     }
   );
+  attachRateLimitHeaders(res.headers, rateResult);
+  return res;
 }
 
 function buildCsp(): string {
@@ -54,8 +34,8 @@ function buildCsp(): string {
   // Images: self + common avatar/CDN hosts used by the product.
   const isProd = process.env.NODE_ENV === "production";
   const scriptSrc = isProd
-    ? "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com"
-    : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com";
+    ? "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://va.vercel-scripts.com"
+    : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://va.vercel-scripts.com";
 
   return [
     "default-src 'self'",
@@ -63,7 +43,7 @@ function buildCsp(): string {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
-    "connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://generativelanguage.googleapis.com https://api.openai.com",
+    "connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://generativelanguage.googleapis.com https://api.openai.com https:",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -72,7 +52,8 @@ function buildCsp(): string {
   ].join("; ");
 }
 
-function withSecurityHeaders(res: NextResponse): NextResponse {
+function withSecurityHeaders(res: NextResponse, requestId: string): NextResponse {
+  res.headers.set("X-Request-Id", requestId);
   res.headers.set("X-Content-Type-Options", "nosniff");
   res.headers.set("X-Frame-Options", "DENY");
   res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -102,10 +83,14 @@ function clientIp(req: { headers: Headers }): string {
 }
 
 // Next.js 16: request interceptor is named `proxy` (formerly middleware)
-export const proxy = auth((req) => {
+export const proxy = auth(async (req) => {
   const { pathname } = req.nextUrl;
   const ip = clientIp(req);
   const method = req.method.toUpperCase();
+
+  const requestId =
+    req.headers.get("x-request-id") ||
+    `req_${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36).slice(-4)}`;
 
   // Rate limit API routes
   if (pathname.startsWith("/api")) {
@@ -113,10 +98,11 @@ export const proxy = auth((req) => {
       pathname.startsWith("/api/health") ||
       pathname.startsWith("/api/connectivity")
     ) {
-      if (isRateLimited(`health:${ip}`, 120, 60_000)) {
-        return rateLimitResponse(30);
+      const res = await checkRateLimit(`health:${ip}`, { limit: 120, windowMs: 60_000 });
+      if (!res.success) {
+        return rateLimitResponse(res, requestId);
       }
-      return withSecurityHeaders(NextResponse.next());
+      return withSecurityHeaders(NextResponse.next(), requestId);
     }
 
     // Auth endpoints: strictly guard credential submissions against brute-force, while allowing smooth session checks
@@ -127,17 +113,15 @@ export const proxy = auth((req) => {
           pathname.includes("/signin") ||
           pathname.includes("/register"));
 
-      if (isAuthMutation) {
-        if (isRateLimited(`auth-mutation:${ip}`, 20, 60_000)) {
-          return rateLimitResponse(60);
-        }
-      } else {
-        // High limit for standard session polling and CSRF token reads across tabs
-        if (isRateLimited(`auth-read:${ip}`, 180, 60_000)) {
-          return rateLimitResponse(30);
-        }
+      const tier: RateLimitOptions = isAuthMutation
+        ? { limit: 20, windowMs: 60_000 }
+        : { limit: 180, windowMs: 60_000 };
+      const prefix = isAuthMutation ? "auth-mutation" : "auth-read";
+      const res = await checkRateLimit(`${prefix}:${ip}`, tier);
+      if (!res.success) {
+        return rateLimitResponse(res, requestId);
       }
-      return withSecurityHeaders(NextResponse.next());
+      return withSecurityHeaders(NextResponse.next(), requestId);
     }
 
     // AI / expensive mutations
@@ -147,8 +131,17 @@ export const proxy = auth((req) => {
       pathname.startsWith("/api/feedback");
 
     if (isAiOrHeavy && (method === "POST" || method === "PUT" || method === "PATCH")) {
-      if (isRateLimited(`ai:${ip}`, 20, 60_000)) {
-        return rateLimitResponse(60);
+      const res = await checkRateLimit(`ai:${ip}`, RATE_LIMIT_TIERS.AI_HEAVY_ANON);
+      if (!res.success) {
+        return rateLimitResponse(res, requestId);
+      }
+    }
+
+    // PDF Export
+    if (pathname.includes("/export-pdf")) {
+      const res = await checkRateLimit(`pdf:${ip}`, RATE_LIMIT_TIERS.PDF_EXPORT);
+      if (!res.success) {
+        return rateLimitResponse(res, requestId);
       }
     }
 
@@ -159,13 +152,15 @@ export const proxy = auth((req) => {
         (method === "POST" || method === "PATCH" || method === "DELETE"));
 
     if (isUserWrite) {
-      if (isRateLimited(`userwrite:${ip}`, 60, 60_000)) {
-        return rateLimitResponse(60);
+      const res = await checkRateLimit(`userwrite:${ip}`, { limit: 60, windowMs: 60_000 });
+      if (!res.success) {
+        return rateLimitResponse(res, requestId);
       }
-    } else if (!isAiOrHeavy) {
-      // General API reads: 300 requests/minute per IP to comfortably serve active users and shared networks (university/office Wi-Fi)
-      if (isRateLimited(`general:${ip}`, 300, 60_000)) {
-        return rateLimitResponse(30);
+    } else if (!isAiOrHeavy && !pathname.includes("/export-pdf")) {
+      // General API reads
+      const res = await checkRateLimit(`general:${ip}`, RATE_LIMIT_TIERS.PUBLIC_READ);
+      if (!res.success) {
+        return rateLimitResponse(res, requestId);
       }
     }
   }
@@ -176,7 +171,7 @@ export const proxy = auth((req) => {
     return NextResponse.redirect(new URL(callbackUrl, req.nextUrl.origin));
   }
 
-  return withSecurityHeaders(NextResponse.next());
+  return withSecurityHeaders(NextResponse.next(), requestId);
 });
 
 export const config = {
