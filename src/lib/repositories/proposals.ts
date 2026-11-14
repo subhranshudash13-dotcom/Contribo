@@ -207,6 +207,15 @@ export async function createProposal(data: {
   }
 
   memoryDrafts = [newDraft, ...memoryDrafts.filter((d) => d.id !== newId)];
+  createProposalRevision({
+    proposalId: newId,
+    userId: data.userId,
+    source: 'manual_snapshot',
+    label: 'Initial Draft Created',
+    sections: newDraft.sections,
+    progress: 0,
+  }).catch(() => {});
+
   return newDraft;
 }
 
@@ -281,6 +290,12 @@ export async function updateProposal(
     );
   } catch (err) {
     console.warn('MongoDB update for proposal fallback to memory:', err);
+  }
+
+  if (updates.sections) {
+    maybeRecordAutosaveRevision(id, userId, mergedSections, updated.progress).catch((err) => {
+      console.warn('Autosave revision snapshot error:', err);
+    });
   }
 
   return updated;
@@ -391,6 +406,335 @@ export function getProjectGuide(project?: string, org?: string): ProjectGuide {
     projectTitle: project || DYNAMIC_PROJECT_GUIDE.projectTitle,
     orgName: org || DYNAMIC_PROJECT_GUIDE.orgName,
   };
+}
+
+export interface ProposalRevision {
+  id: string;
+  proposalId: string;
+  userId: string;
+  createdAt: Date;
+  timestamp: string;
+  source: 'autosave_checkpoint' | 'manual_snapshot' | 'pre_rollback_backup';
+  label?: string;
+  characterCount: number;
+  wordCount: number;
+  sections: Record<string, string>;
+  progress: number;
+}
+
+export type ProposalRevisionSummary = Omit<ProposalRevision, 'sections'>;
+
+let memoryRevisions: ProposalRevision[] = [];
+
+export const MAX_REVISIONS_PER_PROPOSAL = 20;
+
+export function computeSectionsMetrics(sections: Record<string, string>): {
+  characterCount: number;
+  wordCount: number;
+} {
+  let characterCount = 0;
+  let wordCount = 0;
+  if (sections && typeof sections === 'object') {
+    for (const text of Object.values(sections)) {
+      if (typeof text === 'string') {
+        characterCount += text.length;
+        const words = text.trim().split(/\s+/).filter(Boolean);
+        wordCount += words.length;
+      }
+    }
+  }
+  return { characterCount, wordCount };
+}
+
+export async function createProposalRevision(params: {
+  proposalId: string;
+  userId: string;
+  source: 'autosave_checkpoint' | 'manual_snapshot' | 'pre_rollback_backup';
+  label?: string;
+  sections: Record<string, string>;
+  progress?: number;
+}): Promise<ProposalRevision> {
+  const { proposalId, userId, source, label, sections } = params;
+  if (!proposalId || !userId) {
+    throw new Error('proposalId and userId are required to create a proposal revision');
+  }
+
+  const { characterCount, wordCount } = computeSectionsMetrics(sections);
+  const now = new Date();
+  const id = `rev-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const progress =
+    typeof params.progress === 'number'
+      ? Math.min(100, Math.max(0, Math.round(params.progress)))
+      : calculateProposalProgress(sections);
+
+  const cleanSections: Record<string, string> = {};
+  for (const [k, v] of Object.entries(sections)) {
+    if (ALLOWED_SECTION_IDS.has(k) && typeof v === 'string') {
+      cleanSections[k] = v.slice(0, 50_000);
+    }
+  }
+
+  const revision: ProposalRevision = {
+    id,
+    proposalId,
+    userId,
+    createdAt: now,
+    timestamp: now.toISOString(),
+    source,
+    label: label ? label.trim().slice(0, 100) : undefined,
+    characterCount,
+    wordCount,
+    sections: cleanSections,
+    progress,
+  };
+
+  try {
+    const col = await getCollection<ProposalRevision>(COLLECTIONS.proposalRevisions);
+    if (col && typeof col.insertOne === 'function') {
+      await col.insertOne(revision as never);
+    }
+  } catch (err) {
+    console.warn('MongoDB insert for proposal revision fallback to memory:', err);
+  }
+
+  memoryRevisions.unshift(revision);
+  await pruneProposalRevisions(proposalId, userId, MAX_REVISIONS_PER_PROPOSAL);
+
+  return revision;
+}
+
+export async function pruneProposalRevisions(
+  proposalId: string,
+  userId: string,
+  maxRetention = MAX_REVISIONS_PER_PROPOSAL
+): Promise<number> {
+  let prunedCount = 0;
+  // In-memory prune
+  const matching = memoryRevisions.filter(
+    (r) => r.proposalId === proposalId && ownsDraft({ userId: r.userId } as never, userId)
+  );
+  if (matching.length > maxRetention) {
+    const toKeep = new Set(matching.slice(0, maxRetention).map((r) => r.id));
+    memoryRevisions = memoryRevisions.filter(
+      (r) => !(r.proposalId === proposalId && ownsDraft({ userId: r.userId } as never, userId)) || toKeep.has(r.id)
+    );
+    prunedCount += matching.length - maxRetention;
+  }
+
+  try {
+    const col = await getCollection<ProposalRevision>(COLLECTIONS.proposalRevisions);
+    if (col && typeof col.find === 'function') {
+      const allRevs = await col
+        .find({
+          proposalId,
+          userId: userIdFilter(userId),
+        } as never)
+        .sort({ createdAt: -1 })
+        .toArray();
+
+      if (allRevs.length > maxRetention) {
+        const idsToDelete = allRevs.slice(maxRetention).map((r) => (r as unknown as { _id: unknown })._id);
+        const delRes = await col.deleteMany({ _id: { $in: idsToDelete as never } } as never);
+        prunedCount = Math.max(prunedCount, delRes.deletedCount);
+      }
+    }
+  } catch {
+    // Mongo prune fallback
+  }
+
+  return prunedCount;
+}
+
+export async function listProposalRevisions(
+  proposalId: string,
+  userId: string,
+  limit = 20
+): Promise<ProposalRevisionSummary[]> {
+  if (!proposalId || !userId) return [];
+
+  const proposal = await getProposalById(proposalId, userId);
+  if (!proposal) return [];
+
+  try {
+    const col = await getCollection<ProposalRevision>(COLLECTIONS.proposalRevisions);
+    if (col && typeof col.find === 'function') {
+      const docs = await col
+        .find(
+          {
+            proposalId,
+            userId: userIdFilter(userId),
+          } as never,
+          {
+            projection: { sections: 0 },
+          } as never
+        )
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .toArray();
+
+      if (docs.length > 0) {
+        return docs.map((doc) => ({
+          id: (doc as ProposalRevision).id,
+          proposalId: (doc as ProposalRevision).proposalId,
+          userId: (doc as ProposalRevision).userId,
+          createdAt: new Date((doc as ProposalRevision).createdAt || (doc as { _id: { getTimestamp(): Date } })._id.getTimestamp()),
+          timestamp: (doc as ProposalRevision).timestamp || new Date((doc as ProposalRevision).createdAt).toISOString(),
+          source: (doc as ProposalRevision).source,
+          label: (doc as ProposalRevision).label,
+          characterCount: (doc as ProposalRevision).characterCount,
+          wordCount: (doc as ProposalRevision).wordCount,
+          progress: (doc as ProposalRevision).progress,
+        }));
+      }
+    }
+  } catch (err) {
+    console.warn('MongoDB listProposalRevisions fallback to memory:', err);
+  }
+
+  return memoryRevisions
+    .filter((r) => r.proposalId === proposalId && ownsDraft({ userId: r.userId } as never, userId))
+    .slice(0, limit)
+    .map((r) => ({
+      id: r.id,
+      proposalId: r.proposalId,
+      userId: r.userId,
+      createdAt: r.createdAt,
+      timestamp: r.timestamp,
+      source: r.source,
+      label: r.label,
+      characterCount: r.characterCount,
+      wordCount: r.wordCount,
+      progress: r.progress,
+    }));
+}
+
+export async function getProposalRevisionById(
+  proposalId: string,
+  revisionId: string,
+  userId: string
+): Promise<ProposalRevision | null> {
+  if (!proposalId || !revisionId || !userId) return null;
+
+  try {
+    const col = await getCollection<ProposalRevision>(COLLECTIONS.proposalRevisions);
+    if (col && typeof col.findOne === 'function') {
+      const doc = await col.findOne({
+        id: revisionId,
+        proposalId,
+        userId: userIdFilter(userId),
+      } as never);
+
+      if (doc) {
+        return {
+          id: (doc as ProposalRevision).id,
+          proposalId: (doc as ProposalRevision).proposalId,
+          userId: (doc as ProposalRevision).userId,
+          createdAt: new Date((doc as ProposalRevision).createdAt),
+          timestamp: (doc as ProposalRevision).timestamp,
+          source: (doc as ProposalRevision).source,
+          label: (doc as ProposalRevision).label,
+          characterCount: (doc as ProposalRevision).characterCount,
+          wordCount: (doc as ProposalRevision).wordCount,
+          sections: (doc as ProposalRevision).sections,
+          progress: (doc as ProposalRevision).progress,
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('MongoDB getProposalRevisionById fallback to memory:', err);
+  }
+
+  const mem = memoryRevisions.find(
+    (r) =>
+      r.id === revisionId &&
+      r.proposalId === proposalId &&
+      ownsDraft({ userId: r.userId } as never, userId)
+  );
+  return mem || null;
+}
+
+export async function restoreProposalRevision(
+  proposalId: string,
+  revisionId: string,
+  userId: string
+): Promise<{
+  proposal: ProposalDraft;
+  restoredFromRevision: ProposalRevision;
+  backupRevision: ProposalRevision;
+} | null> {
+  if (!proposalId || !revisionId || !userId) return null;
+
+  const currentProposal = await getProposalById(proposalId, userId);
+  if (!currentProposal) return null;
+
+  const targetRevision = await getProposalRevisionById(proposalId, revisionId, userId);
+  if (!targetRevision) return null;
+
+  // 1. Create a non-destructive safety backup snapshot of current state
+  const backupRevision = await createProposalRevision({
+    proposalId,
+    userId,
+    source: 'pre_rollback_backup',
+    label: `Pre-rollback snapshot before restoring ${targetRevision.label || targetRevision.id}`,
+    sections: currentProposal.sections,
+    progress: currentProposal.progress,
+  });
+
+  // 2. Atomically update the active proposal draft with target revision's sections
+  const updatedProposal = await updateProposal(proposalId, userId, {
+    sections: targetRevision.sections,
+    progress: targetRevision.progress,
+  });
+
+  if (!updatedProposal) return null;
+
+  return {
+    proposal: updatedProposal,
+    restoredFromRevision: targetRevision,
+    backupRevision,
+  };
+}
+
+export async function maybeRecordAutosaveRevision(
+  proposalId: string,
+  userId: string,
+  nextSections: Record<string, string>,
+  progress?: number
+): Promise<ProposalRevision | null> {
+  const { characterCount } = computeSectionsMetrics(nextSections);
+  const existingRevs = await listProposalRevisions(proposalId, userId, 1);
+
+  if (existingRevs.length === 0) {
+    return createProposalRevision({
+      proposalId,
+      userId,
+      source: 'autosave_checkpoint',
+      label: 'Initial checkpoint',
+      sections: nextSections,
+      progress,
+    });
+  }
+
+  const latest = existingRevs[0];
+  const charDiff = Math.abs(characterCount - (latest.characterCount || 0));
+  const timeDiffMs = Date.now() - new Date(latest.createdAt).getTime();
+
+  // Threshold: >= 150 char difference OR >= 5 minutes elapsed
+  if (charDiff >= 150 || timeDiffMs >= 5 * 60 * 1000) {
+    return createProposalRevision({
+      proposalId,
+      userId,
+      source: 'autosave_checkpoint',
+      sections: nextSections,
+      progress,
+    });
+  }
+
+  return null;
+}
+
+export function resetMemoryRevisions(): void {
+  memoryRevisions = [];
 }
 
 export { calculateProposalScore, ALLOWED_SECTION_IDS };
