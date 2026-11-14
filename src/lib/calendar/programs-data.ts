@@ -19,8 +19,8 @@ export const FALLBACK_PROGRAMS_CALENDAR: ProgramCalendarData[] = [
     timeline: [
       { event: 'Organization Applications Open', date: '2026-01-22' },
       { event: 'Accepted Orgs Announced', date: '2026-02-23' },
-      { event: 'Contributor Applications Open', date: '2026-03-24' },
-      { event: 'Application Deadline', date: '2026-04-13' },
+      { event: 'Contributor Applications Open', date: '2026-03-16' },
+      { event: 'Application Deadline', date: '2026-03-31' },
       { event: 'Accepted Projects Announced', date: '2026-05-04' },
       { event: 'Coding Period Begins', date: '2026-06-01' },
       { event: 'Results Announced', date: '2026-09-03' },
@@ -32,11 +32,11 @@ export const FALLBACK_PROGRAMS_CALENDAR: ProgramCalendarData[] = [
     organizer: 'Software Freedom Conservancy',
     officialWebsite: 'https://www.outreachy.org',
     timeline: [
-      { event: 'Initial Applications Open', date: '2026-08-01' },
+      { event: 'Initial Applications Open', date: '2026-08-24' },
       { event: 'Initial Application Deadline', date: '2026-08-31' },
-      { event: 'Contribution Period Begins', date: '2026-10-06' },
+      { event: 'Contribution Period Begins', date: '2026-10-12' },
       { event: 'Internships Start', date: '2026-12-07' },
-      { event: 'Internships End', date: '2027-03-05' },
+      { event: 'Internships End', date: '2027-03-08' },
     ],
   },
   {
@@ -68,7 +68,7 @@ export const FALLBACK_PROGRAMS_CALENDAR: ProgramCalendarData[] = [
     organizer: 'Bitcoin Association',
     officialWebsite: 'https://www.summerofbitcoin.org',
     timeline: [
-      { event: 'Applications Open', date: '2026-01-01' },
+      { event: 'Applications Open', date: '2026-02-01' },
       { event: 'Application Deadline', date: '2026-02-15' },
       { event: 'Coding Phase Starts', date: '2026-05-18' },
       { event: 'Coding Phase Ends', date: '2026-08-10' },
