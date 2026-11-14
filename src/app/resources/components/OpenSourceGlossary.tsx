@@ -20,7 +20,7 @@ export function OpenSourceGlossary() {
   );
 
   return (
-    <section aria-labelledby="glossary-heading">
+    <section id="glossary" className="scroll-mt-40" aria-labelledby="glossary-heading">
       <div className="flex items-center gap-3 mb-6">
         <div className="h-8 w-1.5 bg-brass rounded-full" />
         <h2 id="glossary-heading" className="text-2xl font-bold text-primary">

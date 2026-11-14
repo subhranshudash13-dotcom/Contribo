@@ -23,6 +23,7 @@ import {
   X
 } from 'lucide-react';
 import { OpenSourceGlossary } from './components/OpenSourceGlossary';
+import { ContributorToolkit } from './components/ContributorToolkit';
 import { PrInteractiveLab } from './components/PrInteractiveLab';
 
 type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced';
@@ -624,9 +625,11 @@ function ResourceCard({ guide }: { guide: ResourceGuide }) {
 // id on the section) when a new section such as the PR Lab, lifecycle,
 // toolkit or glossary lands, so no pill ever points at a missing section.
 const QUICK_LINKS = [
+  { id: 'lifecycle', label: 'Lifecycle' },
   { id: 'guides', label: 'Guides' },
   { id: 'all-resources', label: 'All resources' },
   { id: 'pr-interactive-lab', label: 'PR Lab' },
+  { id: 'toolkit', label: 'Action Toolkit' },
   { id: 'glossary-heading', label: 'Glossary' },
 ];
 
@@ -754,7 +757,7 @@ export function ResourcesClient() {
       </div>
 
       {/* Contributor Lifecycle */}
-      <section>
+      <section id="lifecycle" className="scroll-mt-40">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-8">
           <div>
             <div className="flex items-center gap-3 mb-2">
@@ -935,6 +938,9 @@ export function ResourcesClient() {
 
       <PrInteractiveLab />
 
+      <section id="toolkit" className="scroll-mt-40">
+        <ContributorToolkit />
+      </section>
       <OpenSourceGlossary />
 
     </div>
