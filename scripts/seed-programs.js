@@ -306,6 +306,68 @@ const PROGRAMS_DATA = [
       { event: "Final Evaluations & Results", date: "2026-08-15" }
     ],
     lastVerifiedAt: new Date()
+  },
+  {
+    slug: "season-of-kde",
+    name: "Season of KDE",
+    organizer: "KDE Community",
+    stipendRange: "Varies by project and funding track",
+    durationWeeks: 12,
+    tier: 2,
+    accentColor: "#1D99F3",
+    eligibilitySummary: "Students and open-source contributors worldwide interested in KDE software",
+    officialWebsite: "https://season.kde.org",
+    applicationSteps: [
+      "Review current Season of KDE project ideas and contribution requirements.",
+      "Introduce yourself to the KDE team and complete a starter contribution where requested.",
+      "Discuss scope, deliverables, and communication expectations with a project mentor.",
+      "Submit the project application through the official KDE program process."
+    ],
+    difficulty: "Beginner to Advanced",
+    pastStats: [{ year: "2025", contributors: 80, orgs: 20, projects: 80 }],
+    resources: [
+      { title: "Season of KDE", url: "https://season.kde.org" },
+      { title: "KDE Community Wiki", url: "https://community.kde.org/Get_Involved" }
+    ],
+    timeline: [
+      { event: "Project Ideas Published", date: "2026-01-15" },
+      { event: "Contributor Discussions", date: "2026-02-01" },
+      { event: "Applications Close", date: "2026-03-15" },
+      { event: "Projects Begin", date: "2026-04-01" },
+      { event: "Final Results", date: "2026-07-31" }
+    ],
+    lastVerifiedAt: new Date()
+  },
+  {
+    slug: "fossee",
+    name: "FOSSEE",
+    organizer: "IIT Bombay",
+    stipendRange: "Project-dependent stipend",
+    durationWeeks: 12,
+    tier: 2,
+    accentColor: "#0B6E4F",
+    eligibilitySummary: "Students and developers interested in free and open-source scientific software and education",
+    officialWebsite: "https://fossee.in",
+    applicationSteps: [
+      "Explore FOSSEE projects and select a scientific-computing or education track.",
+      "Read project documentation and complete a recommended starter task.",
+      "Contact the project mentor with a short plan and relevant work samples.",
+      "Submit the application and technical proposal before the published deadline."
+    ],
+    difficulty: "Beginner to Intermediate",
+    pastStats: [{ year: "2025", contributors: 120, orgs: 15, projects: 120 }],
+    resources: [
+      { title: "FOSSEE Official Site", url: "https://fossee.in" },
+      { title: "FOSSEE Projects", url: "https://fossee.in/projects" }
+    ],
+    timeline: [
+      { event: "Projects Announced", date: "2026-02-01" },
+      { event: "Applications Open", date: "2026-02-15" },
+      { event: "Application Deadline", date: "2026-03-15" },
+      { event: "Coding Period Begins", date: "2026-05-01" },
+      { event: "Final Evaluation", date: "2026-08-01" }
+    ],
+    lastVerifiedAt: new Date()
   }
 ];
 
