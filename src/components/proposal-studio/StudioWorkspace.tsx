@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import {
   History,
   MessageSquarePlus,
@@ -126,6 +127,13 @@ export function StudioWorkspace() {
                   <>
                     <RefreshCw size={12} className="text-alert" />
                     <span className="text-alert">Save failed</span>
+                  </>
+                ) : studio.saveStatus === 'unauthorized' ? (
+                  <>
+                    <RefreshCw size={12} className="text-alert" />
+                    <Link href="/login?callbackUrl=/proposal-studio" className="text-alert hover:underline">
+                      Sign in to save
+                    </Link>
                   </>
                 ) : (
                   <>

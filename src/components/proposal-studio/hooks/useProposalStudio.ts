@@ -72,9 +72,10 @@ export function useProposalStudio() {
       : 'workspace'; // Default straight to workspace for a seamless single-page experience
 
   const [mode, setMode] = useState<StudioMode>(initialMode);
-  const [drafts, setDrafts] = useState<ProposalDraft[]>(DRAFT_PROPOSALS);
+  const demoMode = modeParam === 'demo';
+  const [drafts, setDrafts] = useState<ProposalDraft[]>(demoMode ? DRAFT_PROPOSALS : []);
   const [activeDraftId, setActiveDraftId] = useState<string>(
-    draftParam || DRAFT_PROPOSALS[0]?.id || ''
+    draftParam || (demoMode ? DRAFT_PROPOSALS[0]?.id : '') || ''
   );
   const [activeTab, setActiveTab] = useState<StudioTab>(initialTab);
   const [activeSectionId, setActiveSectionId] = useState<string>(
@@ -91,7 +92,7 @@ export function useProposalStudio() {
   const [downloadQuota] = useState(2);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error' | 'offline'>(
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error' | 'offline' | 'unauthorized'>(
     'saved'
   );
   const [aiLoading, setAiLoading] = useState<string | null>(null);
@@ -117,25 +118,24 @@ export function useProposalStudio() {
     let cancelled = false;
 
     async function bootstrap() {
-      let loaded = DRAFT_PROPOSALS;
+      let loaded = demoMode ? DRAFT_PROPOSALS : [];
       setBootstrapError(null);
       setIsOfflineMode(false);
 
       try {
         const res = await fetchProposals();
-        if (!cancelled && res?.proposals && res.proposals.length > 0) {
+        if (!cancelled && res?.proposals) {
           loaded = res.proposals;
           setDrafts(res.proposals);
-          if (!draftParam) {
-            setActiveDraftId(res.proposals[0].id);
-          }
+          if (!draftParam) setActiveDraftId(res.proposals[0]?.id || '');
         }
       } catch (e) {
         if (!cancelled) {
           const offline = isApiError(e) && e.isOffline;
           setIsOfflineMode(offline);
           if (isApiError(e) && e.status === 401) {
-            // Unauthenticated — local seed drafts are fine
+            setDrafts(demoMode ? DRAFT_PROPOSALS : []);
+            if (!draftParam) setActiveDraftId(demoMode ? DRAFT_PROPOSALS[0]?.id || '' : '');
             setBootstrapError(null);
           } else {
             setBootstrapError(
@@ -205,7 +205,7 @@ export function useProposalStudio() {
     return () => {
       cancelled = true;
     };
-  }, [draftParam, projectParam, orgParam]);
+  }, [demoMode, draftParam, projectParam, orgParam]);
 
   const filteredCatalog = useMemo(() => {
     return ORG_PROPOSALS_CATALOG.filter((group) => {
@@ -274,14 +274,15 @@ export function useProposalStudio() {
           setSaveStatus('offline');
           setIsOfflineMode(true);
         } else if (isApiError(e) && e.status === 401) {
-          // Keep local edits; user not signed in
-          setSaveStatus('saved');
+          // Keep local edits visible, but never claim that an unauthenticated
+          // PATCH reached the cloud.
+          setSaveStatus('unauthorized');
         } else {
           setSaveStatus('error');
         }
       }
     },
-    []
+    [showToast]
   );
 
   const handleSectionChange = useCallback(
@@ -403,45 +404,20 @@ export function useProposalStudio() {
   }, [sectionsState, activeDraftId, persistSectionEdit, showToast]);
 
   const cloneProposalToWorkspace = useCallback(
-    (proposal: AcceptedProposal) => {
-      const newId = `draft-${Date.now()}`;
-      const newDraft: ProposalDraft = {
-        id: newId,
-        projectTitle: proposal.projectTitle,
-        projectSlug: proposal.projectTitle.toLowerCase().replace(/\s+/g, '-'),
-        orgName: proposal.orgName,
-        orgSlug: proposal.orgName.toLowerCase().replace(/\s+/g, '-'),
-        programName: proposal.programName,
-        programSlug: proposal.programName.toLowerCase().includes('lfx')
-          ? 'lfx'
-          : 'gsoc',
-        progress: 35,
-        deadline: '30 April 2026',
-        daysLeft: 45,
-        mentorName: 'Core Maintainer',
-        mentorRole: 'Project Lead',
-        techStack: ['Python', 'TypeScript', 'React'],
-        difficulty: 'Intermediate',
-        acceptedExamplesCount: 4,
-        communityContributionsCount: 2,
-        updatedAt: 'Just now',
-        sections: {
-          summary: proposal.summary,
-          problemStatement: `Based on accepted proposal structure:\n${proposal.summary}`,
-          architecture: proposal.contentSnippet,
-          timeline:
-            'Phase 1 (Weeks 1-4): Setup & core design.\nPhase 2 (Weeks 5-8): Primary implementation.\nPhase 3 (Weeks 9-12): Testing & documentation.',
-          deliverables:
-            '1. Production implementation.\n2. Unit & integration tests.\n3. Documentation.',
-          stretchGoals: 'Performance optimization and benchmark metrics.',
-          communityContributions: 'PR #101 (Merged): Fixed starter issue.',
-          aboutMe:
-            'Computer Science undergrad passionate about open source collaboration.',
-        },
-      };
-
-      setDrafts((prev) => [newDraft, ...prev]);
-      setActiveDraftId(newId);
+    async (proposal: AcceptedProposal) => {
+      try {
+        const created = await createProposalDraft({
+          projectTitle: proposal.projectTitle,
+          orgName: proposal.orgName,
+          programName: proposal.programName,
+        });
+        if (!created?.proposal) throw new Error('Draft creation returned no proposal');
+        setDrafts((prev) => [created.proposal, ...prev]);
+        setActiveDraftId(created.proposal.id);
+      } catch (error) {
+        showToast(friendlyApiMessage(error, 'Could not create a cloud draft.'));
+        return;
+      }
       setSelectedProposalPreview(null);
       setMode('workspace');
       setActiveTab('builder');
