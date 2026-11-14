@@ -17,6 +17,8 @@ jobs:
     env:
       AUTH_SECRET: ci_dummy_auth_secret_minimum_16_chars
       NEXTAUTH_SECRET: ci_dummy_auth_secret_minimum_16_chars
+      AUTH_TRUST_HOST: "true"
+      NEXTAUTH_URL: http://localhost:3000
       MONGODB_URI: mongodb://localhost:27017/contribo_ci
       AI_PROVIDER: gemini
       NEXT_FONT_GOOGLE_MOCK: 1
@@ -55,3 +57,11 @@ jobs:
 
       - name: Build Next.js Application
         run: npm run build
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E Tests
+        run: npx playwright test --project=chromium
+        env:
+          CI: true
