@@ -27,6 +27,8 @@ export const metadata: Metadata = {
   icons: {
     icon: "/icon.svg?v=3",
   },
+  manifest: "/manifest.webmanifest",
+  robots: { index: true, follow: true },
 };
 
 export const viewport: Viewport = {
