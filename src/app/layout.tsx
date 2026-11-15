@@ -24,6 +24,7 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   metadataBase: SITE_URL,
   applicationName: "Contribo",
+  manifest: "/manifest.webmanifest",
   title: "Contribo | Open Source Programs",
   description:
     "The one place to find, understand, and apply to every paid open-source program in the world.",
