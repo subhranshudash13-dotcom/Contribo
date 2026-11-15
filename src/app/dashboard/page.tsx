@@ -26,6 +26,7 @@ const DashboardClient = nextDynamic(
 
 export const metadata = {
   title: 'Dashboard | Contribo',
+  robots: { index: false, follow: false },
 };
 
 export const dynamic = 'force-dynamic';
