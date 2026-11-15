@@ -9,6 +9,7 @@ import { getOrganizationBySlug, getSimilarOrganizations } from '@/lib/repositori
 import { getProgramById } from '@/lib/repositories/programs';
 import { listProjects } from '@/lib/repositories/projects';
 import { getUserItemStatus } from '@/lib/repositories/dashboard';
+import { absoluteUrl } from '@/lib/site';
 import { OrgDetailPageClient } from '@/components/organizations/OrgDetailPageClient';
 
 const SLUG_REDIRECTS: Record<string, string> = {
@@ -130,12 +131,25 @@ export default async function OrganizationDetailPage({ params }: Props) {
     description: org.description,
     knowsAbout: org.technologies || [],
   };
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Platform', item: absoluteUrl('/') },
+      { '@type': 'ListItem', position: 2, name: 'Organizations', item: absoluteUrl('/organizations') },
+      { '@type': 'ListItem', position: 3, name: org.name, item: absoluteUrl(`/organizations/${org.slug}`) },
+    ],
+  };
 
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       <main className="py-10 px-4 sm:px-6 lg:px-8 max-w-[1320px] mx-auto w-full mt-20">

@@ -26,6 +26,7 @@ import { ProgramLogo } from '@/components/ui/ProgramLogos';
 import { getProgramBySlug } from '@/lib/repositories/programs';
 import { getProgramGuide } from '@/lib/program-guides';
 import { EXPLORER_ENABLED_SLUGS } from '@/lib/programs/explorer';
+import { absoluteUrl } from '@/lib/site';
 
 export const revalidate = 600;
 
@@ -61,12 +62,25 @@ export default async function ProgramDetailPage({ params }: Props) {
   const guide = getProgramGuide(program.slug);
   const accent = program.accentColor || '#4285F4';
   const explorerEnabled = EXPLORER_ENABLED_SLUGS.has(program.slug);
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Platform', item: absoluteUrl('/') },
+      { '@type': 'ListItem', position: 2, name: 'Programs', item: absoluteUrl('/programs') },
+      { '@type': 'ListItem', position: 3, name: program.name, item: absoluteUrl(`/programs/${program.slug}`) },
+    ],
+  };
 
   return (
     <main
       className="py-12 px-4 sm:px-6 lg:px-8 w-full max-w-[1320px] mx-auto mt-20"
       style={{ '--program-accent': accent } as React.CSSProperties}
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       {/* Header — Direct on page (unboxed) */}
       <div className="mb-10 pb-8 border-b border-hairline relative">
         <Link
