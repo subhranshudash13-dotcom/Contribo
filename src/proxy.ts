@@ -49,6 +49,13 @@ function rateLimitResponse(retryAfterSec = 60) {
   );
 }
 
+function requestBudgetResponse() {
+  return NextResponse.json(
+    { error: "Request body exceeds the allowed size.", code: "payload_too_large" },
+    { status: 413, headers: { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } }
+  );
+}
+
 function buildCsp(): string {
   // Tight default CSP; Next.js needs 'unsafe-inline' for some styles in dev.
   // Images: self + common avatar/CDN hosts used by the product.
@@ -109,6 +116,17 @@ export const proxy = auth((req) => {
 
   // Rate limit API routes
   if (pathname.startsWith("/api")) {
+    const contentLength = Number(req.headers.get("content-length") || 0);
+    const isMutation = ["POST", "PUT", "PATCH"].includes(method);
+    const bodyBudget = pathname.startsWith("/api/proposals/export-pdf")
+      ? 64 * 1024
+      : pathname.startsWith("/api/feedback")
+        ? 8 * 1024
+        : 256 * 1024;
+    if (isMutation && contentLength > bodyBudget) {
+      return withSecurityHeaders(requestBudgetResponse());
+    }
+
     if (
       pathname.startsWith("/api/health") ||
       pathname.startsWith("/api/connectivity")
