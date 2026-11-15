@@ -20,14 +20,20 @@ function normalizeGithubUrl(value: unknown): string | undefined {
 
     if (
       url.protocol !== 'https:' ||
-      !GITHUB_HOSTS.has(url.hostname.toLowerCase())
+      !GITHUB_HOSTS.has(url.hostname.toLowerCase()) ||
+      url.username ||
+      url.password ||
+      (url.port && url.port !== '443')
     ) {
       return undefined;
     }
 
     const [owner] = url.pathname.split('/').filter(Boolean);
+    if (!owner || !/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(owner)) {
+      return undefined;
+    }
 
-    return owner ? `https://github.com/${owner}` : undefined;
+    return `https://github.com/${owner}`;
   } catch {
     return undefined;
   }
