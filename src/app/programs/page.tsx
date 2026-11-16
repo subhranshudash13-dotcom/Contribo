@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { Scale } from 'lucide-react';
 import { Program } from '../../../types';
 import { ProgramCard } from '@/components/ui/ProgramCard';
 import { getCachedPrograms } from '@/lib/data-cache';
@@ -53,6 +55,17 @@ export default async function ProgramsDirectory() {
           <p className="relative z-10 text-secondary text-[14.75px] sm:text-[16.75px] lg:text-[18.75px] max-w-2xl mx-auto leading-relaxed font-medium">
             Discover paid open-source campaigns, fellowships, and winter sprints. Secure dedicated mentorship from core maintainers and contribute production code.
           </p>
+
+          {/* Quick link to Comparison Engine */}
+          <div className="relative z-10 flex items-center justify-center pt-2">
+            <Link
+              href="/programs/compare"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-accent text-accent-foreground shadow-xs hover:opacity-90 transition-opacity"
+            >
+              <Scale className="w-4 h-4" />
+              Compare Programs & Regional Stipends
+            </Link>
+          </div>
         </div>
 
         {/* Directory Section */}
