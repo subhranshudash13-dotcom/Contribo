@@ -1,5 +1,22 @@
-import { tokenizeText, computeJaccardSimilarity } from '@/lib/ai/semantic-matcher';
+import {
+  tokenizeText,
+  computeJaccardSimilarity,
+  computeTextCosineSimilarity,
+  buildIdfMap,
+} from '@/lib/ai/semantic-matcher';
 import type { IssueRecord, UserSkillProfile } from './types';
+
+// Pre-built IDF map for common developer skill terms and domain tokens
+const COMMON_SKILL_CORPUS = [
+  ['typescript', 'javascript', 'react', 'next.js', 'frontend', 'ui', 'components'],
+  ['python', 'django', 'flask', 'fastapi', 'backend', 'data', 'pytest'],
+  ['go', 'golang', 'kubernetes', 'docker', 'cloud', 'cli', 'concurrency'],
+  ['rust', 'cargo', 'systems', 'memory', 'safety', 'async', 'performance'],
+  ['java', 'spring', 'jvm', 'enterprise', 'backend', 'gradle', 'maven'],
+  ['c', 'c++', 'multimedia', 'vlc', 'embedded', 'hardware', 'graphics'],
+  ['css', 'html', 'tailwind', 'styling', 'accessibility', 'a11y', 'devtools'],
+];
+const SKILL_IDF_MAP = buildIdfMap(COMMON_SKILL_CORPUS);
 
 export interface IssueMatchResult {
   score: number;
@@ -54,10 +71,12 @@ export function calculateIssueAffinity(
     }
   }
 
-  // 2. Semantic token overlap via Jaccard (Weight: 30 pts)
+  // 2. Semantic token overlap via TF-IDF Vector Cosine & Jaccard (Weight: 30 pts)
   const jaccard = computeJaccardSimilarity(userSkillsNormalized, Array.from(issueTokenSet));
-  const jaccardPoints = Math.round(jaccard * 100 * 0.3);
-  scorePoints += Math.min(30, jaccardPoints + (matchedLanguages.length > 0 ? 15 : 0));
+  const cosineSim = computeTextCosineSimilarity(userSkillsNormalized, Array.from(issueTokenSet), SKILL_IDF_MAP);
+  const blendedVectorScore = Math.max(jaccard, cosineSim);
+  const vectorPoints = Math.round(blendedVectorScore * 100 * 0.3);
+  scorePoints += Math.min(30, vectorPoints + (matchedLanguages.length > 0 ? 15 : 0));
 
   // Find overlapping framework / domain tokens for explainer
   const domainMatches = userSkillsNormalized.filter(

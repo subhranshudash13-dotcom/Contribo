@@ -24,6 +24,7 @@ import {
 } from '@/components/home/HomeDeferredSections';
 import { ContributorTestimonials } from '@/components/home/ContributorTestimonials';
 import { ContributorRoadmapBento } from '@/components/home/ContributorRoadmapBento';
+import { AddToCalendarDropdown } from '@/components/programs/AddToCalendarDropdown';
 import type { Program } from '../../types';
 
 const PROGRAM_IMAGES: Record<string, string> = {
@@ -473,12 +474,15 @@ export default async function Home() {
                 Program timelines this year
               </h2>
             </div>
-            <Link
-              href="/programs"
-              className="text-sm text-accent font-mono hover:underline inline-flex items-center gap-1"
-            >
-              All programs <ArrowRight size={14} />
-            </Link>
+            <div className="flex items-center gap-3">
+              <AddToCalendarDropdown variant="global" />
+              <Link
+                href="/programs"
+                className="text-sm text-accent font-mono hover:underline inline-flex items-center gap-1"
+              >
+                All programs <ArrowRight size={14} />
+              </Link>
+            </div>
           </div>
           <DeferredProgramTimeline initialMonthIndex={currentMonthIndex} />
         </section>

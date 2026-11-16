@@ -247,8 +247,9 @@ test('2. Orbit AI Skill Vector & Affinity Matcher', async (t) => {
     assert.ok(affinity.reasons.some((r) => r.includes('Direct language match: TYPESCRIPT')));
   });
 
-  await t.test('matcher source integrates with semantic-matcher Jaccard tokenizer', () => {
+  await t.test('matcher source integrates with semantic-matcher Jaccard and TF-IDF vector tokenizer', () => {
     assert.ok(matcherSource.includes('computeJaccardSimilarity'));
+    assert.ok(matcherSource.includes('computeTextCosineSimilarity'));
     assert.ok(matcherSource.includes('tokenizeText'));
     assert.ok(matcherSource.includes('export function calculateIssueAffinity'));
     assert.ok(matcherSource.includes('export function rankIssuesWithProfile'));
@@ -287,8 +288,9 @@ test('4. Route Handler & Edge Caching Architecture', async (t) => {
     assert.ok(apiRouteSource.includes('listIssues(filter, profile)'));
   });
 
-  await t.test('api route enforces cache-control with stale-while-revalidate', () => {
+  await t.test('api route enforces cache-control with revalidate and stale-while-revalidate', () => {
     assert.ok(
+      apiRouteSource.includes('export const revalidate = 300') ||
       apiRouteSource.includes("'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300'")
     );
   });

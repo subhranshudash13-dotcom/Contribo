@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { listIssues } from '@/lib/issues/repository';
 import type { IssueListFilter, UserSkillProfile } from '@/lib/issues/types';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 export async function GET(request: NextRequest) {
   try {
