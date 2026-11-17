@@ -147,3 +147,49 @@ test('5. Branded Homepage Streaming Skeleton (src/app/loading.tsx)', () => {
     'loading.tsx must include cards skeleton'
   );
 });
+
+test('6. Crawl Policy & Elimination of ssr:false Shell Barriers (#83)', () => {
+  // 1. HomeDeferredSections does not have ssr: false
+  const homeSectionsPath = path.join(root, 'src/components/home/HomeDeferredSections.tsx');
+  const homeSectionsContent = fs.readFileSync(homeSectionsPath, 'utf8');
+  assert.equal(
+    homeSectionsContent.includes('ssr: false'),
+    false,
+    'HomeDeferredSections must not use ssr: false'
+  );
+
+  // 2. MatcherLoader does not have ssr: false
+  const matcherLoaderPath = path.join(root, 'src/app/matcher/MatcherLoader.tsx');
+  const matcherLoaderContent = fs.readFileSync(matcherLoaderPath, 'utf8');
+  assert.equal(
+    matcherLoaderContent.includes('ssr: false'),
+    false,
+    'MatcherLoader must not use ssr: false'
+  );
+
+  // 3. robots.ts disallows auth-only/shell routes
+  const robotsPath = path.join(root, 'src/app/robots.ts');
+  const robotsContent = fs.readFileSync(robotsPath, 'utf8');
+  assert.ok(robotsContent.includes("'/matcher'"), 'robots.ts must disallow /matcher');
+  assert.ok(robotsContent.includes("'/dashboard'"), 'robots.ts must disallow /dashboard');
+  assert.ok(robotsContent.includes("'/proposal-studio'"), 'robots.ts must disallow /proposal-studio');
+
+  // 4. metadata robots: noindex on private shell pages
+  const matcherPagePath = path.join(root, 'src/app/matcher/page.tsx');
+  const matcherPageContent = fs.readFileSync(matcherPagePath, 'utf8');
+  assert.ok(matcherPageContent.includes('index: false'), 'matcher page must specify robots index: false');
+
+  const dashboardPagePath = path.join(root, 'src/app/dashboard/page.tsx');
+  const dashboardPageContent = fs.readFileSync(dashboardPagePath, 'utf8');
+  assert.ok(dashboardPageContent.includes('index: false'), 'dashboard page must specify robots index: false');
+
+  const studioPagePath = path.join(root, 'src/app/proposal-studio/page.tsx');
+  const studioPageContent = fs.readFileSync(studioPagePath, 'utf8');
+  assert.ok(studioPageContent.includes('index: false'), 'proposal studio page must specify robots index: false');
+
+  // 5. sitemap does not list private matcher page
+  const sitemapPath = path.join(root, 'src/app/sitemap.ts');
+  const sitemapContent = fs.readFileSync(sitemapPath, 'utf8');
+  assert.equal(sitemapContent.includes("path: '/matcher'"), false, 'sitemap must not include /matcher');
+});
+
