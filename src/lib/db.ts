@@ -46,6 +46,8 @@ export const COLLECTIONS = {
   proposalRevisions: 'proposal_revisions',
   /** Product feedback submissions */
   userFeedback: 'user_feedback',
+  /** Contributor GitHub Activity feed & cache */
+  githubActivities: 'contributor_github_activities',
 } as const;
 
 export type CollectionName = (typeof COLLECTIONS)[keyof typeof COLLECTIONS];
