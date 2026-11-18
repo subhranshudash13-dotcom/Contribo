@@ -49,7 +49,7 @@ export default async function OrganizationInsightsPage({ params }: Props) {
     category: org.category ? String(org.category) : undefined,
     websiteUrl: org.websiteUrl ? String(org.websiteUrl) : undefined,
     logoUrl: org.logoUrl ? String(org.logoUrl) : undefined,
-    years: Array.isArray(org.years) ? (org.years as (string | number)[]) : undefined,
+    years: Array.isArray(org.years) ? org.years.map(Number).filter((n) => !isNaN(n)) : undefined,
     yearlyStats: org.yearlyStats as Record<string, { projectsCount?: number; slotsCount?: number }> | undefined,
     projectsCount: typeof org.projectsCount === 'number' ? org.projectsCount : undefined,
     programName: org.programName ? String(org.programName) : undefined,
