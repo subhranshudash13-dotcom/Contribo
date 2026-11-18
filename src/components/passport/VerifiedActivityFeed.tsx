@@ -30,7 +30,7 @@ export function VerifiedActivityFeed({
   const [items, setItems] = useState<GitHubContributionItem[]>(initialItems);
   const [stats, setStats] = useState<ActivitySyncStats | undefined>(initialStats);
   const [filter, setFilter] = useState<'ALL' | 'MERGED' | 'OPEN' | 'TARGET_ORG'>('ALL');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(initialItems.length === 0);
   const [syncing, setSyncing] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
@@ -38,7 +38,6 @@ export function VerifiedActivityFeed({
   // Load activity on initial render if initialItems empty
   useEffect(() => {
     if (initialItems.length === 0) {
-      setLoading(true);
       fetch(`/api/passport/${encodeURIComponent(username)}/activity`)
         .then((res) => res.json())
         .then((data) => {

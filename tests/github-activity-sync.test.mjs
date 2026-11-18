@@ -53,8 +53,6 @@ const {
   checkSyncCooldown,
   recordSyncExecution,
   parseGitHubActivityPayload,
-  getDemoActivity,
-  VERIFIED_ECOSYSTEM_ORGS,
 } = syncLib;
 
 test('1. Organization Matching Engine', async (t) => {

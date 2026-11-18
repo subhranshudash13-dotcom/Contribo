@@ -422,7 +422,7 @@ export async function getOrSyncUserActivity(
         cooldownSeconds: cooldown.remainingSeconds,
       };
     }
-  } catch (err) {
+  } catch {
     // Non-fatal if DB not running or during unit tests
   }
 
@@ -495,7 +495,7 @@ export async function getOrSyncUserActivity(
       } as never,
       { upsert: true }
     );
-  } catch (err) {
+  } catch {
     // Non-fatal
   }
 
