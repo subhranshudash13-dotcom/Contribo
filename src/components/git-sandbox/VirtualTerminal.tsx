@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Terminal, Send, CornerDownLeft, Sparkles, Trash2 } from 'lucide-react';
+import { Terminal, CornerDownLeft, Trash2 } from 'lucide-react';
 import { GitGraphState } from '@/lib/git-sandbox/types';
 
 interface TerminalLine {

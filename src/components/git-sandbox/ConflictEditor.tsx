@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { GitConflictData } from '@/lib/git-sandbox/types';
-import { AlertTriangle, CheckCircle, Split, FileCode, Check } from 'lucide-react';
+import { AlertTriangle, FileCode, Check } from 'lucide-react';
 
 interface ConflictEditorProps {
   conflicts: Record<string, GitConflictData>;
@@ -16,38 +16,28 @@ export function ConflictEditor({
   onDismiss,
 }: ConflictEditorProps) {
   const fileList = Object.keys(conflicts);
-  const [activeFile, setActiveFile] = useState<string>(fileList[0] || '');
-  const [editorText, setEditorText] = useState<string>('');
-
+  const [selectedFile, setSelectedFile] = useState<string>('');
+  const activeFile = conflicts[selectedFile] ? selectedFile : fileList[0] || '';
   const currentConflict = conflicts[activeFile];
+  const [editedContentByFile, setEditedContentByFile] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    if (fileList.length > 0 && !conflicts[activeFile]) {
-      setActiveFile(fileList[0]);
-    }
-  }, [fileList, activeFile, conflicts]);
-
-  useEffect(() => {
-    if (currentConflict) {
-      setEditorText(currentConflict.rawWithMarkers);
-    }
-  }, [currentConflict]);
+  const editorText = editedContentByFile[activeFile] ?? (currentConflict?.rawWithMarkers || '');
 
   if (fileList.length === 0 || !currentConflict) {
     return null;
   }
 
   const handleAcceptCurrent = () => {
-    setEditorText(currentConflict.current);
+    setEditedContentByFile((prev) => ({ ...prev, [activeFile]: currentConflict.current }));
   };
 
   const handleAcceptIncoming = () => {
-    setEditorText(currentConflict.incoming);
+    setEditedContentByFile((prev) => ({ ...prev, [activeFile]: currentConflict.incoming }));
   };
 
   const handleAcceptBoth = () => {
     const combined = `${currentConflict.current}\n${currentConflict.incoming}`;
-    setEditorText(combined);
+    setEditedContentByFile((prev) => ({ ...prev, [activeFile]: combined }));
   };
 
   const handleMarkResolved = () => {
@@ -80,7 +70,7 @@ export function ConflictEditor({
           {fileList.map((f) => (
             <button
               key={f}
-              onClick={() => setActiveFile(f)}
+              onClick={() => setSelectedFile(f)}
               className={`px-3 py-1.5 text-xs font-mono rounded-t-lg transition-colors flex items-center gap-1.5 ${
                 activeFile === f
                   ? 'bg-slate-900 text-sky-400 border-t border-x border-slate-800'
@@ -161,7 +151,10 @@ export function ConflictEditor({
           </div>
           <textarea
             value={editorText}
-            onChange={(e) => setEditorText(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setEditedContentByFile((prev) => ({ ...prev, [activeFile]: val }));
+            }}
             className="flex-1 w-full h-[180px] p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 font-mono text-xs focus:outline-none focus:border-amber-500/80 resize-none"
             spellCheck={false}
           />

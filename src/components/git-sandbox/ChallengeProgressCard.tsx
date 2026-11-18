@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   Circle,
   HelpCircle,
-  Sparkles,
   Trophy,
   ChevronRight,
   RotateCcw,

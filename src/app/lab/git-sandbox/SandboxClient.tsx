@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { GitGraphState, GitChallenge, GitCommit } from '@/lib/git-sandbox/types';
+import { GitGraphState, GitChallenge } from '@/lib/git-sandbox/types';
 import { executeGitCommand, resolveConflict } from '@/lib/git-sandbox/engine';
 import { GIT_CHALLENGES } from '@/lib/git-sandbox/challenges';
 import {
@@ -18,13 +18,10 @@ import { ConflictEditor } from '@/components/git-sandbox/ConflictEditor';
 import { ChallengeProgressCard } from '@/components/git-sandbox/ChallengeProgressCard';
 import { CommandCheatSheet } from '@/components/git-sandbox/CommandCheatSheet';
 import {
-  GitPullRequest,
   CheckCircle,
   Trophy,
   Award,
-  Sparkles,
   Layers,
-  ArrowRight,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -34,36 +31,33 @@ export function SandboxClient() {
   const [graphState, setGraphState] = useState<GitGraphState>(() => GIT_CHALLENGES[0].initialState());
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [showConflictEditor, setShowConflictEditor] = useState(false);
-  const [selectedCommit, setSelectedCommit] = useState<GitCommit | null>(null);
 
   // Initialize from storage or default
   useEffect(() => {
-    const savedCompleted = getCompletedChallenges();
-    setCompletedIds(savedCompleted);
+    const timer = setTimeout(() => {
+      const savedCompleted = getCompletedChallenges();
+      setCompletedIds(savedCompleted);
 
-    const savedChallengeId = loadActiveChallengeId();
-    if (savedChallengeId) {
-      const match = GIT_CHALLENGES.find((c) => c.id === savedChallengeId);
-      if (match) {
-        setActiveChallenge(match);
-        const savedState = loadSandboxState();
-        if (savedState) {
-          setGraphState(savedState);
-          return;
-        } else {
-          setGraphState(match.initialState());
-          return;
+      const savedChallengeId = loadActiveChallengeId();
+      if (savedChallengeId) {
+        const match = GIT_CHALLENGES.find((c) => c.id === savedChallengeId);
+        if (match) {
+          setActiveChallenge(match);
+          const savedState = loadSandboxState();
+          if (savedState) {
+            setGraphState(savedState);
+          } else {
+            setGraphState(match.initialState());
+          }
         }
       }
-    }
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // Save state on change
   useEffect(() => {
     saveSandboxState(graphState);
-    if (Object.keys(graphState.staging.conflicts).length > 0) {
-      setShowConflictEditor(true);
-    }
   }, [graphState]);
 
   // Check challenge completion
@@ -71,7 +65,10 @@ export function SandboxClient() {
     const allDone = activeChallenge.objectives.every((o) => o.check(graphState));
     if (allDone && !completedIds.includes(activeChallenge.id)) {
       const updated = markChallengeCompleted(activeChallenge.id);
-      setCompletedIds(updated);
+      const timer = setTimeout(() => {
+        setCompletedIds(updated);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [graphState, activeChallenge, completedIds]);
 
@@ -108,73 +105,72 @@ export function SandboxClient() {
   };
 
   const handleResolveConflict = (file: string, resolvedContent: string) => {
-    const next = resolveConflict(graphState, file, resolvedContent);
-    setGraphState(next);
-    if (Object.keys(next.staging.conflicts).length === 0) {
+    const nextState = resolveConflict(graphState, file, resolvedContent);
+    setGraphState(nextState);
+    if (Object.keys(nextState.staging.conflicts).length === 0) {
       setShowConflictEditor(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Navigation & Breadcrumb Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Top Banner / Breadcrumb & Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-1">
-            <Link href="/" className="hover:text-slate-200">
-              Contribo
+          <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground mb-1">
+            <Link href="/resources" className="hover:text-primary transition-colors">
+              Resources
             </Link>
             <span>/</span>
-            <span className="text-slate-300">Interactive Lab</span>
-            <span>/</span>
-            <span className="text-emerald-400 font-semibold">Git DAG Sandbox</span>
+            <span className="text-primary font-semibold">Interactive Git DAG Sandbox</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-100 flex items-center gap-2.5">
-            <Layers className="w-7 h-7 text-emerald-400" />
+          <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight flex items-center gap-2">
+            <Layers className="w-6 h-6 text-primary" />
             Git DAG Simulator & Conflict Sandbox
           </h1>
-          <p className="text-sm text-slate-400 mt-1 max-w-3xl">
-            Master Git branching, upstream synchronization, rebasing, and merge conflict resolution in a deterministic, zero-risk virtual terminal with real-time SVG graph visualizer.
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl">
+            Simulate Git branching, detached HEAD, rebasing, octopus merges, and 3-way conflict resolution directly in your browser.
           </p>
         </div>
 
-        {/* Challenge Selection Dropdown / Badges */}
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300">
-            <Trophy className="w-4 h-4 text-amber-400" />
-            <span>Badges: {completedIds.length}/{challenges.length} Earned</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card border border-border text-xs">
+            <Trophy className="w-4 h-4 text-amber-500" />
+            <span className="text-foreground font-semibold">
+              {completedIds.length} / {challenges.length} Done
+            </span>
           </div>
-          <Link
-            href="/passport"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-950/80 border border-emerald-800 text-xs font-semibold text-emerald-300 hover:bg-emerald-900 transition-colors"
+          <button
+            type="button"
+            onClick={handleResetChallenge}
+            className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground border border-border rounded-xl hover:bg-muted transition-colors"
           >
-            <Award className="w-4 h-4" />
-            <span>View in Passport</span>
-          </Link>
+            Reset Current
+          </button>
         </div>
       </div>
 
-      {/* Challenge Picker Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+      {/* Challenge Selection Strip */}
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
         {challenges.map((c, idx) => {
-          const isSelected = c.id === activeChallenge.id;
+          const isActive = c.id === activeChallenge.id;
           const isDone = completedIds.includes(c.id);
 
           return (
             <button
               key={c.id}
               onClick={() => handleSelectChallenge(c)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all border ${
-                isSelected
-                  ? 'bg-slate-800 border-sky-500 text-slate-100 shadow-md shadow-sky-500/10'
-                  : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all border ${
+                isActive
+                  ? 'bg-primary text-primary-foreground border-primary shadow-xs font-bold'
+                  : 'bg-card text-muted-foreground hover:text-foreground border-border hover:border-primary/50'
               }`}
             >
-              <span className="w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center font-bold text-[10px]">
-                {idx + 1}
-              </span>
+              <span className="font-mono opacity-80">0{idx + 1}.</span>
               <span>{c.title}</span>
-              {isDone && <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />}
+              {isDone && (
+                <CheckCircle className={`w-3.5 h-3.5 ${isActive ? 'text-primary-foreground' : 'text-emerald-500'}`} />
+              )}
             </button>
           );
         })}
@@ -197,7 +193,6 @@ export function SandboxClient() {
           <div className="h-[280px]">
             <GitGraphVisualizer
               graphState={graphState}
-              onSelectCommit={(commit) => setSelectedCommit(commit)}
             />
           </div>
 
@@ -219,14 +214,25 @@ export function SandboxClient() {
               allChallenges={challenges}
               completedChallengeIds={completedIds}
               onSelectChallenge={handleSelectChallenge}
-              onResetChallenge={handleResetChallenge}
             />
+          </div>
+
+          <div>
+            <CommandCheatSheet />
           </div>
         </div>
       </div>
 
-      {/* Command Cheat Sheet Accordion */}
-      <CommandCheatSheet />
+      {/* Educational Footer Callout */}
+      <div className="p-4 rounded-xl border border-border bg-card/40 flex items-center justify-between text-xs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <Award className="w-4 h-4 text-primary shrink-0" />
+          <span>
+            Practice common scenarios: rebasing on main, cherry-picking hotfixes, and resolving merge conflicts before pushing to upstream open-source repositories.
+          </span>
+        </div>
+        <span className="hidden sm:inline-block font-mono text-[11px]">Contribo Git DAG Engine v1.0</span>
+      </div>
     </div>
   );
 }

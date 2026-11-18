@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { GitCommit, GitGraphState } from '@/lib/git-sandbox/types';
-import { GitBranch, GitCommit as GitCommitIcon, ArrowRight, Eye, ShieldCheck } from 'lucide-react';
+import { GitBranch } from 'lucide-react';
 
 interface GitGraphVisualizerProps {
   graphState: GitGraphState;
@@ -184,7 +184,6 @@ export function GitGraphVisualizer({ graphState, onSelectCommit }: GitGraphVisua
           {/* Render Edge Connectors */}
           {edges.map((edge, idx) => {
             const dx = edge.to.x - edge.from.x;
-            const dy = edge.to.y - edge.from.y;
             const cx1 = edge.from.x + dx * 0.5;
             const cy1 = edge.from.y;
             const cx2 = edge.from.x + dx * 0.5;
