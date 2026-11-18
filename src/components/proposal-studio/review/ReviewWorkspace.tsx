@@ -5,16 +5,10 @@ import Link from 'next/link';
 import {
   ArrowLeft,
   Award,
-  CheckCircle2,
-  FileText,
-  Filter,
-  Layers,
   MessageSquare,
   Plus,
   Share2,
-  Sparkles,
   Star,
-  Tag,
 } from 'lucide-react';
 import type {
   AnnotationStatus,
@@ -55,7 +49,7 @@ export function ReviewWorkspace({ initialData }: ReviewWorkspaceProps) {
   const [authorRole, setAuthorRole] = useState<ReviewerRole>('mentor');
   const [isAddingAnnotation, setIsAddingAnnotation] = useState(false);
 
-  const { proposal, annotations, rubricEvaluations, userPermission, isOwner } = data;
+  const { proposal, annotations, rubricEvaluations, userPermission } = data;
   const canComment = userPermission === 'can_comment' || userPermission === 'can_score';
   const canScore = userPermission === 'can_score';
 

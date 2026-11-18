@@ -1,16 +1,14 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import { ReviewWorkspace } from '@/components/proposal-studio/review/ReviewWorkspace';
 import type { ProposalReviewData } from '@/lib/proposal-studio/review-types';
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ token?: string }>;
+  searchParams?: Promise<{ token?: string }>;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
+export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'Mentor & Peer Proposal Review Workspace | Contribo',
     description:
@@ -102,9 +100,8 @@ const DEMO_REVIEW_DATA: ProposalReviewData = {
   isOwner: true,
 };
 
-export default async function ProposalReviewPage({ params, searchParams }: Props) {
+export default async function ProposalReviewPage({ params }: Props) {
   const { id } = await params;
-  const { token } = await searchParams;
 
   // If demo proposal or preview, render immediate rich workspace
   const reviewData: ProposalReviewData = {

@@ -4,10 +4,7 @@ import React, { useState } from 'react';
 import {
   Check,
   Copy,
-  Globe,
-  Key,
   Link as LinkIcon,
-  Shield,
   X,
 } from 'lucide-react';
 import type { ReviewTokenPermission } from '@/lib/proposal-studio/review-types';

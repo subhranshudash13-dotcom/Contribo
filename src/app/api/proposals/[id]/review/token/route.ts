@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { getProposalById } from '@/lib/repositories/proposals';
 import { generateReviewToken } from '@/lib/repositories/proposal-reviews';
 import type { ReviewTokenPermission } from '@/lib/proposal-studio/review-types';
 

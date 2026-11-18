@@ -2,16 +2,13 @@
 
 import React, { useState } from 'react';
 import {
-  Check,
-  CheckCircle2,
-  Clock,
   CornerDownRight,
   MessageSquare,
   Quote,
   Send,
-  User,
 } from 'lucide-react';
 import type {
+  AnnotationReply,
   AnnotationStatus,
   ProposalAnnotation,
 } from '@/lib/proposal-studio/review-types';
@@ -21,7 +18,7 @@ interface AnnotationThreadProps {
   proposalId: string;
   canComment: boolean;
   onStatusChange: (annotationId: string, status: AnnotationStatus) => void;
-  onReplyAdded: (annotationId: string, reply: any) => void;
+  onReplyAdded: (annotationId: string, reply: AnnotationReply) => void;
 }
 
 export function AnnotationThread({

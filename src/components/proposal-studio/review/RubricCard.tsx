@@ -1,16 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import {
-  Award,
-  CheckCircle,
-  HelpCircle,
-  Send,
-  Star,
-  ThumbsDown,
-  ThumbsUp,
-  UserCheck,
-} from 'lucide-react';
+import { Send } from 'lucide-react';
 import { calculateRubricScore } from '@/lib/repositories/proposal-reviews';
 import type {
   RecommendationType,

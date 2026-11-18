@@ -88,6 +88,6 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
   }
 }
 
-function targetAnnotationExists(val: any): boolean {
+function targetAnnotationExists(val: unknown): boolean {
   return val !== null && val !== undefined;
 }
