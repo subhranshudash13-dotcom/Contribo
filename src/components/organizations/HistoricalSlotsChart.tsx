@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Award, BarChart3, CheckCircle2, TrendingUp, Users } from 'lucide-react';
+import { Award, BarChart3, CheckCircle2, TrendingUp } from 'lucide-react';
 import type { HistoricalSlotYear } from '@/lib/organizations/types';
 
 interface HistoricalSlotsChartProps {
@@ -24,7 +24,7 @@ export function HistoricalSlotsChart({ slots, orgName }: HistoricalSlotsChartPro
             Program Slot Allocation & Retention (2022–2026)
           </h2>
           <p className="text-xs font-mono text-muted">
-            Year-over-year mentorship capacity, completion rate, and estimated applicant competitiveness
+            {orgName} year-over-year mentorship capacity, completion rate, and applicant competitiveness
           </p>
         </div>
 

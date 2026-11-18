@@ -20,14 +20,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: 'Organization Insights Not Found | Contribo',
     };
   }
-  const org = rawOrg as Record<string, any>;
+  const org = rawOrg as Record<string, unknown>;
+  const orgName = typeof org.name === 'string' && org.name.trim() ? org.name : slug;
 
   return {
-    title: `${org.name || slug} - Responsiveness Index & Historical Acceptance Analytics | Contribo`,
-    description: `Inspect mentor responsiveness, median pull request review time, historical slot retention, and bus factor for ${org.name || slug}.`,
+    title: `${orgName} - Responsiveness Index & Historical Acceptance Analytics | Contribo`,
+    description: `Inspect mentor responsiveness, median pull request review time, historical slot retention, and bus factor for ${orgName}.`,
     openGraph: {
-      title: `${org.name || slug} - Responsiveness & Mentorship Analytics`,
-      description: `Data-driven insights on mentor turnaround time and acceptance rates for ${org.name || slug}.`,
+      title: `${orgName} - Responsiveness & Mentorship Analytics`,
+      description: `Data-driven insights on mentor turnaround time and acceptance rates for ${orgName}.`,
       type: 'website',
     },
   };
@@ -40,7 +41,7 @@ export default async function OrganizationInsightsPage({ params }: Props) {
   if (!rawOrg) {
     notFound();
   }
-  const org = rawOrg as Record<string, any>;
+  const org = rawOrg as Record<string, unknown>;
 
   const insights = generateOrganizationInsights({
     name: String(org.name || slug),
@@ -48,8 +49,8 @@ export default async function OrganizationInsightsPage({ params }: Props) {
     category: org.category ? String(org.category) : undefined,
     websiteUrl: org.websiteUrl ? String(org.websiteUrl) : undefined,
     logoUrl: org.logoUrl ? String(org.logoUrl) : undefined,
-    years: Array.isArray(org.years) ? org.years : undefined,
-    yearlyStats: org.yearlyStats as Record<string, { projectsCount?: number; slotsCount?: number }>,
+    years: Array.isArray(org.years) ? (org.years as (string | number)[]) : undefined,
+    yearlyStats: org.yearlyStats as Record<string, { projectsCount?: number; slotsCount?: number }> | undefined,
     projectsCount: typeof org.projectsCount === 'number' ? org.projectsCount : undefined,
     programName: org.programName ? String(org.programName) : undefined,
   });

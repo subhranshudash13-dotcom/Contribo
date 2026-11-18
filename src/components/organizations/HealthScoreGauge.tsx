@@ -3,7 +3,6 @@
 import React from 'react';
 import {
   Activity,
-  CheckCircle2,
   Clock,
   GitMerge,
   ShieldCheck,

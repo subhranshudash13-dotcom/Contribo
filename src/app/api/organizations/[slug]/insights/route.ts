@@ -17,7 +17,7 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
     if (!rawOrg) {
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
     }
-    const org = rawOrg as Record<string, any>;
+    const org = rawOrg as Record<string, unknown>;
 
     const insights = generateOrganizationInsights({
       name: String(org.name || slug),
@@ -25,8 +25,8 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
       category: org.category ? String(org.category) : undefined,
       websiteUrl: org.websiteUrl ? String(org.websiteUrl) : undefined,
       logoUrl: org.logoUrl ? String(org.logoUrl) : undefined,
-      years: Array.isArray(org.years) ? org.years : undefined,
-      yearlyStats: org.yearlyStats as Record<string, { projectsCount?: number; slotsCount?: number }>,
+      years: Array.isArray(org.years) ? (org.years as (string | number)[]) : undefined,
+      yearlyStats: org.yearlyStats as Record<string, { projectsCount?: number; slotsCount?: number }> | undefined,
       projectsCount: typeof org.projectsCount === 'number' ? org.projectsCount : undefined,
       programName: org.programName ? String(org.programName) : undefined,
     });

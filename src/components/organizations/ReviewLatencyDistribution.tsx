@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Clock, HelpCircle, Zap } from 'lucide-react';
+import { Clock, Zap } from 'lucide-react';
 import type { ReviewLatencyBucket } from '@/lib/organizations/types';
 
 interface ReviewLatencyDistributionProps {

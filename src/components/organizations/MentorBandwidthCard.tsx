@@ -2,12 +2,8 @@
 
 import React from 'react';
 import {
-  AlertTriangle,
-  Calendar,
-  CheckCircle,
   ExternalLink,
   MessageSquare,
-  Shield,
   Users,
 } from 'lucide-react';
 import type {
@@ -52,7 +48,7 @@ export function MentorBandwidthCard({
             Mentor Bandwidth & Communication Channels
           </h2>
           <p className="text-xs font-mono text-muted">
-            Maintainer distribution, community triage channels, and proposal submission strategy
+            {activeMaintainers} active maintainers · maintainer distribution, community triage channels, and proposal submission strategy
           </p>
         </div>
 

@@ -6,10 +6,6 @@ import {
   Activity,
   ArrowLeft,
   Building2,
-  ChevronRight,
-  ExternalLink,
-  Layers,
-  Sparkles,
 } from 'lucide-react';
 import type { OrganizationInsightsData } from '@/lib/organizations/types';
 import { HealthScoreGauge } from './HealthScoreGauge';
@@ -46,6 +42,7 @@ export function OrganizationInsightsView({ insights }: OrganizationInsightsViewP
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={logoUrl}
                 alt={`${name} logo`}
