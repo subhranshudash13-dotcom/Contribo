@@ -214,6 +214,7 @@ export function SandboxClient() {
               allChallenges={challenges}
               completedChallengeIds={completedIds}
               onSelectChallenge={handleSelectChallenge}
+              onResetChallenge={handleResetChallenge}
             />
           </div>
 
