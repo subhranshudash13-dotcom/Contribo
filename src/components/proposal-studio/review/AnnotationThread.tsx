@@ -8,7 +8,6 @@ import {
   Send,
 } from 'lucide-react';
 import type {
-  AnnotationReply,
   AnnotationStatus,
   ProposalAnnotation,
 } from '@/lib/proposal-studio/review-types';
@@ -18,7 +17,7 @@ interface AnnotationThreadProps {
   proposalId: string;
   canComment: boolean;
   onStatusChange: (annotationId: string, status: AnnotationStatus) => void;
-  onReplyAdded: (annotationId: string, reply: AnnotationReply) => void;
+  onReplyAdded: (annotationId: string, updatedAnnotation: ProposalAnnotation) => void;
 }
 
 export function AnnotationThread({
