@@ -5,6 +5,10 @@ export const metadata = {
   title: 'Proposal Studio | Contribo',
   description:
     'A focused proposal workspace for open-source program applicants — structured builder, annotated examples, readiness scoring, and Markdown export.',
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 function ProposalStudioFallback() {

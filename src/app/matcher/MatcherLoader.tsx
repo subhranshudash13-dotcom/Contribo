@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic';
 import { SectionSkeleton } from '@/components/ui/SectionSkeleton';
 
 const MatcherClient = dynamic(() => import('./MatcherClient'), {
-  ssr: false,
   loading: () => (
     <main className="min-h-screen w-full bg-noise px-4 py-16">
       <div className="mx-auto max-w-4xl space-y-6">
