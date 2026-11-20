@@ -18,6 +18,7 @@ const LINKS = [
   { href: '/programs', label: 'Programs' },
   { href: '/organizations', label: 'Organizations' },
   { href: '/projects', label: 'Projects' },
+  { href: '/issues', label: 'Issues' },
   { href: '/proposal-studio', label: 'Proposal Studio' },
   { href: '/resources', label: 'Resources' },
   { href: '/matcher', label: 'Orbit AI', isAi: true },
