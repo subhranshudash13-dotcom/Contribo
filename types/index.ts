@@ -66,6 +66,7 @@ export interface Project {
   title: string;
   description: string;
   difficulty?: string;
+  eligibility?: string;
   techStack: string[];
   githubUrl?: string;
   applicationDeadline?: Date | string;
