@@ -12,7 +12,6 @@ const routes: Array<{
   { path: '/projects', changeFrequency: 'daily', priority: 0.9 },
   { path: '/resources', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/roadmaps', changeFrequency: 'monthly', priority: 0.7 },
-  { path: '/matcher', changeFrequency: 'monthly', priority: 0.6 },
   { path: '/guidelines', changeFrequency: 'monthly', priority: 0.5 },
   { path: '/accessibility', changeFrequency: 'yearly', priority: 0.3 },
   { path: '/privacy-policy', changeFrequency: 'yearly', priority: 0.3 },
