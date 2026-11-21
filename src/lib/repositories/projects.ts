@@ -26,6 +26,7 @@ const LEAN_PROJECT_PROJECTION = {
   org: 1,
   orgSlug: 1,
   difficulty: 1,
+  eligibility: 1,
   techStack: 1,
   description: 1,
   year: 1,
