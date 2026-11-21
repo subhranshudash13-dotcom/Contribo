@@ -20,6 +20,7 @@ import {
 import type { PublicPassportData } from '@/lib/passport';
 import { getReadinessSignals } from '@/lib/passport';
 import { OrgLogo } from '@/components/ui/OrgLogo';
+import { VerifiedActivityFeed } from '@/components/passport/VerifiedActivityFeed';
 
 interface PassportCardProps {
   passport: PublicPassportData;
@@ -397,7 +398,10 @@ export function PassportCard({ passport, origin }: PassportCardProps) {
         </div>
       </div>
 
-      {/* 6. CONTRIIBO ECOSYSTEM CALLOUT */}
+      {/* 6. VERIFIED GITHUB CONTRIBUTION FEED */}
+      <VerifiedActivityFeed username={passport.githubUsername || passport.username} />
+
+      {/* 7. CONTRIIBO ECOSYSTEM CALLOUT */}
       <div className="p-6 rounded-2xl border border-hairline/70 bg-surface/50 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
         <div className="space-y-1">
           <div className="text-xs font-bold text-primary">
