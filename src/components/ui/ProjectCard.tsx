@@ -1,9 +1,23 @@
 import React from 'react';
 import Link from 'next/link';
-import { ExternalLink, Code2, Users, Banknote, Clock } from 'lucide-react';
+import { ExternalLink, Code2, Users, Banknote, Clock, CalendarDays } from 'lucide-react';
 import { Project } from '../../../types';
 import { SaveButton, TrackApplicationButton, ShareButton } from './SaveTrackActions';
 import { getProjectScopeAndStipend } from '@/lib/project-utils';
+
+function formatDeadline(deadline?: Date | string) {
+  if (!deadline) return 'Not specified';
+
+  const date = deadline instanceof Date ? deadline : new Date(deadline);
+  if (Number.isNaN(date.getTime())) return 'Not specified';
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
+}
 
 export function ProjectCard({
   project,
@@ -69,9 +83,57 @@ export function ProjectCard({
         </span>
       </div>
 
+      <div className="grid grid-cols-2 gap-3 mb-4 text-xs">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 text-muted font-mono uppercase tracking-wide">
+            <CalendarDays size={13} className="shrink-0" />
+            <span>Deadline</span>
+          </div>
+          <p className="mt-1 text-primary truncate">{formatDeadline(project.applicationDeadline)}</p>
+        </div>
+        <div className="min-w-0">
+          <p className="text-muted font-mono uppercase tracking-wide">Eligibility</p>
+          <p className="mt-1 text-primary line-clamp-2">
+            {project.eligibility?.trim() || 'Not specified'}
+          </p>
+        </div>
+      </div>
+
       <p className="text-muted text-sm mb-6 line-clamp-3 flex-grow leading-relaxed">
         {project.description}
       </p>
+
+      <details className="group mb-4 border-t border-hairline/80 pt-3">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-sm font-medium text-program-accent hover:underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass rounded-sm">
+          <span className="group-open:hidden">Read more</span>
+          <span className="hidden group-open:inline">Show less</span>
+        </summary>
+        <div className="space-y-4 pt-2">
+          <p className="whitespace-pre-line text-sm leading-relaxed text-secondary">
+            {project.description || 'Not specified'}
+          </p>
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-3 border-t border-hairline/80 pt-3 text-xs">
+            <div className="min-w-0">
+              <dt className="text-muted font-mono uppercase tracking-wide">Program</dt>
+              <dd className="mt-1 break-words text-primary">{project.programName || 'Not specified'}</dd>
+            </div>
+            <div className="min-w-0">
+              <dt className="text-muted font-mono uppercase tracking-wide">Estimated commitment</dt>
+              <dd className="mt-1 text-primary">{scope.hours} hours (~{scope.durationWeeks} weeks)</dd>
+            </div>
+            <div className="min-w-0">
+              <dt className="text-muted font-mono uppercase tracking-wide">Stipend / rewards</dt>
+              <dd className="mt-1 text-primary">{scope.stipendRange || 'Not specified'}</dd>
+            </div>
+            <div className="min-w-0">
+              <dt className="text-muted font-mono uppercase tracking-wide">Technology stack</dt>
+              <dd className="mt-1 break-words text-primary">
+                {project.techStack?.length ? project.techStack.join(', ') : 'Not specified'}
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </details>
 
       <div className="mt-auto pt-4 border-t border-hairline">
         <div className="flex items-center gap-2 mb-4 text-xs font-mono">
