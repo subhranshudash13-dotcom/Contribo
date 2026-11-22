@@ -109,7 +109,7 @@ export const proxy = auth(async (req) => {
         ? 8 * 1024
         : 256 * 1024;
     if (isMutation && contentLength > bodyBudget) {
-      return withSecurityHeaders(requestBudgetResponse());
+      return withSecurityHeaders(requestBudgetResponse(), requestId);
     }
 
     if (
