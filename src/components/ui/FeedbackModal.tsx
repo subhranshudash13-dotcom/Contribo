@@ -18,6 +18,7 @@ export function FeedbackModal({
   const [subject, setSubject] = useState<string>('');
   const [message, setMessage] = useState<string>('');
   const [email, setEmail] = useState<string>('');
+  const [website, setWebsite] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -44,6 +45,7 @@ export function FeedbackModal({
         subject: subject || `${type} Submission`,
         message,
         userEmail: email,
+        website,
       });
       setSuccessMsg(res.message || 'Thank you! Your feedback has been received.');
       setTimeout(() => {
@@ -91,6 +93,18 @@ export function FeedbackModal({
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
+              <label htmlFor="feedback-website">Leave this field empty</label>
+              <input
+                id="feedback-website"
+                name="website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                value={website}
+                onChange={(event) => setWebsite(event.target.value)}
+              />
+            </div>
             {errorMsg && (
               <div className="p-3 rounded-xl border border-error/30 bg-error/10 text-xs text-error font-mono flex items-center gap-2">
                 <AlertCircle size={14} />
