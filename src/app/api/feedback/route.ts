@@ -24,6 +24,16 @@ export async function POST(req: Request) {
     const body = await parseMutationBody(req);
     if (isNextResponse(body)) return body;
 
+    // Privacy-preserving honeypot: no tracking or external challenge provider.
+    // Keep the public response indistinguishable from a successful submission.
+    if (typeof body.website === 'string' && body.website.trim()) {
+      return apiOk(
+        { success: true, message: 'Thank you for your feedback! Our team has received your submission.' },
+        201,
+        privateNoStoreHeaders()
+      );
+    }
+
     const feedbackType = normalizeFeedbackCategory(body.type);
     if (feedbackType === null) {
       return apiError('Invalid feedback category', 400);
