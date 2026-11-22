@@ -16,6 +16,7 @@ import {
   Bookmark,
   Sparkles,
   Flame,
+  FileText,
 } from 'lucide-react';
 import type { PublicPassportData } from '@/lib/passport';
 import { getReadinessSignals } from '@/lib/passport';
@@ -322,6 +323,14 @@ export function PassportCard({ passport, origin }: PassportCardProps) {
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href={`/passport/${passport.username}/resume`}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-accent text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-2xs"
+              >
+                <FileText size={13} />
+                <span>Build Resume</span>
+              </Link>
+
               <button
                 type="button"
                 onClick={() => copyToClipboard(passportUrl, 'link')}
