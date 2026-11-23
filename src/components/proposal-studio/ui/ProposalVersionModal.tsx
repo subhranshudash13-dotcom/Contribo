@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import Link from 'next/link';
 import {
   AlertCircle,
   Check,
   CheckCircle2,
   Clock,
   Columns2,
+  FileDiff,
   FileText,
   History,
   Loader2,
@@ -296,6 +298,14 @@ export function ProposalVersionModal({
           </div>
 
           <div className="flex items-center gap-2">
+            <Link
+              href={`/proposal-studio/diff?proposalId=${encodeURIComponent(draft.id)}`}
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-accent/30 bg-accent/10 font-mono text-xs text-accent hover:bg-accent hover:text-white transition-colors cursor-pointer"
+              title="Open full-screen Markdown Diff Inspector & Side-by-Side Live Comparison"
+            >
+              <FileDiff size={14} />
+              <span>Diff Inspector</span>
+            </Link>
             <button
               type="button"
               onClick={refreshRevisions}
