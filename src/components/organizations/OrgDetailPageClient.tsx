@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
+  Activity,
   Globe,
   Twitter,
   Mail,
@@ -158,6 +159,14 @@ export function OrgDetailPageClient({
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 shrink-0">
+          <Link
+            href={`/organizations/${org.slug}/insights`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-semibold border border-accent/30 bg-accent/10 hover:bg-accent hover:text-white transition-all text-accent cursor-pointer shadow-2xs"
+            title="Inspect mentor responsiveness and historical acceptance analytics"
+          >
+            <Activity size={12} />
+            <span>Insights</span>
+          </Link>
           <button
             onClick={handleCopyShare}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-semibold border border-hairline bg-surface hover:bg-surface-raised transition-all text-secondary hover:text-primary cursor-pointer shadow-2xs"
