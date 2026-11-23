@@ -119,16 +119,24 @@ export default async function ProgramDetailPage({ params }: Props) {
             </div>
           </div>
 
-          {program.officialWebsite && (
-            <a
-              href={program.officialWebsite}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 border border-hairline bg-surface hover:bg-surface-raised font-bold text-sm text-primary rounded-xl transition-all shadow-xs w-fit cursor-pointer self-start md:self-center"
+          <div className="flex flex-wrap items-center gap-3 self-start md:self-center">
+            <Link
+              href={`/programs/${program.slug}/skill-tree`}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 font-bold text-sm text-white rounded-xl transition-all shadow-sm w-fit"
             >
-              Official Website <ExternalLink size={14} className="text-secondary" />
-            </a>
-          )}
+              <Compass size={14} /> Skill Tree
+            </Link>
+            {program.officialWebsite && (
+              <a
+                href={program.officialWebsite}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 border border-hairline bg-surface hover:bg-surface-raised font-bold text-sm text-primary rounded-xl transition-all shadow-xs w-fit cursor-pointer"
+              >
+                Official Website <ExternalLink size={14} className="text-secondary" />
+              </a>
+            )}
+          </div>
         </div>
       </div>
 
