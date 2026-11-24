@@ -207,6 +207,14 @@ async function main() {
     await ensureIndex(sessions, { sessionToken: 1 }, { unique: true });
     await ensureIndex(sessions, { userId: 1 });
 
+    // 8. contributor_github_activities (Activity Ingestion & Cache)
+    console.log("\nConfiguring indexes for 'contributor_github_activities'...");
+    const activityCollection = db.collection('contributor_github_activities');
+    await ensureIndex(activityCollection, { userId: 1, repository: 1, createdAt: -1 });
+    await ensureIndex(activityCollection, { username: 1, createdAt: -1 });
+    await ensureIndex(activityCollection, { prUrl: 1 }, { unique: true, sparse: true });
+    await ensureIndex(activityCollection, { expiresAt: 1 }, { expireAfterSeconds: 0 });
+
     console.log('\nDatabase index configuration completed successfully.');
   } catch (err) {
     console.error('Error setting up indexes:', err);
