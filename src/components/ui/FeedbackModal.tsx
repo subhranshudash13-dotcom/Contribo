@@ -106,9 +106,9 @@ export function FeedbackModal({
               />
             </div>
             {errorMsg && (
-              <div className="p-3 rounded-xl border border-error/30 bg-error/10 text-xs text-error font-mono flex items-center gap-2">
+              <div id="feedback-error" role="alert" aria-live="assertive" className="p-3 rounded-xl border border-error/30 bg-error/10 text-xs text-error font-mono flex items-center gap-2">
                 <AlertCircle size={14} />
-                <span>{errorMsg}</span>
+                <span>{errorMsg} You can update the form and submit again.</span>
               </div>
             )}
 
@@ -147,11 +147,14 @@ export function FeedbackModal({
                 Details & Description <span className="text-accent">*</span>
               </label>
               <textarea
+                id="feedback-message"
                 rows={4}
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={(e) => { setMessage(e.target.value); setErrorMsg(null); }}
                 placeholder="Describe the feature or improvement you'd love to see on Contribo..."
                 className="w-full bg-page border border-hairline rounded-xl p-3.5 text-xs font-mono text-primary focus:outline-none focus:border-accent leading-relaxed"
+                aria-invalid={Boolean(errorMsg && message.trim().length < 5)}
+                aria-describedby={errorMsg ? 'feedback-error' : undefined}
                 required
               />
             </div>
