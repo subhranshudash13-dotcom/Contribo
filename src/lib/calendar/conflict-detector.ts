@@ -74,6 +74,7 @@ const SEVERITY_ORDER: Record<ConflictSeverity, number> = {
 };
 
 const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
+const DATE_PREFIX = /^\d{4}-\d{2}-\d{2}(?=[T ])/;
 const ZONELESS_DATE_TIME = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/;
 
 /**
@@ -90,6 +91,9 @@ export function toUtcTimestamp(value: string): number | null {
     // Date.UTC rolls 2026-02-30 over into March, so check the round trip.
     return new Date(time).toISOString().startsWith(text) ? time : null;
   }
+  // Date.parse rolls impossible days over too, so check the day part by itself.
+  const day = DATE_PREFIX.exec(text);
+  if (day && toUtcTimestamp(day[0]) === null) return null;
   const time = Date.parse(ZONELESS_DATE_TIME.test(text) ? `${text.replace(' ', 'T')}Z` : text);
   return Number.isNaN(time) ? null : time;
 }

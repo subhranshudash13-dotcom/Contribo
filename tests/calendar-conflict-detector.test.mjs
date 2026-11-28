@@ -160,3 +160,10 @@ test('drafting blocks never overlap and finish before their deadline', () => {
   assert.equal(plan[2].draftingDays, 7);
   assert.match(plan[0].note, /Finish early/);
 });
+
+test('impossible calendar days are rejected in datetime values too', () => {
+  assert.equal(toUtcTimestamp('2026-02-30T12:00:00Z'), null);
+  assert.equal(toUtcTimestamp('2026-04-31 09:00'), null);
+  assert.equal(toUtcTimestamp('2026-02-30T12:00:00+05:30'), null);
+  assert.equal(toUtcTimestamp('2026-03-01T00:30:00+05:30'), Date.UTC(2026, 1, 28, 19, 0));
+});
